@@ -1,0 +1,23 @@
+[project]
+name = "emotion-aware-llm-scheduling"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate==0.29.3",
+    "datasets==2.19.0",
+    "evaluate==0.4.1",
+    "matplotlib==3.8.4",
+    "numpy==1.26.4",
+    "pandas==2.2.2",
+    "protobuf==5.26.1",
+    "scikit-learn==1.4.2",
+    "seaborn==0.13.2",
+    "sentencepiece==0.2.0",
+    "tensorboard==2.16.2",
+    "torch==2.2.2",
+    "torchmetrics==1.3.2",
+    "tqdm==4.66.2",
+    "transformers==4.40.0",
+]
