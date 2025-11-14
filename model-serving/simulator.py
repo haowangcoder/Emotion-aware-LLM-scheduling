@@ -26,6 +26,7 @@ from core.ssjf_emotion import SSJFEmotionScheduler
 from analysis.logger import EmotionAwareLogger
 from analysis.fairness_metrics import analyze_fairness_comprehensive
 from core.job import Job
+from core.job_config_manager import create_job_config_manager
 from config import *
 
 
@@ -167,17 +168,69 @@ def run_emotion_aware_experiment(args):
 
     print(f"  Calculated arrival rate (λ): {arrival_rate:.3f}")
 
+    # Initialize job config manager
+    job_config_manager = create_job_config_manager(JOB_CONFIG_CACHE_FILE)
+
+    # Check if we should use saved job configurations
+    loaded_config = None
+    if USE_SAVED_JOB_CONFIG and not FORCE_NEW_JOB_CONFIG:
+        loaded_config = job_config_manager.load_job_configs()
+        if loaded_config:
+            # Validate that loaded config matches current experiment settings
+            if job_config_manager.validate_config(loaded_config, args.num_jobs):
+                print(f"\nUsing saved job configurations from: {JOB_CONFIG_CACHE_FILE}")
+                print(f"  Created: {loaded_config['metadata'].get('created_at', 'unknown')}")
+                print(f"  Random seed: {loaded_config['metadata'].get('random_seed', 'unknown')}")
+            else:
+                print(f"\nWarning: Saved config validation failed, generating new jobs")
+                loaded_config = None
+        else:
+            print(f"\nNo saved job config found, generating new jobs")
+
     # Generate jobs
-    print(f"\nGenerating {args.num_jobs} emotion-aware jobs...")
-    jobs = create_emotion_aware_jobs(
-        num_jobs=args.num_jobs,
-        arrival_rate=arrival_rate,
-        distribution=args.distribution,
-        emotion_config=emotion_config,
-        service_time_config=service_config,
-        gamma=args.gamma,
-        enable_emotion=args.enable_emotion
-    )
+    if loaded_config:
+        print(f"\nLoading {args.num_jobs} emotion-aware jobs from saved config...")
+        jobs = create_emotion_aware_jobs(
+            num_jobs=args.num_jobs,
+            arrival_rate=arrival_rate,
+            distribution=args.distribution,
+            emotion_config=emotion_config,
+            service_time_config=service_config,
+            gamma=args.gamma,
+            enable_emotion=args.enable_emotion,
+            job_configs=loaded_config['jobs'],
+            random_seed=loaded_config['metadata'].get('random_seed')
+        )
+    else:
+        print(f"\nGenerating {args.num_jobs} emotion-aware jobs...")
+        # Use random seed if provided
+        random_seed = getattr(args, 'random_seed', None)
+        jobs = create_emotion_aware_jobs(
+            num_jobs=args.num_jobs,
+            arrival_rate=arrival_rate,
+            distribution=args.distribution,
+            emotion_config=emotion_config,
+            service_time_config=service_config,
+            gamma=args.gamma,
+            enable_emotion=args.enable_emotion,
+            random_seed=random_seed
+        )
+
+        # Save job configuration for future runs
+        if USE_SAVED_JOB_CONFIG:
+            metadata = {
+                'num_jobs': args.num_jobs,
+                'random_seed': random_seed,
+                'scheduler': args.scheduler,
+                'system_load': args.system_load,
+                'gamma': args.gamma,
+                'distribution': args.distribution,
+                'alpha': args.alpha,
+                'enable_emotion': args.enable_emotion
+            }
+            # Save configs (will be updated with conversation_index later)
+            # Note: This is a preliminary save, will be updated after LLM execution
+            pass  # We'll save after execution to include conversation_index
 
     # Print job statistics
     job_stats = get_emotion_aware_statistics(jobs)
@@ -248,6 +301,23 @@ def run_emotion_aware_experiment(args):
         cache_stats = llm_handler.get_cache_stats()
         print(f"  Cache stats: {cache_stats['num_entries']} entries, "
               f"{cache_stats['hit_rate']:.1%} hit rate")
+
+    # Save job configuration for future runs (if this was a new generation)
+    if USE_SAVED_JOB_CONFIG and loaded_config is None:
+        print(f"\nSaving job configurations for reproducibility...")
+        random_seed = getattr(args, 'random_seed', None)
+        metadata = {
+            'num_jobs': args.num_jobs,
+            'random_seed': random_seed,
+            'scheduler': args.scheduler,
+            'system_load': args.system_load,
+            'gamma': args.gamma,
+            'distribution': args.distribution,
+            'alpha': args.alpha,
+            'enable_emotion': args.enable_emotion
+        }
+        job_config_manager.save_job_configs(completed_jobs, metadata)
+        print(f"  Job configurations saved to: {JOB_CONFIG_CACHE_FILE}")
 
     # Calculate metrics
     import numpy as np
@@ -360,6 +430,8 @@ def main():
     parser.add_argument('--mapping_func', type=str, default='linear',
                         choices=['linear', 'exponential', 'gamma_dist'],
                         help='Service time mapping function')
+    parser.add_argument('--random_seed', type=int, default=None,
+                        help='Random seed for reproducibility (default: None, uses system entropy)')
 
     # Scheduler configuration
     parser.add_argument('--starvation_threshold', type=float, default=float('inf'),

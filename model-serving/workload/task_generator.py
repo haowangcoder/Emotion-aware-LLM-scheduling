@@ -77,7 +77,9 @@ def create_emotion_aware_jobs(
         service_time_config: ServiceTimeConfig = None,
         gamma: float = 0.0,
         trace_scale: float = 1.0,
-        enable_emotion: bool = True) -> List[Job]:
+        enable_emotion: bool = True,
+        job_configs: List[Dict] = None,
+        random_seed: int = None) -> List[Job]:
     """
     Create a list of jobs with emotion attributes
 
@@ -92,6 +94,8 @@ def create_emotion_aware_jobs(
         gamma: Coefficient for arousal impact on arrival rate
         trace_scale: Scale factor for arrival time normalization (if used)
         enable_emotion: Whether to enable emotion-aware features
+        job_configs: Optional list of job configurations to load (for reproducibility)
+        random_seed: Optional random seed for reproducibility
 
     Returns:
         List of Job objects with emotion attributes
@@ -101,8 +105,29 @@ def create_emotion_aware_jobs(
     if service_time_config is None:
         service_time_config = ServiceTimeConfig()
 
-    # Sample emotions for all jobs
-    if enable_emotion:
+    # Set random seed if provided
+    if random_seed is not None:
+        np.random.seed(random_seed)
+        import random
+        random.seed(random_seed)
+
+    # Load emotions from config or sample new ones
+    if job_configs is not None:
+        # Use pre-defined job configurations
+        emotions_arousal = []
+        for job_config in job_configs[:num_jobs]:
+            emotion = job_config.get('emotion', 'neutral')
+            # Use saved arousal value if available, otherwise recalculate from emotion
+            arousal = job_config.get('arousal')
+            if arousal is None:
+                # Fallback: recalculate arousal from emotion (for old config files)
+                if enable_emotion and emotion in emotion_config.emotion_arousal_map:
+                    arousal = emotion_config.get_arousal(emotion, add_noise=False)
+                else:
+                    arousal = 0.0
+            emotions_arousal.append((emotion, arousal))
+    elif enable_emotion:
+        # Sample emotions for all jobs
         emotions_arousal = sample_emotions_batch(num_jobs, emotion_config)
     else:
         # Neutral emotion if disabled
@@ -126,8 +151,13 @@ def create_emotion_aware_jobs(
         emotion_label, arousal = emotions_arousal[job_id]
         emotion_class = emotion_config.classify_arousal(arousal)
 
-        # Map arousal to service time
-        if enable_emotion:
+        # Get service time: use saved value if loading from config, otherwise calculate
+        if job_configs is not None and job_id < len(job_configs):
+            # Use exact saved service_time to ensure identical scheduling decisions
+            service_time = job_configs[job_id].get('service_time',
+                                                    map_service_time(arousal, service_time_config))
+        elif enable_emotion:
+            # Calculate service time from arousal
             service_time = map_service_time(arousal, service_time_config)
         else:
             # Use default service time if emotion disabled
@@ -144,6 +174,10 @@ def create_emotion_aware_jobs(
             arousal=arousal,
             emotion_class=emotion_class
         )
+
+        # Set conversation_index if loading from config
+        if job_configs is not None and job_id < len(job_configs):
+            job.conversation_index = job_configs[job_id].get('conversation_index')
 
         job_list.append(job)
 

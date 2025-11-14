@@ -143,10 +143,18 @@ class LLMInferenceHandler:
             return False
 
         # Get user context from dataset
-        user_context = self.dataset_loader.get_user_context_by_emotion(
+        # Use conversation_index if available (for reproducibility)
+        conversation_index = getattr(job, 'conversation_index', None)
+
+        user_context, selected_index = self.dataset_loader.get_user_context_by_emotion(
             emotion=emotion.lower(),
-            max_turns=LLM_MAX_CONVERSATION_TURNS
+            max_turns=LLM_MAX_CONVERSATION_TURNS,
+            conversation_index=conversation_index
         )
+
+        # Store the conversation index in the job for later saving
+        if job.conversation_index is None and selected_index >= 0:
+            job.conversation_index = selected_index
 
         if not user_context:
             logger.warning(f"No conversation found for emotion: {emotion}, using fallback")

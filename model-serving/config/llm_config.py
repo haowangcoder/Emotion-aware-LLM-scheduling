@@ -68,11 +68,20 @@ RESPONSE_CACHE_DIR = 'results/cache'  # Directory to store cache files
 RESPONSE_CACHE_PATH = os.path.join(RESPONSE_CACHE_DIR, 'responses.json')  # Cache file path
 FORCE_REGENERATE = False  # Force regenerate even if cached (ignores cache)
 
+# Job Configuration Cache for reproducible experiments
+JOB_CONFIG_CACHE_FILE = os.path.join(RESPONSE_CACHE_DIR, 'job_configs.json')  # Job config file path
+USE_SAVED_JOB_CONFIG = True  # Use saved job configurations if available
+FORCE_NEW_JOB_CONFIG = False  # Force generate new job configurations (ignores saved)
+
 # Environment variable overrides
 USE_RESPONSE_CACHE = os.environ.get('USE_RESPONSE_CACHE_ENV', 'True').lower() == 'true'
 RESPONSE_CACHE_DIR = os.environ.get('RESPONSE_CACHE_DIR_ENV', RESPONSE_CACHE_DIR)
 RESPONSE_CACHE_PATH = os.environ.get('RESPONSE_CACHE_PATH_ENV', RESPONSE_CACHE_PATH)
 FORCE_REGENERATE = os.environ.get('FORCE_REGENERATE_ENV', 'False').lower() == 'true'
+
+JOB_CONFIG_CACHE_FILE = os.environ.get('JOB_CONFIG_CACHE_FILE_ENV', JOB_CONFIG_CACHE_FILE)
+USE_SAVED_JOB_CONFIG = os.environ.get('USE_SAVED_JOB_CONFIG_ENV', 'True').lower() == 'true'
+FORCE_NEW_JOB_CONFIG = os.environ.get('FORCE_NEW_JOB_CONFIG_ENV', 'False').lower() == 'true'
 
 
 # ============================================================================

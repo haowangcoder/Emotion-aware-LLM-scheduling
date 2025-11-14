@@ -23,12 +23,12 @@ uv run python run_simulation.py --scheduler FCFS --num_jobs 10 --verbose
 uv run python run_simulation.py --scheduler SSJF-Emotion --num_jobs 50
 ```
 
-**Compare schedulers:**
+**Compare schedulers (with reproducible jobs):**
 ```bash
-# Run FCFS
-uv run python run_simulation.py --scheduler FCFS --num_jobs 100 --output_dir results/llm_runs
+# Run FCFS (generates and saves job configurations)
+uv run python run_simulation.py --scheduler FCFS --num_jobs 100 --random_seed 42 --output_dir results/llm_runs
 
-# Run SSJF-Emotion (uses cached responses for fair comparison)
+# Run SSJF-Emotion (uses same job configurations and cached responses for fair comparison)
 uv run python run_simulation.py --scheduler SSJF-Emotion --num_jobs 100 --output_dir results/llm_runs
 ```
 
@@ -251,7 +251,10 @@ The system uses a modular configuration structure organized in `model-serving/co
 - `LLM_DEVICE_MAP`: Device mapping ('auto', 'cuda', 'cpu')
 - `LLM_MAX_NEW_TOKENS`: Max tokens to generate (default: 64)
 - `LLM_TEMPERATURE`: Sampling temperature (default: 0.7)
-- `USE_RESPONSE_CACHE`: Enable caching (default: True)
+- `USE_RESPONSE_CACHE`: Enable response caching (default: True)
+- `JOB_CONFIG_CACHE_FILE`: Path to job configuration cache (default: 'results/cache/job_configs.json')
+- `USE_SAVED_JOB_CONFIG`: Use saved job configurations if available (default: True)
+- `FORCE_NEW_JOB_CONFIG`: Force generate new job configurations (default: False)
 
 **`config/scheduler_config.py`**: Scheduling algorithm settings
 - `SCHEDULER_ALGORITHM`: 'FCFS' or 'SSJF-Emotion'
@@ -348,21 +351,31 @@ uv run python run_simulation.py \
 
 ### Comparing Schedulers
 
-For fair comparison, use response caching:
+For fair comparison, the system ensures both runs use **identical queries** through job configuration caching:
 
 ```bash
-# First run: FCFS (generates and caches responses)
+# First run: FCFS (generates jobs, saves configuration, caches responses)
 uv run python run_simulation.py \
   --scheduler FCFS \
   --num_jobs 100 \
+  --random_seed 42 \
   --output_dir results/llm_runs/
 
-# Second run: SSJF-Emotion (uses cached responses)
+# Second run: SSJF-Emotion (loads same job configuration, uses cached responses)
 uv run python run_simulation.py \
   --scheduler SSJF-Emotion \
   --num_jobs 100 \
   --output_dir results/llm_runs/
 ```
+
+**How it works:**
+1. The first run sets a random seed (optional but recommended) and generates 100 jobs with random emotions and dataset conversations
+2. Job configurations (emotion, conversation_index) are saved to `results/cache/job_configs.json`
+3. LLM responses are cached to `results/cache/responses.json`
+4. The second run automatically loads the saved job configurations, ensuring **identical queries**
+5. Both runs use the same prompts, so response caching is maximally effective
+
+**Note:** Without `--random_seed`, jobs are still saved and reused, but won't be reproducible across different machines or after clearing the cache.
 
 ### Generating Visualizations
 
@@ -404,6 +417,69 @@ Range: [1/n, 1] where 1 = perfect fairness
 
 ---
 
+## Reproducibility Features
+
+The system provides two levels of caching for reproducible experiments:
+
+### 1. Response Caching
+LLM responses are cached by prompt hash:
+- **File**: `results/cache/responses.json`
+- **Purpose**: Avoid redundant LLM inference for identical prompts
+- **Key**: SHA256 hash of `model_name + prompt`
+- **Stored**: response text, execution time, token count
+
+### 2. Job Configuration Caching
+Job configurations are saved for cross-run consistency:
+- **File**: `results/cache/job_configs.json`
+- **Purpose**: Ensure different scheduler runs use identical workloads
+- **Stored**: job_id, emotion, **arousal**, conversation_index, arrival_time, service_time
+- **Behavior**:
+  - First run: Generates jobs, saves complete configuration including arousal values
+  - Subsequent runs: Loads saved configuration automatically
+  - Ensures **same emotions**, **same arousal values** (including noise), **same service times**, and **same dataset conversations** across runs
+  - Critical for SSJF-Emotion: preserves exact scheduling order by using identical service_time values
+
+**Example job_configs.json:**
+```json
+{
+  "metadata": {
+    "num_jobs": 100,
+    "random_seed": 42,
+    "created_at": "2025-11-14T10:30:00",
+    "gamma": 0.3,
+    "distribution": "poisson"
+  },
+  "jobs": [
+    {
+      "job_id": 0,
+      "emotion": "excited",
+      "arousal": 0.97,
+      "conversation_index": 123,
+      "arrival_time": 0.5,
+      "service_time": 2.485
+    }
+  ]
+}
+```
+
+**Controlling Job Configuration Behavior:**
+
+```bash
+# Force generate new jobs (ignore saved config)
+export FORCE_NEW_JOB_CONFIG_ENV=True
+uv run python run_simulation.py --scheduler FCFS --num_jobs 100
+
+# Disable job config caching completely
+export USE_SAVED_JOB_CONFIG_ENV=False
+uv run python run_simulation.py --scheduler FCFS --num_jobs 100
+
+# Use custom config file location
+export JOB_CONFIG_CACHE_FILE_ENV="results/custom_jobs.json"
+uv run python run_simulation.py --scheduler FCFS --num_jobs 100
+```
+
+---
+
 ## Output Files
 
 Each experiment produces:
@@ -413,7 +489,8 @@ results/llm_runs/
 ├── <SCHEDULER>_<N>jobs_load<LOAD>_jobs.csv      # Per-job detailed logs
 ├── <SCHEDULER>_<N>jobs_load<LOAD>_summary.json  # Aggregated statistics
 └── cache/
-    └── responses.json                            # Cached LLM responses (shared)
+    ├── responses.json                            # Cached LLM responses (shared)
+    └── job_configs.json                          # Job configurations (shared)
 ```
 
 ### CSV Log Format
