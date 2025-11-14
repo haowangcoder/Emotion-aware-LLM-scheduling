@@ -203,26 +203,30 @@ class EmpatheticDialoguesLoader:
     def get_conversation_by_emotion(
         self,
         emotion: str,
-        max_turns: int = 3
-    ) -> Optional[Dict]:
+        max_turns: int = 3,
+        conversation_index: Optional[int] = None
+    ) -> Optional[Tuple[Dict, int]]:
         """
-        Sample a random conversation for the given emotion.
+        Get a conversation for the given emotion.
 
         Args:
             emotion: Emotion label (e.g., "excited", "sad")
             max_turns: Maximum number of conversation turns to include
+            conversation_index: Specific conversation index to retrieve.
+                               If None, randomly samples a conversation.
 
         Returns:
-            Dictionary with:
+            Tuple of (conversation_dict, conversation_index) where conversation_dict contains:
                 - emotion: Emotion label
                 - conv_id: Conversation ID
                 - user_utterances: List of user (speaker_idx=1) utterances
                 - assistant_utterances: List of assistant (speaker_idx=0) responses
                 - full_context: Combined context string
+            Returns (None, -1) on error.
         """
         if not self._loaded:
             logger.error("Dataset not loaded. Call load() first.")
-            return None
+            return None, -1
 
         # Normalize emotion (lowercase, strip)
         emotion = emotion.lower().strip()
@@ -233,11 +237,26 @@ class EmpatheticDialoguesLoader:
             # Try to find close match
             available = list(self.conversations_by_emotion.keys())
             logger.warning(f"Available emotions: {', '.join(sorted(available)[:10])}...")
-            return None
+            return None, -1
 
-        # Sample random conversation
+        # Get conversations list for this emotion
         conversations = self.conversations_by_emotion[emotion]
-        conv = random.choice(conversations)
+
+        # Select conversation by index or random
+        if conversation_index is not None:
+            # Use specific index (with bounds checking)
+            if conversation_index < 0 or conversation_index >= len(conversations):
+                logger.warning(
+                    f"Invalid conversation_index {conversation_index} for emotion '{emotion}' "
+                    f"(valid range: 0-{len(conversations)-1})"
+                )
+                return None, -1
+            conv = conversations[conversation_index]
+            selected_index = conversation_index
+        else:
+            # Random selection
+            selected_index = random.randint(0, len(conversations) - 1)
+            conv = conversations[selected_index]
 
         # Extract user and assistant utterances
         user_utterances = []
@@ -268,7 +287,7 @@ class EmpatheticDialoguesLoader:
         # Build full context (only user side for prompt)
         full_context = "\n".join(user_utterances)
 
-        return {
+        conversation_dict = {
             'emotion': emotion,
             'conv_id': conv['conv_id'],
             'user_utterances': user_utterances,
@@ -276,11 +295,14 @@ class EmpatheticDialoguesLoader:
             'full_context': full_context
         }
 
+        return conversation_dict, selected_index
+
     def get_user_context_by_emotion(
         self,
         emotion: str,
-        max_turns: int = 2
-    ) -> Optional[str]:
+        max_turns: int = 2,
+        conversation_index: Optional[int] = None
+    ) -> Optional[Tuple[str, int]]:
         """
         Get user context (speaker_idx=1 utterances) for an emotion.
 
@@ -290,17 +312,23 @@ class EmpatheticDialoguesLoader:
         Args:
             emotion: Emotion label
             max_turns: Maximum user turns to include
+            conversation_index: Specific conversation index to retrieve.
+                               If None, randomly samples a conversation.
 
         Returns:
-            str: User's emotional expression, or None if not found
+            Tuple of (user_context_string, conversation_index), or (None, -1) if not found
         """
-        conv = self.get_conversation_by_emotion(emotion, max_turns=max_turns)
+        conv, selected_index = self.get_conversation_by_emotion(
+            emotion,
+            max_turns=max_turns,
+            conversation_index=conversation_index
+        )
 
         if conv is None:
-            return None
+            return None, -1
 
-        # Return only user side
-        return conv['full_context']
+        # Return user side and the index
+        return conv['full_context'], selected_index
 
     def _clean_utterance(self, text: str) -> str:
         """
@@ -380,17 +408,17 @@ def test_dataset_loader():
         print(f"\nEmotion: {emotion}")
         print("-" * 40)
 
-        context = loader.get_user_context_by_emotion(emotion, max_turns=2)
+        context, conv_idx = loader.get_user_context_by_emotion(emotion, max_turns=2)
 
         if context:
-            print(f"User context:\n{context}")
+            print(f"User context (index {conv_idx}):\n{context}")
         else:
             print(f"No conversation found for emotion: {emotion}")
 
         # Get full conversation
-        conv = loader.get_conversation_by_emotion(emotion, max_turns=3)
+        conv, conv_idx = loader.get_conversation_by_emotion(emotion, max_turns=3)
         if conv:
-            print(f"\nConversation ID: {conv['conv_id']}")
+            print(f"\nConversation ID: {conv['conv_id']} (index {conv_idx})")
             print(f"User utterances: {len(conv['user_utterances'])}")
             print(f"Assistant utterances: {len(conv['assistant_utterances'])}")
 

@@ -22,6 +22,7 @@ class Job:
         self.response_text = None  # Generated response from LLM
         self.output_token_length = None  # Number of tokens in response
         self.conversation_context = None  # Original prompt/context from dataset
+        self.conversation_index = None  # Index of conversation in dataset (for reproducibility)
         self.actual_execution_duration = None  # Real LLM inference time (measured)
         self.cached = False  # Whether response was retrieved from cache
         self.error_msg = None  # Error message if generation failed

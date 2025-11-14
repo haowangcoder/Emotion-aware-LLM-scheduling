@@ -197,10 +197,12 @@ def scan_llm_runs_and_generate_plots(runs_dir: str = 'results/llm_runs', output_
     )
     print(f"Comparison plots saved to: {plots_dir}")
 
-
-if __name__ == '__main__':
-    # Auto-scan default llm_runs folder and generate plots
-    scan_llm_runs_and_generate_plots()
+    # Generate comprehensive report plots (completion curves, CDF, heatmaps, etc.)
+    result_dirs = {
+        os.path.splitext(os.path.basename(path))[0]: path
+        for path in csv_paths
+    }
+    generate_comprehensive_report(result_dirs, output_dir=plots_dir)
 
 
 def plot_per_emotion_class_metrics(df: pd.DataFrame,
@@ -440,88 +442,6 @@ def generate_comprehensive_report(result_dirs: Dict[str, str],
     print(f"\nComprehensive report generated successfully!")
 
 
-# Example usage and testing
 if __name__ == '__main__':
-    print("=" * 70)
-    print("Emotion-aware Visualization Module Test")
-    print("=" * 70)
-
-    # Generate synthetic test data
-    print("\n1. Generating synthetic test data")
-
-    def generate_test_data(scheduler_name, num_jobs=100, seed=42):
-        np.random.seed(seed)
-        emotions = ['excited', 'sad', 'angry', 'calm', 'neutral']
-        arousals = [0.9, -0.6, 0.8, -0.3, 0.0]
-        emotion_classes = ['high', 'low', 'high', 'low', 'medium']
-
-        data = []
-        for i in range(num_jobs):
-            idx = i % len(emotions)
-            service_time = 2.0 * (1 + 0.5 * arousals[idx])
-            waiting = np.random.uniform(0, 5) if 'SSJF' in scheduler_name else np.random.uniform(1, 8)
-            arrival = i * 0.3
-            finish = arrival + waiting + service_time
-
-            data.append({
-                'job_id': i,
-                'emotion_label': emotions[idx],
-                'arousal': arousals[idx],
-                'emotion_class': emotion_classes[idx],
-                'arrival_time': arrival,
-                'service_time': service_time,
-                'start_time': arrival + waiting,
-                'finish_time': finish,
-                'waiting_time': waiting,
-                'turnaround_time': finish - arrival
-            })
-
-        return pd.DataFrame(data)
-
-    # Generate data for two schedulers
-    df_fcfs = generate_test_data('FCFS', num_jobs=100, seed=42)
-    df_ssjf = generate_test_data('SSJF-Emotion', num_jobs=100, seed=43)
-
-    # Save to temp files
-    os.makedirs('results/test_plots/', exist_ok=True)
-    df_fcfs.to_csv('results/test_plots/fcfs_jobs.csv', index=False)
-    df_ssjf.to_csv('results/test_plots/ssjf_jobs.csv', index=False)
-
-    # 2. Test individual plot functions
-    print("\n2. Testing individual plot functions")
-
-    dfs = {'FCFS': df_fcfs, 'SSJF-Emotion': df_ssjf}
-
-    # Test completion curves
-    plot_completion_curves(dfs, output_path='results/test_plots/test_completion.png')
-
-    # Test latency CDF
-    plot_latency_cdf(dfs, output_path='results/test_plots/test_latency_cdf.png')
-
-    # Test per-emotion metrics
-    plot_per_emotion_class_metrics(df_ssjf, scheduler_name='SSJF-Emotion',
-                                     output_path='results/test_plots/test_emotion_metrics.png')
-
-    # Test heatmap
-    plot_emotion_class_comparison_heatmap(dfs,
-                                           output_path='results/test_plots/test_heatmap.png')
-
-    # Test fairness comparison
-    fairness_data = {'FCFS': 0.92, 'SSJF-Emotion': 0.85}
-    plot_fairness_comparison(fairness_data,
-                              output_path='results/test_plots/test_fairness.png')
-
-    # Test scheduler comparison
-    results = {
-        'FCFS': {'avg_waiting_time': 3.5, 'p99_waiting_time': 7.2,
-                 'avg_turnaround_time': 5.8, 'throughput': 2.1},
-        'SSJF-Emotion': {'avg_waiting_time': 2.8, 'p99_waiting_time': 6.5,
-                         'avg_turnaround_time': 5.1, 'throughput': 2.3}
-    }
-    plot_scheduler_comparison_barplot(results,
-                                       output_path='results/test_plots/test_comparison.png')
-
-    print("\n" + "=" * 70)
-    print("All test plots generated successfully!")
-    print("Check results/test_plots/ directory")
-    print("=" * 70)
+    # Auto-scan default llm_runs folder and generate all plots
+    scan_llm_runs_and_generate_plots()

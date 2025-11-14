@@ -171,9 +171,11 @@ class EmotionAwareLogger:
         try:
             st = sanitized_metadata.get('starvation_threshold', None)
             if isinstance(st, (int, float)) and not math.isfinite(float(st)):
-                # Represent Infinity as null + explicit flag
-                sanitized_metadata['starvation_threshold_infinite'] = True
-                sanitized_metadata['starvation_threshold'] = None
+                # Represent Infinity as string "inf" for clarity
+                if math.isinf(st):
+                    sanitized_metadata['starvation_threshold'] = "inf" if st > 0 else "-inf"
+                elif math.isnan(st):
+                    sanitized_metadata['starvation_threshold'] = "nan"
         except Exception:
             # If any issue occurs, fall back without special handling
             pass
@@ -262,11 +264,16 @@ class EmotionAwareLogger:
                 fairness_serializable[key] = value
         summary['fairness_analysis'] = fairness_serializable
 
-        # Generic sanitizer to ensure strict JSON (no NaN/Infinity)
+        # Generic sanitizer to ensure strict JSON (convert NaN/Infinity to strings)
         def _sanitize(obj):
             # Numbers
             if isinstance(obj, float):
-                return obj if math.isfinite(obj) else None
+                if math.isfinite(obj):
+                    return obj
+                elif math.isinf(obj):
+                    return "inf" if obj > 0 else "-inf"
+                else:  # NaN
+                    return "nan"
             # Ints are always finite
             if isinstance(obj, int):
                 return obj
@@ -280,7 +287,12 @@ class EmotionAwareLogger:
                 import numpy as _np  # local import to avoid top-level dependency
                 if isinstance(obj, (_np.floating, _np.integer)):
                     val = float(obj)
-                    return val if math.isfinite(val) else None
+                    if math.isfinite(val):
+                        return val
+                    elif math.isinf(val):
+                        return "inf" if val > 0 else "-inf"
+                    else:  # NaN
+                        return "nan"
                 if isinstance(obj, _np.ndarray):
                     return [_sanitize(v) for v in obj.tolist()]
             except Exception:
