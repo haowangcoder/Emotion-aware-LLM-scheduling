@@ -133,17 +133,22 @@ def create_emotion_aware_jobs(
         # Neutral emotion if disabled
         emotions_arousal = [('neutral', 0.0)] * num_jobs
 
-    # Generate arrival times based on distribution
-    arrival_times = _generate_arrival_times(
-        num_jobs=num_jobs,
-        arrival_rate=arrival_rate,
-        std=std,
-        coefficient_of_variance=coefficient_of_variance,
-        distribution=distribution,
-        emotions_arousal=emotions_arousal,
-        gamma=gamma,
-        trace_scale=trace_scale
-    )
+    # Generate arrival times: use saved values if loading from config, otherwise generate new
+    if job_configs is not None:
+        # Load arrival times from saved job configurations
+        arrival_times = [job_configs[i].get('arrival_time', 0.0) for i in range(num_jobs)]
+    else:
+        # Generate new arrival times based on distribution
+        arrival_times = _generate_arrival_times(
+            num_jobs=num_jobs,
+            arrival_rate=arrival_rate,
+            std=std,
+            coefficient_of_variance=coefficient_of_variance,
+            distribution=distribution,
+            emotions_arousal=emotions_arousal,
+            gamma=gamma,
+            trace_scale=trace_scale
+        )
 
     # Create jobs with emotion attributes
     job_list = []
