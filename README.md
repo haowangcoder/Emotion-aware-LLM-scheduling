@@ -88,7 +88,30 @@ uv run huggingface-cli login
 2. Click "Agree and access repository"
 3. Fill out the form
 
-**Verify dataset** (EmpatheticDialogues):
+**Download and setup dataset** (EmpatheticDialogues):
+
+1. Download the dataset from Kaggle:
+```bash
+# Download the dataset using Kaggle API
+curl -L -o ~/Downloads/empathetic-dialogues-facebook-ai.zip \
+  https://www.kaggle.com/api/v1/datasets/download/atharvjairath/empathetic-dialogues-facebook-ai
+```
+
+2. Extract and setup:
+```bash
+# Unzip the downloaded file
+unzip ~/Downloads/empathetic-dialogues-facebook-ai.zip -d ~/Downloads/empathetic-dialogues
+
+# Create dataset directory in project root
+mkdir -p dataset
+
+# Copy and rename the files
+cp ~/Downloads/empathetic-dialogues/train.csv dataset/train.csv
+cp ~/Downloads/empathetic-dialogues/valid.csv dataset/valid.csv
+cp ~/Downloads/empathetic-dialogues/test.csv dataset/test.csv
+```
+
+3. Verify dataset:
 ```bash
 ls -la dataset/
 # Expected: train.csv, valid.csv, test.csv
@@ -589,49 +612,6 @@ Based on EmpatheticDialogues dataset (32 emotions mapped to arousal levels):
 
 ---
 
-## Research Directions
-
-### For Researchers
-
-1. **Prediction Accuracy Analysis**
-   - Compare emotion-based predictions vs actual LLM inference times
-   - Analyze correlation between arousal and actual execution time
-   - Study prediction error distribution across emotion classes
-
-2. **Fairness with Real Workloads**
-   - Evaluate fairness metrics with real LLM responses
-   - Study whether high-arousal emotions truly have longer inference times
-   - Analyze SSJF-Emotion effectiveness with actual execution times
-
-3. **Scheduler Optimization**
-   - Design better predictors using conversation context
-   - Explore adaptive scheduling based on online learning
-   - Study batch scheduling strategies for LLM workloads
-
-4. **Extended Experiments**
-   - Test with multiple models (LLaMA, Mistral, ChatGLM)
-   - Vary generation parameters (temperature, max_tokens)
-   - Study multi-GPU scenarios
-
-### For Practitioners
-
-1. **Production Deployment**
-   - Integrate with real LLM serving systems (vLLM, TGI)
-   - Add request queuing and load balancing
-   - Implement monitoring and alerting
-
-2. **Performance Optimization**
-   - Profile inference bottlenecks
-   - Optimize prompt construction
-   - Implement prefill/decode phase separation
-
-3. **Quality Assessment**
-   - Evaluate response quality across emotions
-   - Measure empathy in generated responses
-   - A/B test different scheduling strategies
-
----
-
 ## References
 
 ### Core Papers
@@ -653,13 +633,3 @@ Based on EmpatheticDialogues dataset (32 emotions mapped to arousal levels):
 ## License
 
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for the full text or visit http://www.apache.org/licenses/LICENSE-2.0.
-
----
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
-
-For detailed implementation guide, see [design.md](design.md) (in Chinese).
-
-For complete LLM integration documentation, see [LLM_INTEGRATION_GUIDE.md](LLM_INTEGRATION_GUIDE.md).
