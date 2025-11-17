@@ -40,6 +40,7 @@ uv run python run_simulation.py --scheduler SSJF-Emotion --num_jobs 100 --output
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Evaluation Metrics](#evaluation-metrics)
+- [Results](#results)
 - [Output Files](#output-files)
 - [Troubleshooting](#troubleshooting)
 - [Research Directions](#research-directions)
@@ -414,6 +415,30 @@ Range: [1/n, 1] where 1 = perfect fairness
 - **Cache Hit Rate**: Percentage of responses served from cache
 - **Average Output Token Length**: Mean length of generated responses
 - **Error Rate**: Percentage of failed generations
+
+---
+
+## Results
+
+Experimental results comparing FCFS and SSJF-Emotion schedulers on 100 jobs with system load 0.6:
+
+### Scheduler Performance Comparison
+
+![Scheduler Comparison](results/llm_runs/plots/scheduler_comparison.png)
+
+Comprehensive comparison of scheduling algorithms across multiple metrics including average waiting time, P99 latency, fairness indices, and throughput. The SSJF-Emotion scheduler demonstrates improved performance by prioritizing tasks with predicted shorter execution times.
+
+### Latency Distribution
+
+![Latency CDF](results/llm_runs/plots/latency_cdf.png)
+
+Cumulative distribution function (CDF) of job latencies showing the probability distribution of waiting times across different schedulers. Lower curves indicate better performance with shorter wait times for most jobs.
+
+### Emotion Pattern Analysis
+
+![Emotion Heatmap](results/llm_runs/plots/emotion_heatmap.png)
+
+Heatmap visualization showing the relationship between emotion categories, arousal levels, and scheduling performance. This reveals how different emotions (mapped to arousal levels) impact task characteristics and scheduling outcomes.
 
 ---
 
