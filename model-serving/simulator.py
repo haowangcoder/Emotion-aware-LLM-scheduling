@@ -159,8 +159,7 @@ def run_emotion_aware_experiment(args):
     print(f"  System load (ρ): {args.system_load}")
     print(f"  Base service time (L_0): {args.base_service_time}")
     print(f"  Alpha (α): {args.alpha}")
-    print(f"  Gamma (γ): {args.gamma}")
-    print(f"  Distribution: {args.distribution}")
+    print(f"  Distribution: Poisson")
 
     # Calculate arrival rate
     expected_service_time = args.base_service_time
@@ -193,10 +192,8 @@ def run_emotion_aware_experiment(args):
         jobs = create_emotion_aware_jobs(
             num_jobs=args.num_jobs,
             arrival_rate=arrival_rate,
-            distribution=args.distribution,
             emotion_config=emotion_config,
             service_time_config=service_config,
-            gamma=args.gamma,
             enable_emotion=args.enable_emotion,
             job_configs=loaded_config['jobs'],
             random_seed=loaded_config['metadata'].get('random_seed')
@@ -208,10 +205,8 @@ def run_emotion_aware_experiment(args):
         jobs = create_emotion_aware_jobs(
             num_jobs=args.num_jobs,
             arrival_rate=arrival_rate,
-            distribution=args.distribution,
             emotion_config=emotion_config,
             service_time_config=service_config,
-            gamma=args.gamma,
             enable_emotion=args.enable_emotion,
             random_seed=random_seed
         )
@@ -223,8 +218,7 @@ def run_emotion_aware_experiment(args):
                 'random_seed': random_seed,
                 'scheduler': args.scheduler,
                 'system_load': args.system_load,
-                'gamma': args.gamma,
-                'distribution': args.distribution,
+                'distribution': 'poisson',
                 'alpha': args.alpha,
                 'enable_emotion': args.enable_emotion
             }
@@ -311,8 +305,7 @@ def run_emotion_aware_experiment(args):
             'random_seed': random_seed,
             'scheduler': args.scheduler,
             'system_load': args.system_load,
-            'gamma': args.gamma,
-            'distribution': args.distribution,
+            'distribution': 'poisson',
             'alpha': args.alpha,
             'enable_emotion': args.enable_emotion
         }
@@ -414,15 +407,10 @@ def main():
                         help='Base service time (L_0)')
     parser.add_argument('--alpha', type=float, default=0.5,
                         help='Alpha parameter for arousal-service time mapping')
-    parser.add_argument('--gamma', type=float, default=0.3,
-                        help='Gamma parameter for arousal-arrival rate mapping')
     parser.add_argument('--rho', type=float, default=1.0,
                         help='Correlation strength (rho)')
 
     # Job generation
-    parser.add_argument('--distribution', type=str, default='poisson',
-                        choices=['poisson', 'uniform', 'gamma'],
-                        help='Arrival distribution')
     parser.add_argument('--enable_emotion', action='store_true', default=True,
                         help='Enable emotion-aware features')
     parser.add_argument('--arousal_noise', type=float, default=0.0,

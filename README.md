@@ -214,15 +214,6 @@ Where:
 
 **Note:** This is the *predicted* service time used for scheduling. Actual service time is measured from real LLM inference.
 
-### Arrival Rate Modification
-```
-λ(a) = λ_0 * (1 + γ * a)
-```
-Where:
-- `λ(a)`: Arrival rate for arousal level a
-- `λ_0`: Base arrival rate
-- `γ` (gamma): Sensitivity coefficient (default: 0.3, range: 0-1)
-
 ### System Load
 ```
 ρ = (λ * E[S]) / N
@@ -346,8 +337,7 @@ uv run python run_simulation.py \
   --scheduler SSJF-Emotion \
   --num_jobs 100 \
   --system_load 0.8 \
-  --alpha 0.7 \
-  --gamma 0.5
+  --alpha 0.7
 ```
 
 ### Comparing Schedulers
@@ -471,7 +461,6 @@ Job configurations are saved for cross-run consistency:
     "num_jobs": 100,
     "random_seed": 42,
     "created_at": "2025-11-14T10:30:00",
-    "gamma": 0.3,
     "distribution": "poisson"
   },
   "jobs": [
@@ -541,8 +530,7 @@ results/llm_runs/
     "scheduler": "SSJF-Emotion",
     "num_jobs": 100,
     "system_load": 0.6,
-    "alpha": 0.5,
-    "gamma": 0.3
+    "alpha": 0.5
   },
   "performance_metrics": {
     "avg_waiting_time": 15.32,
