@@ -23,7 +23,6 @@ from llm.dataset_loader import EmpatheticDialoguesLoader
 from llm.prompt_builder import PromptBuilder
 from llm.response_cache import ResponseCache
 from core.job import Job
-from config import *
 
 logger = logging.getLogger(__name__)
 
@@ -38,14 +37,28 @@ class LLMInferenceHandler:
 
     def __init__(
         self,
-        model_name: str = LLM_MODEL_NAME,
-        dataset_path: str = EMOTION_DATASET_PATH,
-        cache_path: Optional[str] = RESPONSE_CACHE_PATH,
-        use_cache: bool = USE_RESPONSE_CACHE,
-        force_regenerate: bool = FORCE_REGENERATE,
-        device_map: str = LLM_DEVICE_MAP,
-        dtype: str = LLM_DTYPE,
-        load_in_8bit: bool = LLM_LOAD_IN_8BIT
+        model_name: str = 'meta-llama/Meta-Llama-3-8B-Instruct',
+        dataset_path: str = './dataset',
+        cache_path: Optional[str] = 'results/cache/responses.json',
+        use_cache: bool = True,
+        force_regenerate: bool = False,
+        device_map: str = 'auto',
+        dtype: str = 'auto',
+        load_in_8bit: bool = False,
+        # Prompt configuration
+        include_emotion_hint: bool = False,
+        enable_emotion_length_control: bool = True,
+        base_response_length: int = 100,
+        alpha: float = 0.5,
+        max_conversation_turns: int = 2,
+        # Generation parameters
+        max_new_tokens: int = 1024,
+        temperature: float = 0.7,
+        top_p: float = 0.9,
+        do_sample: bool = False,
+        repetition_penalty: float = 1.1,
+        # Error handling
+        max_retries: int = 2
     ):
         """
         Initialize LLM inference handler.
@@ -59,12 +72,25 @@ class LLMInferenceHandler:
             device_map: Device mapping for model
             dtype: Data type for model weights
             load_in_8bit: Use 8-bit quantization
+            include_emotion_hint: Include emotion hints in prompts
+            enable_emotion_length_control: Enable emotion-aware response length control
+            base_response_length: Base response length L_0 in tokens
+            alpha: Scaling factor α for arousal impact (synchronized with service time mapping)
+            max_conversation_turns: Maximum conversation history turns to include
+            max_new_tokens: Maximum tokens to generate
+            temperature: Sampling temperature
+            top_p: Nucleus sampling threshold
+            do_sample: Use sampling instead of greedy decoding
+            repetition_penalty: Penalty for repeating tokens
+            max_retries: Maximum retries on generation failure
         """
         self.model_name = model_name
         self.dataset_path = dataset_path
         self.cache_path = cache_path
         self.use_cache = use_cache and not force_regenerate
         self.force_regenerate = force_regenerate
+        self.max_retries = max_retries
+        self.max_conversation_turns = max_conversation_turns
 
         # Initialize components
         logger.info("Initializing LLM Inference Handler...")
@@ -92,10 +118,10 @@ class LLMInferenceHandler:
 
         # 3. Initialize Prompt Builder
         self.prompt_builder = PromptBuilder(
-            include_emotion_hint=LLM_INCLUDE_EMOTION_HINT,
-            enable_emotion_length_control=LLM_ENABLE_EMOTION_LENGTH_CONTROL,
-            base_response_length=LLM_BASE_RESPONSE_LENGTH,
-            alpha=LLM_ALPHA
+            include_emotion_hint=include_emotion_hint,
+            enable_emotion_length_control=enable_emotion_length_control,
+            base_response_length=base_response_length,
+            alpha=alpha
         )
 
         # 4. Initialize Response Cache
@@ -108,16 +134,16 @@ class LLMInferenceHandler:
 
         # Generation parameters
         self.gen_params = {
-            "max_new_tokens": LLM_MAX_NEW_TOKENS,
-            "temperature": LLM_TEMPERATURE,
-            "top_p": LLM_TOP_P,
-            "do_sample": LLM_DO_SAMPLE,
-            "repetition_penalty": LLM_REPETITION_PENALTY
+            "max_new_tokens": max_new_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "do_sample": do_sample,
+            "repetition_penalty": repetition_penalty
         }
 
         logger.info("LLM Inference Handler initialized successfully")
 
-    def execute_job(self, job: Job, max_retries: int = LLM_MAX_RETRIES) -> bool:
+    def execute_job(self, job: Job, max_retries: Optional[int] = None) -> bool:
         """
         Execute a job using real LLM inference.
 
@@ -132,11 +158,15 @@ class LLMInferenceHandler:
 
         Args:
             job: Job object to execute
-            max_retries: Maximum retry attempts on failure
+            max_retries: Maximum retry attempts on failure (uses instance default if None)
 
         Returns:
             bool: True if successful, False if failed
         """
+        # Use instance max_retries if not specified
+        if max_retries is None:
+            max_retries = self.max_retries
+
         # Get conversation context from dataset based on emotion
         emotion = job.get_emotion_label()
 
@@ -154,7 +184,7 @@ class LLMInferenceHandler:
 
         user_context, selected_index = self.dataset_loader.get_user_context_by_emotion(
             emotion=emotion.lower(),
-            max_turns=LLM_MAX_CONVERSATION_TURNS,
+            max_turns=self.max_conversation_turns,
             conversation_index=conversation_index
         )
 

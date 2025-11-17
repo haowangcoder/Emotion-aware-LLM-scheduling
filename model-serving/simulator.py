@@ -27,14 +27,15 @@ from analysis.logger import EmotionAwareLogger
 from analysis.fairness_metrics import analyze_fairness_comprehensive
 from core.job import Job
 from core.job_config_manager import create_job_config_manager
-from config import *
+from config.config_loader import load_config
 
 
 def run_scheduling_loop(
         scheduler,
         job_list: List[Job],
         verbose: bool = False,
-        llm_handler=None) -> List[Job]:
+        llm_handler=None,
+        llm_skip_on_error: bool = True) -> List[Job]:
     """
     Run emotion-aware job scheduling loop
 
@@ -100,7 +101,7 @@ def run_scheduling_loop(
             # Execute with real LLM model
             success = llm_handler.execute_job(selected_job)
 
-            if not success and LLM_SKIP_ON_ERROR:
+            if not success and llm_skip_on_error:
                 # Skip this job if it failed
                 if verbose:
                     print(f"  WARNING: Job {selected_job.job_id} failed, skipping: {selected_job.error_msg}")
@@ -143,39 +144,50 @@ def run_emotion_aware_experiment(args):
     print("Emotion-aware LLM Scheduling Simulator")
     print("=" * 80)
 
-    # Create configurations
-    emotion_config = EmotionConfig(arousal_noise_std=args.arousal_noise)
+    # Load hierarchical configuration (YAML → env → CLI)
+    from config.config_loader import load_config, get_alpha  # Local import to avoid circulars
+
+    cli_args = vars(args)
+    config = load_config(cli_args=cli_args)
+
+    # Create configurations using loaded config
+    alpha = get_alpha(config)
+    emotion_config = EmotionConfig(arousal_noise_std=config.workload.emotion.arousal_noise_std)
     service_config = ServiceTimeConfig(
-        base_service_time=args.base_service_time,
-        alpha=args.alpha,
-        rho=args.rho
+        base_service_time=config.workload.service_time.base_service_time,
+        alpha=alpha,
+        rho=config.workload.service_time.rho
     )
 
     print(f"\nExperiment Configuration:")
     print(f"  Scheduler: {args.scheduler}")
-    print(f"  Number of jobs: {args.num_jobs}")
-    print(f"  System load (ρ): {args.system_load}")
-    print(f"  Base service time (L_0): {args.base_service_time}")
-    print(f"  Alpha (α): {args.alpha}")
+    print(f"  Number of jobs: {config.experiment.num_jobs}")
+    print(f"  System load (ρ): {config.scheduler.system_load}")
+    print(f"  Base service time (L_0): {config.workload.service_time.base_service_time}")
+    print(f"  Alpha (α): {alpha}")
     print(f"  Distribution: Poisson")
 
     # Calculate arrival rate
-    expected_service_time = args.base_service_time
-    arrival_rate = args.system_load / expected_service_time
+    expected_service_time = config.workload.service_time.base_service_time
+    arrival_rate = config.scheduler.system_load / expected_service_time
 
     print(f"  Calculated arrival rate (λ): {arrival_rate:.3f}")
 
     # Initialize job config manager
-    job_config_manager = create_job_config_manager(JOB_CONFIG_CACHE_FILE)
+    job_config_cache_path = os.path.join(
+        config.llm.cache.cache_dir,
+        config.llm.cache.job_config_file
+    )
+    job_config_manager = create_job_config_manager(job_config_cache_path)
 
     # Check if we should use saved job configurations
     loaded_config = None
-    if USE_SAVED_JOB_CONFIG and not FORCE_NEW_JOB_CONFIG:
+    if config.llm.cache.use_saved_job_config and not config.llm.cache.force_new_job_config:
         loaded_config = job_config_manager.load_job_configs()
         if loaded_config:
             # Validate that loaded config matches current experiment settings
             if job_config_manager.validate_config(loaded_config, args.num_jobs):
-                print(f"\nUsing saved job configurations from: {JOB_CONFIG_CACHE_FILE}")
+                print(f"\nUsing saved job configurations from: {job_config_cache_path}")
                 print(f"  Created: {loaded_config['metadata'].get('created_at', 'unknown')}")
                 print(f"  Random seed: {loaded_config['metadata'].get('random_seed', 'unknown')}")
             else:
@@ -186,39 +198,39 @@ def run_emotion_aware_experiment(args):
 
     # Generate jobs
     if loaded_config:
-        print(f"\nLoading {args.num_jobs} emotion-aware jobs from saved config...")
+        print(f"\nLoading {config.experiment.num_jobs} emotion-aware jobs from saved config...")
         jobs = create_emotion_aware_jobs(
-            num_jobs=args.num_jobs,
+            num_jobs=config.experiment.num_jobs,
             arrival_rate=arrival_rate,
             emotion_config=emotion_config,
             service_time_config=service_config,
-            enable_emotion=args.enable_emotion,
+            enable_emotion=config.workload.emotion.enable_emotion_aware,
             job_configs=loaded_config['jobs'],
             random_seed=loaded_config['metadata'].get('random_seed')
         )
     else:
-        print(f"\nGenerating {args.num_jobs} emotion-aware jobs...")
+        print(f"\nGenerating {config.experiment.num_jobs} emotion-aware jobs...")
         # Use random seed if provided
-        random_seed = getattr(args, 'random_seed', None)
+        random_seed = config.experiment.random_seed
         jobs = create_emotion_aware_jobs(
-            num_jobs=args.num_jobs,
+            num_jobs=config.experiment.num_jobs,
             arrival_rate=arrival_rate,
             emotion_config=emotion_config,
             service_time_config=service_config,
-            enable_emotion=args.enable_emotion,
+            enable_emotion=config.workload.emotion.enable_emotion_aware,
             random_seed=random_seed
         )
 
         # Save job configuration for future runs
-        if USE_SAVED_JOB_CONFIG:
+        if config.llm.cache.use_saved_job_config:
             metadata = {
-                'num_jobs': args.num_jobs,
+                'num_jobs': config.experiment.num_jobs,
                 'random_seed': random_seed,
                 'scheduler': args.scheduler,
-                'system_load': args.system_load,
+                'system_load': config.scheduler.system_load,
                 'distribution': 'poisson',
-                'alpha': args.alpha,
-                'enable_emotion': args.enable_emotion
+                'alpha': alpha,
+                'enable_emotion': config.workload.emotion.enable_emotion_aware
             }
             # Save configs (will be updated with conversation_index later)
             # Note: This is a preliminary save, will be updated after LLM execution
@@ -252,22 +264,33 @@ def run_emotion_aware_experiment(args):
     # Initialize LLM handler (LLM-only mode)
     llm_handler = None
     print(f"\nInitializing LLM Inference Handler...")
-    print(f"  Model: {args.model_name}")
-    print(f"  Dataset: {args.dataset_path}")
-    print(f"  Cache: {'Enabled' if args.use_cache else 'Disabled'}")
+    print(f"  Model: {config.llm.model.name}")
+    print(f"  Dataset: {config.dataset.emotion_dataset_path}")
+    print(f"  Cache: {'Enabled' if config.llm.cache.use_response_cache else 'Disabled'}")
 
     try:
         from llm.inference_handler import LLMInferenceHandler
 
         llm_handler = LLMInferenceHandler(
-            model_name=args.model_name,
-            dataset_path=args.dataset_path,
-            cache_path=args.cache_path,
-            use_cache=args.use_cache,
-            force_regenerate=args.force_regenerate,
-            device_map=args.device_map,
-            dtype=args.dtype,
-            load_in_8bit=args.load_in_8bit
+            model_name=config.llm.model.name,
+            dataset_path=config.dataset.emotion_dataset_path,
+            cache_path=os.path.join(config.llm.cache.cache_dir, config.llm.cache.cache_file),
+            use_cache=config.llm.cache.use_response_cache,
+            force_regenerate=config.llm.cache.force_regenerate,
+            device_map=config.llm.model.device_map,
+            dtype=config.llm.model.dtype,
+            load_in_8bit=config.llm.model.load_in_8bit,
+            include_emotion_hint=config.llm.prompt.include_emotion_hint,
+            enable_emotion_length_control=config.llm.prompt.emotion_length_control.enabled,
+            base_response_length=config.llm.prompt.emotion_length_control.base_response_length,
+            alpha=alpha,
+            max_conversation_turns=config.llm.prompt.max_conversation_turns,
+            max_new_tokens=config.llm.generation.max_new_tokens,
+            temperature=config.llm.generation.temperature,
+            top_p=config.llm.generation.top_p,
+            do_sample=config.llm.generation.do_sample,
+            repetition_penalty=config.llm.generation.repetition_penalty,
+            max_retries=config.llm.error_handling.max_retries,
         )
 
         print(f"  LLM handler initialized successfully")
@@ -283,7 +306,11 @@ def run_emotion_aware_experiment(args):
     # Run scheduling
     print(f"\nRunning scheduling...")
     completed_jobs = run_scheduling_loop(
-        scheduler, jobs, verbose=args.verbose, llm_handler=llm_handler
+        scheduler,
+        jobs,
+        verbose=args.verbose,
+        llm_handler=llm_handler,
+        llm_skip_on_error=config.llm.error_handling.skip_on_error,
     )
 
     # Save cache if LLM was used
@@ -295,20 +322,20 @@ def run_emotion_aware_experiment(args):
               f"{cache_stats['hit_rate']:.1%} hit rate")
 
     # Save job configuration for future runs (if this was a new generation)
-    if USE_SAVED_JOB_CONFIG and loaded_config is None:
+    if config.llm.cache.use_saved_job_config and loaded_config is None:
         print(f"\nSaving job configurations for reproducibility...")
-        random_seed = getattr(args, 'random_seed', None)
+        random_seed = config.experiment.random_seed
         metadata = {
-            'num_jobs': args.num_jobs,
+            'num_jobs': config.experiment.num_jobs,
             'random_seed': random_seed,
             'scheduler': args.scheduler,
-            'system_load': args.system_load,
+            'system_load': config.scheduler.system_load,
             'distribution': 'poisson',
-            'alpha': args.alpha,
-            'enable_emotion': args.enable_emotion
+            'alpha': alpha,
+            'enable_emotion': config.workload.emotion.enable_emotion_aware
         }
         job_config_manager.save_job_configs(completed_jobs, metadata)
-        print(f"  Job configurations saved to: {JOB_CONFIG_CACHE_FILE}")
+        print(f"  Job configurations saved to: {job_config_cache_path}")
 
     # Calculate metrics
     import numpy as np
@@ -366,7 +393,7 @@ def run_emotion_aware_experiment(args):
 
         logger = EmotionAwareLogger(
             output_dir=args.output_dir,
-            experiment_name=f"{args.scheduler}_{args.num_jobs}jobs_load{args.system_load:.2f}"
+            experiment_name=f"{args.scheduler}_{config.experiment.num_jobs}jobs_load{config.scheduler.system_load:.2f}"
         )
 
         # Set metadata

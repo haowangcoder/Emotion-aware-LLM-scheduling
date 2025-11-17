@@ -135,11 +135,9 @@ Emotion-aware-LLM-scheduling/
 ├── model-serving/              # Main package (refactored)
 │   ├── simulator.py            # Scheduling simulator
 │   ├── config/                 # Configuration modules
-│   │   ├── __init__.py        # Unified config exports
-│   │   ├── base.py            # General settings
-│   │   ├── llm_config.py      # LLM model & generation
-│   │   ├── scheduler_config.py # Scheduling parameters
-│   │   └── workload_config.py  # Task generation settings
+│   │   ├── __init__.py        # Config entry point (re-exports loader helpers)
+│   │   ├── default.yaml       # YAML configuration (single source of truth)
+│   │   └── config_loader.py   # YAML loader + env/CLI overrides
 │   ├── core/                   # Core scheduling logic
 │   │   ├── emotion.py         # Emotion sampling & mapping
 │   │   ├── job.py             # Job data structure
@@ -228,56 +226,138 @@ Where:
 
 ## Configuration
 
-The system uses a modular configuration structure organized in `model-serving/config/`:
+The system uses a hierarchical YAML-based configuration structure for better organization and maintainability.
 
-### Core Configuration Files
+### Configuration File: `model-serving/config/default.yaml`
 
-**`config/base.py`**: General experiment settings
-- `ENABLE_EMOTION_AWARE`: Enable emotion features (default: True)
-- `EMOTION_DATASET_PATH`: Path to EmpatheticDialogues dataset
-- `RESULTS_DIR`: Output directory for results
-- `CACHE_DIR`: Cache directory for responses
+All configuration is centralized in a single YAML file with hierarchical organization:
 
-**`config/llm_config.py`**: LLM model and generation settings
-- `LLM_MODEL_NAME`: HuggingFace model ID (default: 'meta-llama/Meta-Llama-3-8B-Instruct')
-- `LLM_DEVICE_MAP`: Device mapping ('auto', 'cuda', 'cpu')
-- `LLM_MAX_NEW_TOKENS`: Max tokens to generate (default: 64)
-- `LLM_TEMPERATURE`: Sampling temperature (default: 0.7)
-- `USE_RESPONSE_CACHE`: Enable response caching (default: True)
-- `JOB_CONFIG_CACHE_FILE`: Path to job configuration cache (default: 'results/cache/job_configs.json')
-- `USE_SAVED_JOB_CONFIG`: Use saved job configurations if available (default: True)
-- `FORCE_NEW_JOB_CONFIG`: Force generate new job configurations (default: False)
+#### Workload Configuration
+```yaml
+workload:
+  service_time:
+    base_service_time: 2.0      # L_0: Base service time (seconds)
+    alpha: 0.5                   # α: Arousal impact coefficient (synchronized)
+    rho: 1.0                     # ρ: Correlation strength
+    min_service_time: 0.1        # Minimum service time bound
+    mapping_function: 'linear'   # Service time mapping function
 
-**`config/scheduler_config.py`**: Scheduling algorithm settings
-- `SCHEDULER_ALGORITHM`: 'FCFS' or 'SSJF-Emotion'
-- `SYSTEM_LOAD`: Target system utilization (default: 0.6)
-- `NUM_GPUS`: Number of GPUs (default: 1)
+  arrival:
+    base_arrival_rate: 2.0       # λ_0: Base arrival rate (tasks/second)
 
-**`config/workload_config.py`**: Workload generation parameters
-- `BASE_SERVICE_TIME`: L_0 base time (default: 2.0s)
-- `ALPHA`: Arousal impact on service time (default: 0.5)
-- `GAMMA`: Arousal impact on arrival rate (default: 0.3)
-- `RHO`: Emotion-system correlation (default: 1.0)
+  emotion:
+    arousal_noise_std: 0.0       # Arousal noise standard deviation
+    enable_emotion_aware: true   # Enable emotion-aware features
+```
+
+#### LLM Configuration
+```yaml
+llm:
+  model:
+    name: 'meta-llama/Meta-Llama-3-8B-Instruct'
+    device_map: 'auto'           # 'auto', 'cuda', 'cpu'
+    dtype: 'auto'                # Model data type
+    load_in_8bit: false          # 8-bit quantization
+
+  generation:
+    max_new_tokens: 1024         # Maximum tokens to generate
+    temperature: 0.7             # Sampling temperature
+    top_p: 0.9                   # Nucleus sampling threshold
+    do_sample: false             # Use sampling vs greedy
+
+  prompt:
+    include_emotion_hint: false  # Include emotion in prompt
+    max_conversation_turns: 2    # Conversation history length
+    emotion_length_control:
+      enabled: true              # Enable emotion-aware response length
+      base_response_length: 100  # L_0: Base response length (tokens)
+      # Note: Uses same alpha from workload.service_time.alpha
+
+  cache:
+    use_response_cache: true     # Enable response caching
+    cache_dir: 'results/cache'   # Cache directory
+    use_saved_job_config: true   # Use saved job configurations
+
+  error_handling:
+    max_retries: 2               # Max retries on failure
+    skip_on_error: true          # Skip failed jobs vs abort
+```
+
+#### Scheduler Configuration
+```yaml
+scheduler:
+  algorithm: 'FCFS'              # 'FCFS' or 'SSJF-Emotion'
+  system_load: 0.6               # Target system load (ρ)
+  starvation_prevention:
+    threshold: .inf              # Starvation threshold (disabled by default)
+    coefficient: 3.0             # Starvation coefficient
+```
+
+### Key Configuration Feature: Synchronized Alpha
+
+**Important**: The `alpha` parameter is **synchronized** between service time prediction and LLM response length generation:
+
+- **Service Time Formula**: `S_i = L_0 * (1 + α * a_i)` where α = `workload.service_time.alpha`
+- **Response Length Formula**: `L_i = L_0 * (1 + α * a_i)` where α = same value
+
+This ensures prediction and execution use the same arousal scaling, preventing mismatches between predicted and actual behavior.
+
+### Configuration Precedence
+
+Configuration values are loaded with the following precedence (lowest to highest):
+
+1. **Default values** in `config/default.yaml`
+2. **Environment variables** (e.g., `WORKLOAD_SERVICE_TIME_ALPHA`)
+3. **Command-line arguments** (highest priority)
 
 ### Environment Variables
 
-Override any configuration using environment variables:
+Override any configuration using hierarchical environment variables:
 
 ```bash
-# LLM Configuration
-export LLM_MODEL_NAME_ENV="mistralai/Mistral-7B-Instruct-v0.2"
-export LLM_DEVICE_MAP_ENV="cpu"
-export LLM_MAX_NEW_TOKENS_ENV=128
-
-# Scheduling Configuration
-export SCHEDULER_ALGORITHM_ENV="SSJF-Emotion"
-export SYSTEM_LOAD_ENV=0.8
-
 # Workload Configuration
-export ALPHA_ENV=0.7
-export GAMMA_ENV=0.5
+export WORKLOAD_SERVICE_TIME_ALPHA=0.7
+export WORKLOAD_SERVICE_TIME_BASE_SERVICE_TIME=3.0
+
+# LLM Configuration
+export LLM_MODEL_NAME="mistralai/Mistral-7B-Instruct-v0.2"
+export LLM_MODEL_DEVICE_MAP="cpu"
+export LLM_GENERATION_MAX_NEW_TOKENS=128
+
+# Scheduler Configuration
+export SCHEDULER_ALGORITHM="SSJF-Emotion"
+export SCHEDULER_SYSTEM_LOAD=0.8
 
 uv run python run_simulation.py --num_jobs 100
+```
+
+**Backward compatibility**: Old environment variables (e.g., `ALPHA_ENV`, `LLM_MODEL_NAME_ENV`) are still supported.
+
+### Command-Line Arguments
+
+All major parameters can be overridden via command-line arguments:
+
+```bash
+uv run python run_simulation.py \
+  --scheduler SSJF-Emotion \
+  --num_jobs 100 \
+  --system_load 0.8 \
+  --alpha 0.7 \
+  --base_service_time 3.0 \
+  --model_name "mistralai/Mistral-7B-Instruct-v0.2" \
+  --device_map cpu
+```
+
+### Configuration Files
+
+The configuration system is now fully YAML-based:
+- `config/default.yaml`: Single source of truth for all defaults
+- `config/config_loader.py`: Dataclass loader with env/CLI override support
+
+Use:
+```python
+from config.config_loader import load_config, get_alpha
+config = load_config()
 ```
 
 ---
