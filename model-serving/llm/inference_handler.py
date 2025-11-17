@@ -92,7 +92,10 @@ class LLMInferenceHandler:
 
         # 3. Initialize Prompt Builder
         self.prompt_builder = PromptBuilder(
-            include_emotion_hint=LLM_INCLUDE_EMOTION_HINT
+            include_emotion_hint=LLM_INCLUDE_EMOTION_HINT,
+            enable_emotion_length_control=LLM_ENABLE_EMOTION_LENGTH_CONTROL,
+            base_response_length=LLM_BASE_RESPONSE_LENGTH,
+            alpha=LLM_ALPHA
         )
 
         # 4. Initialize Response Cache
@@ -142,6 +145,9 @@ class LLMInferenceHandler:
             job.set_error_msg("No emotion label")
             return False
 
+        # Get arousal value for emotion-aware response length control
+        arousal = job.get_arousal()
+
         # Get user context from dataset
         # Use conversation_index if available (for reproducibility)
         conversation_index = getattr(job, 'conversation_index', None)
@@ -160,10 +166,11 @@ class LLMInferenceHandler:
             logger.warning(f"No conversation found for emotion: {emotion}, using fallback")
             user_context = f"I'm feeling {emotion} right now."
 
-        # Build prompt
+        # Build prompt with arousal for emotion-aware response length
         prompt = self.prompt_builder.build_prompt(
             user_context=user_context,
-            emotion=emotion
+            emotion=emotion,
+            arousal=arousal
         )
 
         # Store conversation context in job

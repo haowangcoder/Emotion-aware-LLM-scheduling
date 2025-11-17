@@ -31,17 +31,18 @@ LLM_LOAD_IN_8BIT = os.environ.get('LLM_LOAD_IN_8BIT_ENV', 'False').lower() == 't
 # GENERATION PARAMETERS
 # ============================================================================
 
-LLM_MAX_NEW_TOKENS = 64  # Maximum tokens to generate per response
+LLM_MAX_NEW_TOKENS = 1024  # Maximum tokens to generate per response
 LLM_TEMPERATURE = 0.7  # Sampling temperature (0.0 = greedy, 1.0 = more random)
 LLM_TOP_P = 0.9  # Nucleus sampling threshold
-LLM_DO_SAMPLE = True  # Use sampling instead of greedy decoding
+LLM_DO_SAMPLE = False  # Use sampling instead of greedy decoding
 LLM_REPETITION_PENALTY = 1.1  # Penalty for repeating tokens
 
 # Environment variable overrides
 LLM_MAX_NEW_TOKENS = int(os.environ.get('LLM_MAX_NEW_TOKENS_ENV', LLM_MAX_NEW_TOKENS))
 LLM_TEMPERATURE = float(os.environ.get('LLM_TEMPERATURE_ENV', LLM_TEMPERATURE))
 LLM_TOP_P = float(os.environ.get('LLM_TOP_P_ENV', LLM_TOP_P))
-LLM_DO_SAMPLE = os.environ.get('LLM_DO_SAMPLE_ENV', 'True').lower() == 'true'
+# Fix: Use the hardcoded LLM_DO_SAMPLE value as default instead of 'True'
+LLM_DO_SAMPLE = os.environ.get('LLM_DO_SAMPLE_ENV', str(LLM_DO_SAMPLE)).lower() == 'true'
 LLM_REPETITION_PENALTY = float(os.environ.get('LLM_REPETITION_PENALTY_ENV', LLM_REPETITION_PENALTY))
 
 
@@ -53,10 +54,19 @@ LLM_INCLUDE_SYSTEM_PROMPT = True  # Include system instruction in prompt
 LLM_INCLUDE_EMOTION_HINT = False  # Explicitly mention user's emotion in prompt
 LLM_MAX_CONVERSATION_TURNS = 2  # Max turns of conversation history to include
 
+# Emotion-aware response length control (L_i = L_0(1 + α·a_i))
+LLM_ENABLE_EMOTION_LENGTH_CONTROL = True  # Enable emotion-based response length control
+LLM_BASE_RESPONSE_LENGTH = 100  # Base response length L_0 in tokens
+LLM_ALPHA = 1.0  # Scaling factor α for arousal impact on response length
+
 # Environment variable overrides
 LLM_INCLUDE_SYSTEM_PROMPT = os.environ.get('LLM_INCLUDE_SYSTEM_PROMPT_ENV', 'True').lower() == 'true'
 LLM_INCLUDE_EMOTION_HINT = os.environ.get('LLM_INCLUDE_EMOTION_HINT_ENV', 'False').lower() == 'true'
 LLM_MAX_CONVERSATION_TURNS = int(os.environ.get('LLM_MAX_CONVERSATION_TURNS_ENV', LLM_MAX_CONVERSATION_TURNS))
+
+LLM_ENABLE_EMOTION_LENGTH_CONTROL = os.environ.get('LLM_ENABLE_EMOTION_LENGTH_CONTROL_ENV', 'True').lower() == 'true'
+LLM_BASE_RESPONSE_LENGTH = int(os.environ.get('LLM_BASE_RESPONSE_LENGTH_ENV', LLM_BASE_RESPONSE_LENGTH))
+LLM_ALPHA = float(os.environ.get('LLM_ALPHA_ENV', LLM_ALPHA))
 
 
 # ============================================================================

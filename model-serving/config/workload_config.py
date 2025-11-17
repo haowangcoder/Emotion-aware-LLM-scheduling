@@ -13,7 +13,7 @@ import os
 
 # Service Time Mapping Parameters
 # Formula: S_i = L_0 * (1 + ALPHA * arousal_i)
-BASE_SERVICE_TIME = 2.0  # L_0: Base service time when arousal = 0
+BASE_SERVICE_TIME = 1.0  # L_0: Base service time when arousal = 0
 ALPHA = 0.5              # α: Sensitivity coefficient for arousal impact on service time
 GAMMA_NONLINEAR = 1.0    # γ: Non-linear exponent (1.0 = linear mapping)
 RHO = 1.0                # ρ: Correlation strength between emotion and service time

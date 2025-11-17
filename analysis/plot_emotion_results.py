@@ -392,6 +392,96 @@ def plot_emotion_class_comparison_heatmap(dfs: Dict[str, pd.DataFrame],
     plt.close()
 
 
+def plot_serving_time_comparison_heatmap(dfs: Dict[str, pd.DataFrame],
+                                          output_path: str = 'serving_time_heatmap.png'):
+    """
+    Create side-by-side heatmaps comparing predicted vs actual serving time
+    across schedulers and emotion classes
+
+    Args:
+        dfs: Dictionary mapping scheduler_name -> DataFrame with job logs
+        output_path: Path to save the figure
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+    # Prepare data
+    schedulers = list(dfs.keys())
+    emotion_classes = ['high', 'medium', 'low']
+
+    # Build data matrices for predicted and actual serving time
+    predicted_matrix = []
+    actual_matrix = []
+
+    for scheduler_name in schedulers:
+        df = dfs[scheduler_name]
+        predicted_row = []
+        actual_row = []
+
+        for emotion_class in emotion_classes:
+            class_data = df[df['emotion_class'] == emotion_class]
+
+            # Predicted service time
+            predicted_data = class_data['service_time'].dropna()
+            predicted_avg = predicted_data.mean() if len(predicted_data) > 0 else 0
+            predicted_row.append(predicted_avg)
+
+            # Actual execution duration
+            actual_data = class_data['actual_execution_duration'].dropna()
+            actual_avg = actual_data.mean() if len(actual_data) > 0 else 0
+            actual_row.append(actual_avg)
+
+        predicted_matrix.append(predicted_row)
+        actual_matrix.append(actual_row)
+
+    predicted_matrix = np.array(predicted_matrix)
+    actual_matrix = np.array(actual_matrix)
+
+    # Use same color scale for both heatmaps
+    vmin = min(predicted_matrix.min(), actual_matrix.min())
+    vmax = max(predicted_matrix.max(), actual_matrix.max())
+
+    # Plot predicted serving time
+    im1 = ax1.imshow(predicted_matrix, cmap='YlOrRd', aspect='auto', vmin=vmin, vmax=vmax)
+    ax1.set_xticks(range(len(emotion_classes)))
+    ax1.set_yticks(range(len(schedulers)))
+    ax1.set_xticklabels([f'{ec.capitalize()} Arousal' for ec in emotion_classes])
+    ax1.set_yticklabels(schedulers)
+    ax1.set_title('Predicted Service Time', fontsize=12, fontweight='bold')
+
+    # Add text annotations for predicted
+    for i in range(len(schedulers)):
+        for j in range(len(emotion_classes)):
+            text = ax1.text(j, i, f'{predicted_matrix[i, j]:.2f}',
+                          ha="center", va="center", color="black", fontsize=10)
+
+    # Plot actual serving time
+    im2 = ax2.imshow(actual_matrix, cmap='YlOrRd', aspect='auto', vmin=vmin, vmax=vmax)
+    ax2.set_xticks(range(len(emotion_classes)))
+    ax2.set_yticks(range(len(schedulers)))
+    ax2.set_xticklabels([f'{ec.capitalize()} Arousal' for ec in emotion_classes])
+    ax2.set_yticklabels(schedulers)
+    ax2.set_title('Actual Execution Duration', fontsize=12, fontweight='bold')
+
+    # Add text annotations for actual
+    for i in range(len(schedulers)):
+        for j in range(len(emotion_classes)):
+            text = ax2.text(j, i, f'{actual_matrix[i, j]:.2f}',
+                          ha="center", va="center", color="black", fontsize=10)
+
+    # Add shared colorbar
+    fig.subplots_adjust(right=0.85)
+    cbar_ax = fig.add_axes([0.87, 0.15, 0.02, 0.7])
+    cbar = fig.colorbar(im2, cax=cbar_ax, label='Time (seconds)')
+
+    # Overall title
+    fig.suptitle('Serving Time Comparison: Predicted vs Actual\nby Scheduler and Emotion Class',
+                 fontsize=14, fontweight='bold', y=0.98)
+
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Saved serving time comparison heatmap to: {output_path}")
+    plt.close()
+
+
 def generate_comprehensive_report(result_dirs: Dict[str, str],
                                    output_dir: str = 'results/plots/'):
     """
@@ -439,9 +529,29 @@ def generate_comprehensive_report(result_dirs: Dict[str, str],
         output_path=os.path.join(output_dir, 'emotion_heatmap.png')
     )
 
+    # 5. Serving time comparison heatmap (predicted vs actual)
+    plot_serving_time_comparison_heatmap(
+        dfs,
+        output_path=os.path.join(output_dir, 'serving_time_heatmap.png')
+    )
+
     print(f"\nComprehensive report generated successfully!")
 
 
 if __name__ == '__main__':
-    # Auto-scan default llm_runs folder and generate all plots
-    scan_llm_runs_and_generate_plots()
+    # Allow specifying the scan directory from command line
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Scan LLM scheduling results and generate visualization plots."
+    )
+    parser.add_argument(
+        "--runs-dir",
+        type=str,
+        default="results/llm_runs",
+        help="Directory to scan for '*_jobs.csv' files (default: %(default)s).",
+    )
+    args = parser.parse_args()
+
+    # Auto-scan given (or default) llm_runs folder and generate all plots
+    scan_llm_runs_and_generate_plots(runs_dir=args.runs_dir)

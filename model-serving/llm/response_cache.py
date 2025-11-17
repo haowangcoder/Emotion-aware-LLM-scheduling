@@ -7,6 +7,7 @@ Provides caching mechanism to:
 - Speed up iterative experimentation
 
 The cache uses SHA256 hashing of prompts as keys and stores:
+- Full prompt text (for reproducibility and analysis)
 - Generated response text
 - Execution time
 - Output token length
@@ -86,6 +87,7 @@ class ResponseCache:
 
         Returns:
             Dictionary with cached data if found, None otherwise:
+                - prompt: Full prompt text
                 - response_text: Generated response
                 - execution_time: Time taken (seconds)
                 - output_token_length: Number of tokens generated
@@ -142,7 +144,7 @@ class ResponseCache:
             "generation_params": generation_params or {},
             "error": error,
             "fallback_used": fallback_used,
-            "prompt_preview": prompt[:200]  # Store preview for debugging
+            "prompt": prompt  # Store full prompt for reproducibility and analysis
         }
 
         self.cache[prompt_hash] = cache_entry

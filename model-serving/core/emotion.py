@@ -23,46 +23,46 @@ from typing import Tuple, Dict, List
 # Higher values indicate higher emotional activation/arousal
 EMOTION_AROUSAL_MAP = {
     # High Arousal Positive (0.6 to 1.0)
-    'excited': 0.95,
-    'joyful': 0.85,
-    'surprised': 0.80,
-    'anticipating': 0.75,
-    'impressed': 0.70,
-    'proud': 0.65,
+    'excited': 0.8,
+    'joyful': 0.8,
+    'surprised': 0.8,
+    'anticipating': 0.8,
+    'impressed': 0.8,
+    'proud': 0.8,
 
     # High Arousal Negative (0.6 to 1.0)
-    'terrified': 0.95,
-    'afraid': 0.90,
-    'anxious': 0.85,
-    'angry': 0.90,
-    'furious': 0.95,
-    'annoyed': 0.70,
-    'disgusted': 0.75,
+    'terrified': 0.8,
+    'afraid': 0.8,
+    'anxious': 0.8,
+    'angry': 0.8,
+    'furious': 0.8,
+    'annoyed': 0.8,
+    'disgusted': 0.8,
 
     # Medium-High Arousal (0.3 to 0.6)
-    'hopeful': 0.55,
-    'trusting': 0.45,
-    'faithful': 0.45,
-    'caring': 0.40,
-    'grateful': 0.50,
-    'confident': 0.55,
-    'jealous': 0.60,
-    'embarrassed': 0.65,
+    'hopeful': 0,
+    'trusting': 0,
+    'faithful': 0,
+    'caring': 0,
+    'grateful': 0,
+    'confident': 0,
+    'jealous': 0,
+    'embarrassed': 0,
 
     # Medium-Low Arousal (-0.3 to 0.3)
-    'sentimental': 0.20,
-    'nostalgic': 0.10,
-    'content': 0.05,
-    'prepared': 0.15,
-    'apprehensive': 0.25,
-    'guilty': 0.20,
-    'ashamed': 0.30,
+    'sentimental': -0.8,
+    'nostalgic': -0.8,
+    'content': -0.8,
+    'prepared': -0.8,
+    'apprehensive': -0.8,
+    'guilty': -0.8,
+    'ashamed': -0.8,
 
     # Low Arousal Negative (-1.0 to -0.3)
-    'sad': -0.60,
-    'lonely': -0.70,
-    'disappointed': -0.50,
-    'devastated': -0.65,
+    'sad': -0.8,
+    'lonely': -0.8,
+    'disappointed': -0.8,
+    'devastated': -0.8,
 }
 
 # Default emotion probability distribution (uniform for simplicity)
