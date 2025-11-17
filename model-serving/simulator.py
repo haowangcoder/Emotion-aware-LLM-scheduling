@@ -148,9 +148,7 @@ def run_emotion_aware_experiment(args):
     service_config = ServiceTimeConfig(
         base_service_time=args.base_service_time,
         alpha=args.alpha,
-        gamma=1.0,
-        rho=args.rho,
-        mapping_func=args.mapping_func
+        rho=args.rho
     )
 
     print(f"\nExperiment Configuration:")
@@ -415,9 +413,6 @@ def main():
                         help='Enable emotion-aware features')
     parser.add_argument('--arousal_noise', type=float, default=0.0,
                         help='Standard deviation of arousal noise')
-    parser.add_argument('--mapping_func', type=str, default='linear',
-                        choices=['linear', 'exponential', 'gamma_dist'],
-                        help='Service time mapping function')
     parser.add_argument('--random_seed', type=int, default=None,
                         help='Random seed for reproducibility (default: None, uses system entropy)')
 

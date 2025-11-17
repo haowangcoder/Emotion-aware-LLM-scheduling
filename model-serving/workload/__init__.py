@@ -8,9 +8,6 @@ Contains task generation and service time mapping:
 
 from .service_time_mapper import (
     ServiceTimeConfig,
-    map_service_time_linear,
-    map_service_time_exponential,
-    map_service_time_gamma_dist,
     map_service_time
 )
 from .task_generator import (
@@ -20,9 +17,6 @@ from .task_generator import (
 
 __all__ = [
     'ServiceTimeConfig',
-    'map_service_time_linear',
-    'map_service_time_exponential',
-    'map_service_time_gamma_dist',
     'map_service_time',
     'create_emotion_aware_jobs',
     'get_emotion_aware_statistics',
