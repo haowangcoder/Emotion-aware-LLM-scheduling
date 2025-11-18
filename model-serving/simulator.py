@@ -206,7 +206,8 @@ def run_emotion_aware_experiment(args):
     # Load hierarchical configuration (YAML → env → CLI)
     from config.config_loader import load_config, get_alpha  # Local import to avoid circulars
 
-    cli_args = vars(args)
+    # Only pass CLI arguments that were explicitly set (value is not None)
+    cli_args = {k: v for k, v in vars(args).items() if v is not None}
     config = load_config(cli_args=cli_args)
 
     # Create configurations using loaded config
@@ -219,7 +220,7 @@ def run_emotion_aware_experiment(args):
     )
 
     print(f"\nExperiment Configuration:")
-    print(f"  Scheduler: {args.scheduler}")
+    print(f"  Scheduler: {config.scheduler.algorithm}")
     print(f"  Simulation time: {config.experiment.simulation_time:.2f}s")
     print(f"  System load (ρ): {config.scheduler.system_load}")
     print(f"  Base service time (L_0): {config.workload.service_time.base_service_time}")
@@ -242,16 +243,17 @@ def run_emotion_aware_experiment(args):
         print(f"  Random seed: {config.experiment.random_seed}")
 
     # Create scheduler
-    print(f"\nCreating {args.scheduler} scheduler...")
-    if args.scheduler == 'FCFS':
+    algorithm = config.scheduler.algorithm
+    print(f"\nCreating {algorithm} scheduler...")
+    if algorithm == 'FCFS':
         scheduler = FCFSScheduler()
-    elif args.scheduler == 'SSJF-Emotion':
+    elif algorithm == 'SSJF-Emotion':
         scheduler = SSJFEmotionScheduler(
-            starvation_threshold=args.starvation_threshold,
-            starvation_coefficient=args.starvation_coefficient
+            starvation_threshold=config.scheduler.starvation_prevention.threshold,
+            starvation_coefficient=config.scheduler.starvation_prevention.coefficient
         )
     else:
-        raise ValueError(f"Unknown scheduler: {args.scheduler}")
+        raise ValueError(f"Unknown scheduler: {algorithm}")
 
     # Initialize LLM handler (LLM-only mode)
     llm_handler = None
@@ -368,13 +370,15 @@ def run_emotion_aware_experiment(args):
                   f"{metrics['avg_execution_time']:<12.3f}")
 
     # Save results
-    if args.output_dir:
-        print(f"\nSaving results to: {args.output_dir}")
-        os.makedirs(args.output_dir, exist_ok=True)
+    # Prefer explicit CLI output_dir; fall back to config.output.results_dir
+    output_dir = args.output_dir if args.output_dir is not None else config.output.results_dir
+    if output_dir:
+        print(f"\nSaving results to: {output_dir}")
+        os.makedirs(output_dir, exist_ok=True)
 
         logger = EmotionAwareLogger(
-            output_dir=args.output_dir,
-            experiment_name=f"{args.scheduler}_{run_metrics['total_jobs']}jobs_load{config.scheduler.system_load:.2f}_time{config.experiment.simulation_time:.0f}s"
+            output_dir=output_dir,
+            experiment_name=f"{config.scheduler.algorithm}_{run_metrics['total_jobs']}jobs_load{config.scheduler.system_load:.2f}_time{config.experiment.simulation_time:.0f}s"
         )
 
         # Set metadata
@@ -400,41 +404,46 @@ def main():
     )
 
     # Required arguments
-    parser.add_argument('--scheduler', type=str, default='FCFS',
+    parser.add_argument('--scheduler', type=str, default=None,
                         choices=['FCFS', 'SSJF-Emotion'],
-                        help='Scheduling algorithm')
+                        help='Scheduling algorithm (overrides config.scheduler.algorithm)')
     parser.add_argument('--simulation_time', type=float, default=None,
                         help='Simulation time duration in seconds')
 
     # System configuration
-    parser.add_argument('--system_load', type=float, default=0.6,
-                        help='Target system load (rho)')
-    parser.add_argument('--base_service_time', type=float, default=2.0,
-                        help='Base service time (L_0)')
-    parser.add_argument('--alpha', type=float, default=0.5,
-                        help='Alpha parameter for arousal-service time mapping')
-    parser.add_argument('--rho', type=float, default=1.0,
-                        help='Correlation strength (rho)')
+    parser.add_argument('--system_load', type=float, default=None,
+                        help='Target system load (rho, overrides config.scheduler.system_load)')
+    parser.add_argument('--base_service_time', type=float, default=None,
+                        help='Base service time L_0 (overrides config.workload.service_time.base_service_time)')
+    parser.add_argument('--alpha', type=float, default=None,
+                        help='Alpha parameter for arousal-service time mapping (overrides config.workload.service_time.alpha)')
+    parser.add_argument('--rho', type=float, default=None,
+                        help='Correlation strength rho (overrides config.workload.service_time.rho)')
 
     # Job generation
-    parser.add_argument('--enable_emotion', action='store_true', default=True,
-                        help='Enable emotion-aware features')
-    parser.add_argument('--arousal_noise', type=float, default=0.0,
-                        help='Standard deviation of arousal noise')
+    emotion_group = parser.add_mutually_exclusive_group()
+    emotion_group.add_argument('--enable_emotion', dest='enable_emotion',
+                               action='store_true', default=None,
+                               help='Enable emotion-aware features (overrides config.workload.emotion.enable_emotion_aware)')
+    emotion_group.add_argument('--disable_emotion', dest='enable_emotion',
+                               action='store_false',
+                               help='Disable emotion-aware features (overrides config.workload.emotion.enable_emotion_aware)')
+    parser.add_argument('--arousal_noise', type=float, default=None,
+                        help='Standard deviation of arousal noise (overrides config.workload.emotion.arousal_noise_std)')
     parser.add_argument('--random_seed', type=int, default=None,
-                        help='Random seed for reproducibility (default: None, uses system entropy)')
+                        help='Random seed for reproducibility (overrides config.experiment.random_seed)')
 
     # Scheduler configuration
-    parser.add_argument('--starvation_threshold', type=float, default=float('inf'),
-                        help='Absolute starvation threshold for SSJF')
-    parser.add_argument('--starvation_coefficient', type=float, default=3.0,
-                        help='Relative starvation coefficient for SSJF')
+    parser.add_argument('--starvation_threshold', type=float, default=None,
+                        help='Absolute starvation threshold for SSJF (overrides config.scheduler.starvation_prevention.threshold)')
+    parser.add_argument('--starvation_coefficient', type=float, default=None,
+                        help='Relative starvation coefficient for SSJF (overrides config.scheduler.starvation_prevention.coefficient)')
 
     # Output configuration
-    parser.add_argument('--output_dir', type=str, default='results/llm_runs/',
-                        help='Directory to save results')
-    parser.add_argument('--verbose', action='store_true',
-                        help='Print detailed scheduling progress')
+    parser.add_argument('--output_dir', type=str, default=None,
+                        help='Directory to save results (overrides config.output.results_dir)')
+    parser.add_argument('--verbose', action='store_true', default=None,
+                        help='Print detailed scheduling progress (overrides config.output.verbose)')
 
     # LLM Inference Configuration (LLM-only)
     # Note: These are loaded from config by default

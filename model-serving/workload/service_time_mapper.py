@@ -23,10 +23,10 @@ class ServiceTimeConfig:
     """Configuration for service time mapping"""
 
     def __init__(self,
-                 base_service_time: float = 1.0,
-                 alpha: float = 0.5,
-                 rho: float = 1.0,
-                 min_service_time: float = 0.1):
+                 base_service_time,
+                 alpha,
+                 rho,
+                 min_service_time):
         """
         Initialize service time configuration
 

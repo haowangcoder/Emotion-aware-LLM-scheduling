@@ -108,7 +108,7 @@ experiment:
   # Simulation Parameters
   simulation_time: 200.0         # Simulation time duration in seconds (T)
                                  # Jobs arrive at rate λ until T is reached, then queue drains
-  random_seed: null              # Random seed for reproducibility (null = use system entropy)
+  random_seed: 42              # Random seed for reproducibility (null = use system entropy)
 
   # Fairness Metrics
   fairness_metric: 'waiting_time'  # 'waiting_time' or 'turnaround_time'
@@ -119,12 +119,12 @@ experiment:
 # ============================================================================
 output:
   results_dir: 'results/llm_runs/'  # Directory to save results
-  verbose: false                 # Print detailed scheduling progress
+  verbose: true                 # Print detailed scheduling progress
 
 # ============================================================================
 # CONFIGURATION NOTES
 # ============================================================================
-# 1. SIMULATION MODEL (方案 B: Fixed-Rate Arrival):
+# 1. SIMULATION MODEL:
 #    - Jobs arrive continuously at rate λ = system_load / E[S]
 #    - Simulation runs for duration T (simulation_time)
 #    - After T, no new arrivals; remaining jobs in queue are processed

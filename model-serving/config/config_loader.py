@@ -226,6 +226,15 @@ class ConfigLoader:
     def _apply_env_overrides(config: Config) -> None:
         """Apply environment variable overrides to configuration."""
         env_mappings = [
+            # Backward compatibility with old env var names (lower precedence)
+            # New-style env vars below will override these if both are set.
+            ('ALPHA_ENV', lambda c, v: setattr(c.workload.service_time, 'alpha', float(v))),
+            ('BASE_SERVICE_TIME_ENV', lambda c, v: setattr(c.workload.service_time, 'base_service_time', float(v))),
+            ('RHO_ENV', lambda c, v: setattr(c.workload.service_time, 'rho', float(v))),
+            ('LLM_MODEL_NAME_ENV', lambda c, v: setattr(c.llm.model, 'name', v)),
+            ('LLM_DEVICE_MAP_ENV', lambda c, v: setattr(c.llm.model, 'device_map', v)),
+            ('EMOTION_DATASET_PATH_ENV', lambda c, v: setattr(c.dataset, 'emotion_dataset_path', v)),
+
             # Workload
             ('WORKLOAD_SERVICE_TIME_BASE_SERVICE_TIME', lambda c, v: setattr(c.workload.service_time, 'base_service_time', float(v))),
             ('WORKLOAD_SERVICE_TIME_ALPHA', lambda c, v: setattr(c.workload.service_time, 'alpha', float(v))),
@@ -277,14 +286,6 @@ class ConfigLoader:
             # Output
             ('OUTPUT_RESULTS_DIR', lambda c, v: setattr(c.output, 'results_dir', v)),
             ('OUTPUT_VERBOSE', lambda c, v: setattr(c.output, 'verbose', v.lower() == 'true')),
-
-            # Backward compatibility with old env var names
-            ('ALPHA_ENV', lambda c, v: setattr(c.workload.service_time, 'alpha', float(v))),
-            ('BASE_SERVICE_TIME_ENV', lambda c, v: setattr(c.workload.service_time, 'base_service_time', float(v))),
-            ('RHO_ENV', lambda c, v: setattr(c.workload.service_time, 'rho', float(v))),
-            ('LLM_MODEL_NAME_ENV', lambda c, v: setattr(c.llm.model, 'name', v)),
-            ('LLM_DEVICE_MAP_ENV', lambda c, v: setattr(c.llm.model, 'device_map', v)),
-            ('EMOTION_DATASET_PATH_ENV', lambda c, v: setattr(c.dataset, 'emotion_dataset_path', v)),
         ]
 
         for env_var, setter in env_mappings:
@@ -321,6 +322,8 @@ class ConfigLoader:
             'use_cache': lambda c, v: setattr(c.llm.cache, 'use_response_cache', v),
             'force_regenerate': lambda c, v: setattr(c.llm.cache, 'force_regenerate', v),
             'device_map': lambda c, v: setattr(c.llm.model, 'device_map', v),
+            'dtype': lambda c, v: setattr(c.llm.model, 'dtype', v),
+            'load_in_8bit': lambda c, v: setattr(c.llm.model, 'load_in_8bit', v),
         }
 
         for arg_name, setter in cli_mappings.items():
