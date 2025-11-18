@@ -43,7 +43,8 @@ def run_scheduling_loop(
         enable_emotion: bool = True,
         verbose: bool = False,
         llm_handler=None,
-        llm_skip_on_error: bool = True) -> tuple[List[Job], dict]:
+        llm_skip_on_error: bool = True,
+        pre_generated_jobs: List[Job] = None) -> tuple[List[Job], dict]:
     """
     Run emotion-aware job scheduling loop with fixed-rate arrivals
 
@@ -57,6 +58,7 @@ def run_scheduling_loop(
         verbose: Print detailed progress
         llm_handler: Optional LLMInferenceHandler for real model inference
         llm_skip_on_error: Skip failed LLM jobs instead of aborting
+        pre_generated_jobs: Optional pre-generated job list (for reproducibility)
 
     Returns:
         Tuple of (completed_jobs list, metrics dict)
@@ -67,6 +69,8 @@ def run_scheduling_loop(
         print(f"\nStarting scheduling run with {scheduler.name} scheduler")
         print(f"  Arrival rate: {arrival_rate:.3f} req/sec")
         print(f"  Simulation time: {simulation_time:.2f}s")
+        if pre_generated_jobs:
+            print(f"  Using pre-generated jobs: {len(pre_generated_jobs)}")
 
     # Scheduling state
     current_time = 0.0
@@ -78,6 +82,18 @@ def run_scheduling_loop(
     # Track jobs completed before deadline
     jobs_by_deadline = []
 
+    # Pre-generated jobs setup
+    if pre_generated_jobs:
+        # Sort by arrival time to ensure correct order
+        pre_generated_jobs = sorted(pre_generated_jobs, key=lambda j: j.arrival_time)
+        job_index = 0
+        total_jobs = len(pre_generated_jobs)
+        if total_jobs > 0:
+            next_arrival_time = pre_generated_jobs[0].arrival_time
+    else:
+        job_index = None
+        total_jobs = None
+
     # Phase 1: Generate arrivals until simulation_time
     if verbose:
         print(f"\n=== Phase 1: Arrival Phase (0 - {simulation_time:.2f}s) ===")
@@ -85,24 +101,39 @@ def run_scheduling_loop(
     while current_time < simulation_time or waiting_queue:
         # Generate new arrivals if we're still in the arrival phase
         while current_time >= next_arrival_time and next_arrival_time < simulation_time:
-            # Generate job on-demand
-            new_job = generate_job_on_demand(
-                job_id=next_job_id,
-                arrival_time=next_arrival_time,
-                emotion_config=emotion_config,
-                service_time_config=service_time_config,
-                enable_emotion=enable_emotion
-            )
-            waiting_queue.append(new_job)
+            if pre_generated_jobs and job_index < total_jobs:
+                # Use pre-generated job
+                new_job = pre_generated_jobs[job_index]
+                waiting_queue.append(new_job)
 
-            if verbose and next_job_id % 50 == 0:
-                print(f"  Time {next_arrival_time:.2f}: Job {next_job_id} arrived "
-                      f"(emotion: {new_job.emotion_label}, queue: {len(waiting_queue)})")
+                if verbose and job_index % 50 == 0:
+                    print(f"  Time {new_job.arrival_time:.2f}: Job {new_job.job_id} arrived "
+                          f"(emotion: {new_job.emotion_label}, queue: {len(waiting_queue)})")
 
-            # Schedule next arrival using exponential distribution
-            inter_arrival_time = np.random.exponential(1.0 / arrival_rate)
-            next_arrival_time += inter_arrival_time
-            next_job_id += 1
+                job_index += 1
+                if job_index < total_jobs:
+                    next_arrival_time = pre_generated_jobs[job_index].arrival_time
+                else:
+                    next_arrival_time = simulation_time  # No more jobs
+            else:
+                # Generate job on-demand
+                new_job = generate_job_on_demand(
+                    job_id=next_job_id,
+                    arrival_time=next_arrival_time,
+                    emotion_config=emotion_config,
+                    service_time_config=service_time_config,
+                    enable_emotion=enable_emotion
+                )
+                waiting_queue.append(new_job)
+
+                if verbose and next_job_id % 50 == 0:
+                    print(f"  Time {next_arrival_time:.2f}: Job {next_job_id} arrived "
+                          f"(emotion: {new_job.emotion_label}, queue: {len(waiting_queue)})")
+
+                # Schedule next arrival using exponential distribution
+                inter_arrival_time = np.random.exponential(1.0 / arrival_rate)
+                next_arrival_time += inter_arrival_time
+                next_job_id += 1
 
         # Check if we've transitioned to drain phase
         if current_time >= simulation_time and len(jobs_by_deadline) == 0:
@@ -216,7 +247,8 @@ def run_emotion_aware_experiment(args):
     service_config = ServiceTimeConfig(
         base_service_time=config.workload.service_time.base_service_time,
         alpha=alpha,
-        rho=config.workload.service_time.rho
+        rho=config.workload.service_time.rho,
+        min_service_time=config.workload.service_time.min_service_time,
     )
 
     print(f"\nExperiment Configuration:")
@@ -241,6 +273,56 @@ def run_emotion_aware_experiment(args):
         import random
         random.seed(config.experiment.random_seed)
         print(f"  Random seed: {config.experiment.random_seed}")
+
+    # ========================================================================
+    # Job Configuration Management (for reproducibility)
+    # ========================================================================
+    from core.job_config_manager import JobConfigManager
+    from workload.task_generator import create_emotion_aware_jobs
+
+    # Build job config file path
+    job_config_path = os.path.join(config.llm.cache.cache_dir, config.llm.cache.job_config_file)
+    job_config_manager = JobConfigManager(job_config_path)
+
+    pre_generated_jobs = None
+    use_saved = config.llm.cache.use_saved_job_config
+    force_new = config.llm.cache.force_new_job_config
+
+    print(f"\nJob Configuration:")
+    print(f"  Use saved config: {use_saved}")
+    print(f"  Force new config: {force_new}")
+    print(f"  Config file: {job_config_path}")
+
+    # Try to load existing job configuration
+    if use_saved and not force_new:
+        print(f"  Attempting to load existing job configuration...")
+        config_data = job_config_manager.load_job_configs()
+
+        if config_data is not None:
+            # Extract job configurations
+            job_configs = config_data.get('jobs', [])
+
+            # Generate jobs from loaded configuration
+            # Note: We generate enough jobs to cover the simulation time
+            # The actual number may be more/less than loaded configs
+            print(f"  Generating jobs from loaded configuration...")
+            pre_generated_jobs = create_emotion_aware_jobs(
+                num_jobs=len(job_configs),
+                arrival_rate=arrival_rate,
+                emotion_config=emotion_config,
+                service_time_config=service_config,
+                enable_emotion=config.workload.emotion.enable_emotion_aware,
+                job_configs=job_configs,
+                random_seed=None  # Don't reset seed here, already set above
+            )
+            print(f"  ✓ Loaded {len(pre_generated_jobs)} jobs from saved configuration")
+        else:
+            print(f"  No existing configuration found, will generate new jobs")
+    else:
+        if force_new:
+            print(f"  Force new config enabled, will generate new jobs")
+        else:
+            print(f"  Saved config disabled, will generate new jobs")
 
     # Create scheduler
     algorithm = config.scheduler.algorithm
@@ -309,6 +391,7 @@ def run_emotion_aware_experiment(args):
         verbose=config.output.verbose,
         llm_handler=llm_handler,
         llm_skip_on_error=config.llm.error_handling.skip_on_error,
+        pre_generated_jobs=pre_generated_jobs,
     )
 
     # Save cache if LLM was used
@@ -318,6 +401,39 @@ def run_emotion_aware_experiment(args):
         cache_stats = llm_handler.get_cache_stats()
         print(f"  Cache stats: {cache_stats['num_entries']} entries, "
               f"{cache_stats['hit_rate']:.1%} hit rate")
+
+    # ========================================================================
+    # Save Job Configuration (for reproducibility across schedulers)
+    # ========================================================================
+    # Save job configuration if:
+    # 1. We didn't load from an existing config (pre_generated_jobs is None), OR
+    # 2. force_new_job_config is True (explicitly requested to save new config)
+    if pre_generated_jobs is None or force_new:
+        print(f"\nSaving job configuration for future reproducibility...")
+
+        # Prepare metadata
+        job_config_metadata = {
+            'num_jobs': run_metrics['total_jobs'],
+            'simulation_time': config.experiment.simulation_time,
+            'arrival_rate': arrival_rate,
+            'system_load': config.scheduler.system_load,
+            'random_seed': config.experiment.random_seed,
+            'base_service_time': config.workload.service_time.base_service_time,
+            'alpha': alpha,
+            'rho': config.workload.service_time.rho,
+            'enable_emotion_aware': config.workload.emotion.enable_emotion_aware,
+            'model_name': config.llm.model.name,
+        }
+
+        # Save job configurations with actual execution times
+        job_config_manager.save_job_configs(
+            jobs=completed_jobs,
+            metadata=job_config_metadata
+        )
+        print(f"  ✓ Saved {len(completed_jobs)} job configurations to {job_config_path}")
+        print(f"  Note: Different schedulers can now use this config for fair comparison")
+    else:
+        print(f"\nSkipping job config save (loaded from existing configuration)")
 
     # Calculate metrics
     waiting_times = [j.waiting_duration for j in completed_jobs if j.waiting_duration is not None]

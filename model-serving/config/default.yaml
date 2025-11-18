@@ -106,7 +106,7 @@ dataset:
 
 experiment:
   # Simulation Parameters
-  simulation_time: 200.0         # Simulation time duration in seconds (T)
+  simulation_time: 50        # Simulation time duration in seconds (T)
                                  # Jobs arrive at rate λ until T is reached, then queue drains
   random_seed: 42              # Random seed for reproducibility (null = use system entropy)
 

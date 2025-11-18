@@ -20,21 +20,23 @@ import numpy as np
 
 
 class ServiceTimeConfig:
-    """Configuration for service time mapping"""
+    """Configuration for service time mapping."""
 
-    def __init__(self,
-                 base_service_time,
-                 alpha,
-                 rho,
-                 min_service_time):
+    def __init__(
+        self,
+        base_service_time: float = 2.0,
+        alpha: float = 0.5,
+        rho: float = 1.0,
+        min_service_time: float = 0.1,
+    ):
         """
-        Initialize service time configuration
+        Initialize service time configuration.
 
         Args:
-            base_service_time (L_0): Base service time when arousal is 0
-            alpha (α): Linear coefficient for arousal impact
-            rho (ρ): Correlation strength (0 = no correlation, 1 = full correlation)
-            min_service_time: Minimum allowed service time (safety bound)
+            base_service_time (L_0): Base service time when arousal is 0.
+            alpha (α): Linear coefficient for arousal impact.
+            rho (ρ): Correlation strength (0 = no correlation, 1 = full correlation).
+            min_service_time: Minimum allowed service time (safety bound).
         """
         self.base_service_time = base_service_time
         self.alpha = alpha
