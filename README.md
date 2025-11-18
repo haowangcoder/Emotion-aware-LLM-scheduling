@@ -133,7 +133,13 @@ Emotion-aware-LLM-scheduling/
 │   ├── valid.csv
 │   └── test.csv
 ├── model-serving/              # Main package (refactored)
-│   ├── simulator.py            # Scheduling simulator
+│   ├── simulator/              # Scheduling simulator package
+│   │   ├── cli.py             # CLI entry & argument parsing
+│   │   ├── experiment.py      # High-level experiment orchestration
+│   │   ├── loop.py            # Core scheduling loop
+│   │   ├── job_config.py      # Job configuration load/save helpers
+│   │   ├── llm_runtime.py     # LLM initialization & cache handling
+│   │   └── reporting.py       # Metrics printing & result persistence
 │   ├── config/                 # Configuration modules
 │   │   ├── __init__.py        # Config entry point (re-exports loader helpers)
 │   │   ├── default.yaml       # YAML configuration (single source of truth)
@@ -184,7 +190,7 @@ Emotion-aware-LLM-scheduling/
    - FCFS: First-come-first-served
    - SSJF-Emotion: Shortest predicted service time first
    ↓
-6. Job Execution (simulator.py)
+6. Job Execution (simulator/experiment.py, simulator/loop.py)
    - Build empathetic prompt (llm/prompt_builder.py)
    - Generate response with real LLM (llm/engine.py)
    - Measure actual execution time

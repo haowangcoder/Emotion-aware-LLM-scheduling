@@ -15,7 +15,7 @@ Usage:
     python run_simulation.py --scheduler SSJF-Emotion --simulation_time 300 --system_load 0.8
     python run_simulation.py --help
 
-For detailed documentation, see: model-serving/simulator.py
+For detailed documentation, see: model-serving/simulator/
 """
 
 import sys
