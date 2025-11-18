@@ -199,6 +199,10 @@ class EmotionAwareLogger:
             }
         }
 
+        # Add run_metrics if available (Fixed-rate arrival metrics)
+        if 'run_metrics' in sanitized_metadata:
+            summary['run_metrics'] = sanitized_metadata['run_metrics']
+
         # Add LLM-specific metrics if using real model inference
         if completed_jobs and hasattr(completed_jobs[0], 'response_text'):
             # Collect LLM-related data

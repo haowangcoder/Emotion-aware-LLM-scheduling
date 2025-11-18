@@ -18,6 +18,54 @@ from core.emotion import EmotionConfig, sample_emotion, sample_emotions_batch
 from workload.service_time_mapper import ServiceTimeConfig, map_service_time
 
 
+def generate_job_on_demand(
+        job_id: int,
+        arrival_time: float,
+        emotion_config: EmotionConfig = None,
+        service_time_config: ServiceTimeConfig = None,
+        enable_emotion: bool = True) -> Job:
+    """
+    Generate a single job on-demand for fixed-rate arrival simulation
+
+    Args:
+        job_id: Unique job identifier
+        arrival_time: When this job arrives in the system
+        emotion_config: EmotionConfig object
+        service_time_config: ServiceTimeConfig object
+        enable_emotion: Whether to enable emotion-aware features
+
+    Returns:
+        Single Job object with emotion attributes
+    """
+    if emotion_config is None:
+        emotion_config = EmotionConfig()
+    if service_time_config is None:
+        service_time_config = ServiceTimeConfig()
+
+    # Sample emotion for this job
+    if enable_emotion:
+        emotion_label, arousal = sample_emotion(emotion_config)
+        emotion_class = emotion_config.classify_arousal(arousal)
+        service_time = map_service_time(arousal, service_time_config)
+    else:
+        emotion_label = 'neutral'
+        arousal = 0.0
+        emotion_class = 'medium'
+        service_time = service_time_config.base_service_time
+
+    # Create job
+    job = Job(
+        job_id=job_id,
+        execution_duration=service_time,
+        arrival_time=arrival_time,
+        emotion_label=emotion_label,
+        arousal=arousal,
+        emotion_class=emotion_class
+    )
+
+    return job
+
+
 def create_emotion_aware_jobs(
         num_jobs: int,
         arrival_rate: float = 1.0,

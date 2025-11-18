@@ -1,80 +1,125 @@
 """
 Standalone Emotion-aware LLM Scheduling Runner
 
-This runner provides a simple command-line interface for executing emotion-aware
-scheduling experiments. It integrates all the emotion-aware components:
+This runner implements a fixed-rate arrival simulation model:
+- Jobs arrive continuously at rate λ = system_load / E[S] req/sec
+- Simulation runs for a fixed duration (simulation_time)
+- After deadline T, new arrivals stop and remaining queue drains
+- Metrics track: jobs completed by deadline vs total jobs
+
+Integrated components:
 - Emotion sampling and arousal mapping
 - Service time mapping based on arousal
+- On-demand job generation (no pre-generated job list)
 - FCFS and SSJF-Emotion scheduling strategies
 - Fairness metrics and comprehensive logging
 
 Usage:
-    python simulator_emotion.py --scheduler FCFS --num_jobs 100 --system_load 0.6
-    python simulator_emotion.py --scheduler SSJF-Emotion --num_jobs 200 --alpha 0.7
+    python simulator.py --scheduler FCFS --simulation_time 200 --system_load 0.6
+    python simulator.py --scheduler SSJF-Emotion --simulation_time 300 --system_load 0.8
 """
 
 import argparse
 import os
 import sys
+import numpy as np
 from typing import List
 
 from core.emotion import EmotionConfig
 from workload.service_time_mapper import ServiceTimeConfig
-from workload.task_generator import create_emotion_aware_jobs, get_emotion_aware_statistics
 from core.scheduler_base import FCFSScheduler
 from core.ssjf_emotion import SSJFEmotionScheduler
 from analysis.logger import EmotionAwareLogger
 from analysis.fairness_metrics import analyze_fairness_comprehensive
 from core.job import Job
-from core.job_config_manager import create_job_config_manager
-from config.config_loader import load_config
 
 
 def run_scheduling_loop(
         scheduler,
-        job_list: List[Job],
+        arrival_rate: float,
+        simulation_time: float,
+        emotion_config: EmotionConfig,
+        service_time_config: ServiceTimeConfig,
+        enable_emotion: bool = True,
         verbose: bool = False,
         llm_handler=None,
-        llm_skip_on_error: bool = True) -> List[Job]:
+        llm_skip_on_error: bool = True) -> tuple[List[Job], dict]:
     """
-    Run emotion-aware job scheduling loop
+    Run emotion-aware job scheduling loop with fixed-rate arrivals
 
     Args:
         scheduler: Scheduler instance
-        job_list: List of Job objects
+        arrival_rate: Arrival rate λ (requests/sec)
+        simulation_time: Time limit for new arrivals (seconds)
+        emotion_config: EmotionConfig for job generation
+        service_time_config: ServiceTimeConfig for job generation
+        enable_emotion: Whether to enable emotion-aware features
         verbose: Print detailed progress
         llm_handler: Optional LLMInferenceHandler for real model inference
+        llm_skip_on_error: Skip failed LLM jobs instead of aborting
 
     Returns:
-        List of completed jobs
+        Tuple of (completed_jobs list, metrics dict)
     """
+    from workload.task_generator import generate_job_on_demand
+
     if verbose:
         print(f"\nStarting scheduling run with {scheduler.name} scheduler")
-        print(f"Initial queue size: {len(job_list)}")
-
-    # Sort jobs by arrival time
-    job_list = sorted(job_list, key=lambda j: j.arrival_time)
+        print(f"  Arrival rate: {arrival_rate:.3f} req/sec")
+        print(f"  Simulation time: {simulation_time:.2f}s")
 
     # Scheduling state
-    current_time = 0
+    current_time = 0.0
     waiting_queue = []
     completed_jobs = []
-    job_index = 0
+    next_job_id = 0
+    next_arrival_time = 0.0
 
-    # Main scheduling loop
-    while job_index < len(job_list) or waiting_queue:
-        # Add newly arrived jobs to waiting queue
-        while job_index < len(job_list) and job_list[job_index].arrival_time <= current_time:
-            job = job_list[job_index]
-            waiting_queue.append(job)
-            if verbose and job_index % 50 == 0:
-                print(f"  Time {current_time:.2f}: Added job {job.job_id} to queue (queue size: {len(waiting_queue)})")
-            job_index += 1
+    # Track jobs completed before deadline
+    jobs_by_deadline = []
 
-        # If queue is empty, advance time to next arrival
+    # Phase 1: Generate arrivals until simulation_time
+    if verbose:
+        print(f"\n=== Phase 1: Arrival Phase (0 - {simulation_time:.2f}s) ===")
+
+    while current_time < simulation_time or waiting_queue:
+        # Generate new arrivals if we're still in the arrival phase
+        while current_time >= next_arrival_time and next_arrival_time < simulation_time:
+            # Generate job on-demand
+            new_job = generate_job_on_demand(
+                job_id=next_job_id,
+                arrival_time=next_arrival_time,
+                emotion_config=emotion_config,
+                service_time_config=service_time_config,
+                enable_emotion=enable_emotion
+            )
+            waiting_queue.append(new_job)
+
+            if verbose and next_job_id % 50 == 0:
+                print(f"  Time {next_arrival_time:.2f}: Job {next_job_id} arrived "
+                      f"(emotion: {new_job.emotion_label}, queue: {len(waiting_queue)})")
+
+            # Schedule next arrival using exponential distribution
+            inter_arrival_time = np.random.exponential(1.0 / arrival_rate)
+            next_arrival_time += inter_arrival_time
+            next_job_id += 1
+
+        # Check if we've transitioned to drain phase
+        if current_time >= simulation_time and len(jobs_by_deadline) == 0:
+            jobs_by_deadline = completed_jobs.copy()
+            if verbose:
+                print(f"\n=== Phase 2: Drain Phase (starting at {current_time:.2f}s) ===")
+                print(f"  Jobs completed by deadline: {len(jobs_by_deadline)}")
+                print(f"  Jobs still waiting: {len(waiting_queue)}")
+
+        # If queue is empty, advance time
         if not waiting_queue:
-            if job_index < len(job_list):
-                current_time = job_list[job_index].arrival_time
+            if next_arrival_time < simulation_time:
+                # Jump to next arrival
+                current_time = next_arrival_time
+            else:
+                # No more arrivals and queue empty - done
+                break
             continue
 
         # Schedule next job
@@ -112,12 +157,6 @@ def run_scheduling_loop(
                 print("Set LLM_SKIP_ON_ERROR=True to skip failed jobs instead")
                 break
 
-            # Note: llm_handler.execute_job() updates selected_job.execution_duration
-            # with actual inference time, so we use that for the scheduling clock
-        else:
-            # In LLM-only mode this branch is not used
-            pass
-
         # Advance time (uses actual LLM time if llm_handler was used)
         current_time += selected_job.execution_duration
         selected_job.completion_time = current_time
@@ -126,11 +165,31 @@ def run_scheduling_loop(
         scheduler.on_job_completed(selected_job, current_time)
         completed_jobs.append(selected_job)
 
-    if verbose:
-        print(f"\nRun completed at time {current_time:.2f}")
-        print(f"Completed jobs: {len(completed_jobs)}")
+    # Calculate metrics for both phases
+    total_jobs = len(completed_jobs)
+    jobs_by_deadline_count = len(jobs_by_deadline) if jobs_by_deadline else total_jobs
+    jobs_after_deadline = total_jobs - jobs_by_deadline_count
 
-    return completed_jobs
+    metrics = {
+        'total_jobs': total_jobs,
+        'jobs_by_deadline': jobs_by_deadline_count,
+        'jobs_after_deadline': jobs_after_deadline,
+        'simulation_time': simulation_time,
+        'total_time': current_time,
+        'effective_throughput': jobs_by_deadline_count / simulation_time if simulation_time > 0 else 0,
+        'total_throughput': total_jobs / current_time if current_time > 0 else 0,
+        'arrival_rate': arrival_rate,
+    }
+
+    if verbose:
+        print(f"\n=== Run Completed ===")
+        print(f"  Total simulation time: {current_time:.2f}s")
+        print(f"  Jobs completed by deadline: {jobs_by_deadline_count}")
+        print(f"  Jobs completed after deadline: {jobs_after_deadline}")
+        print(f"  Total completed jobs: {total_jobs}")
+        print(f"  Effective throughput: {metrics['effective_throughput']:.3f} jobs/sec")
+
+    return completed_jobs, metrics
 
 
 def run_emotion_aware_experiment(args):
@@ -161,93 +220,26 @@ def run_emotion_aware_experiment(args):
 
     print(f"\nExperiment Configuration:")
     print(f"  Scheduler: {args.scheduler}")
-    print(f"  Number of jobs: {config.experiment.num_jobs}")
+    print(f"  Simulation time: {config.experiment.simulation_time:.2f}s")
     print(f"  System load (ρ): {config.scheduler.system_load}")
     print(f"  Base service time (L_0): {config.workload.service_time.base_service_time}")
     print(f"  Alpha (α): {alpha}")
-    print(f"  Distribution: Poisson")
+    print(f"  Arrival model: Fixed-rate")
 
-    # Calculate arrival rate
+    # Calculate arrival rate from system_load
+    # λ = ρ / E[S] where E[S] is expected service time
     expected_service_time = config.workload.service_time.base_service_time
     arrival_rate = config.scheduler.system_load / expected_service_time
 
-    print(f"  Calculated arrival rate (λ): {arrival_rate:.3f}")
+    print(f"  Calculated arrival rate (λ): {arrival_rate:.3f} req/sec")
+    print(f"  Expected jobs: ~{int(arrival_rate * config.experiment.simulation_time)}")
 
-    # Initialize job config manager
-    job_config_cache_path = os.path.join(
-        config.llm.cache.cache_dir,
-        config.llm.cache.job_config_file
-    )
-    job_config_manager = create_job_config_manager(job_config_cache_path)
-
-    # Check if we should use saved job configurations
-    loaded_config = None
-    if config.llm.cache.use_saved_job_config and not config.llm.cache.force_new_job_config:
-        loaded_config = job_config_manager.load_job_configs()
-        if loaded_config:
-            # Validate that loaded config matches current experiment settings
-            if job_config_manager.validate_config(loaded_config, args.num_jobs):
-                print(f"\nUsing saved job configurations from: {job_config_cache_path}")
-                print(f"  Created: {loaded_config['metadata'].get('created_at', 'unknown')}")
-                print(f"  Random seed: {loaded_config['metadata'].get('random_seed', 'unknown')}")
-            else:
-                print(f"\nWarning: Saved config validation failed, generating new jobs")
-                loaded_config = None
-        else:
-            print(f"\nNo saved job config found, generating new jobs")
-
-    # Generate jobs
-    if loaded_config:
-        print(f"\nLoading {config.experiment.num_jobs} emotion-aware jobs from saved config...")
-        jobs = create_emotion_aware_jobs(
-            num_jobs=config.experiment.num_jobs,
-            arrival_rate=arrival_rate,
-            emotion_config=emotion_config,
-            service_time_config=service_config,
-            enable_emotion=config.workload.emotion.enable_emotion_aware,
-            job_configs=loaded_config['jobs'],
-            random_seed=loaded_config['metadata'].get('random_seed')
-        )
-    else:
-        print(f"\nGenerating {config.experiment.num_jobs} emotion-aware jobs...")
-        # Use random seed if provided
-        random_seed = config.experiment.random_seed
-        jobs = create_emotion_aware_jobs(
-            num_jobs=config.experiment.num_jobs,
-            arrival_rate=arrival_rate,
-            emotion_config=emotion_config,
-            service_time_config=service_config,
-            enable_emotion=config.workload.emotion.enable_emotion_aware,
-            random_seed=random_seed
-        )
-
-        # Save job configuration for future runs
-        if config.llm.cache.use_saved_job_config:
-            metadata = {
-                'num_jobs': config.experiment.num_jobs,
-                'random_seed': random_seed,
-                'scheduler': args.scheduler,
-                'system_load': config.scheduler.system_load,
-                'distribution': 'poisson',
-                'alpha': alpha,
-                'enable_emotion': config.workload.emotion.enable_emotion_aware
-            }
-            # Save configs (will be updated with conversation_index later)
-            # Note: This is a preliminary save, will be updated after LLM execution
-            pass  # We'll save after execution to include conversation_index
-
-    # Print job statistics
-    job_stats = get_emotion_aware_statistics(jobs)
-    print(f"\nJob Generation Statistics:")
-    print(f"  Total jobs: {job_stats['num_jobs']}")
-    print(f"  Arousal mean: {job_stats['arousal_mean']:.3f}")
-    print(f"  Arousal std: {job_stats['arousal_std']:.3f}")
-    print(f"  Service time mean: {job_stats['service_time_mean']:.3f} ± {job_stats['service_time_std']:.3f}")
-    print(f"  Service time range: [{job_stats['service_time_min']:.3f}, {job_stats['service_time_max']:.3f}]")
-    print(f"  Emotion class distribution:")
-    for emotion_class, count in job_stats['emotion_class_counts'].items():
-        pct = (count / job_stats['num_jobs']) * 100
-        print(f"    {emotion_class}: {count} ({pct:.1f}%)")
+    # Set random seed if provided (for reproducible job generation)
+    if config.experiment.random_seed is not None:
+        np.random.seed(config.experiment.random_seed)
+        import random
+        random.seed(config.experiment.random_seed)
+        print(f"  Random seed: {config.experiment.random_seed}")
 
     # Create scheduler
     print(f"\nCreating {args.scheduler} scheduler...")
@@ -305,10 +297,14 @@ def run_emotion_aware_experiment(args):
 
     # Run scheduling
     print(f"\nRunning scheduling...")
-    completed_jobs = run_scheduling_loop(
-        scheduler,
-        jobs,
-        verbose=args.verbose,
+    completed_jobs, run_metrics = run_scheduling_loop(
+        scheduler=scheduler,
+        arrival_rate=arrival_rate,
+        simulation_time=config.experiment.simulation_time,
+        emotion_config=emotion_config,
+        service_time_config=service_config,
+        enable_emotion=config.workload.emotion.enable_emotion_aware,
+        verbose=config.output.verbose,
         llm_handler=llm_handler,
         llm_skip_on_error=config.llm.error_handling.skip_on_error,
     )
@@ -321,36 +317,21 @@ def run_emotion_aware_experiment(args):
         print(f"  Cache stats: {cache_stats['num_entries']} entries, "
               f"{cache_stats['hit_rate']:.1%} hit rate")
 
-    # Save job configuration for future runs (if this was a new generation)
-    if config.llm.cache.use_saved_job_config and loaded_config is None:
-        print(f"\nSaving job configurations for reproducibility...")
-        random_seed = config.experiment.random_seed
-        metadata = {
-            'num_jobs': config.experiment.num_jobs,
-            'random_seed': random_seed,
-            'scheduler': args.scheduler,
-            'system_load': config.scheduler.system_load,
-            'distribution': 'poisson',
-            'alpha': alpha,
-            'enable_emotion': config.workload.emotion.enable_emotion_aware
-        }
-        job_config_manager.save_job_configs(completed_jobs, metadata)
-        print(f"  Job configurations saved to: {job_config_cache_path}")
-
     # Calculate metrics
-    import numpy as np
     waiting_times = [j.waiting_duration for j in completed_jobs if j.waiting_duration is not None]
     turnaround_times = [(j.completion_time - j.arrival_time) for j in completed_jobs]
-    service_times = [j.execution_duration for j in completed_jobs]
 
     print(f"\n" + "=" * 80)
-    print("Results")
+    print("Results (Fixed-Rate Arrival)")
     print("=" * 80)
 
     print(f"\nOverall Performance Metrics:")
-    print(f"  Completed jobs: {len(completed_jobs)}")
-    print(f"  Total run time: {max([j.completion_time for j in completed_jobs]):.2f}")
-    print(f"  Throughput: {len(completed_jobs) / max([j.completion_time for j in completed_jobs]):.3f} jobs/sec")
+    print(f"  Total completed jobs: {run_metrics['total_jobs']}")
+    print(f"  Jobs by deadline ({run_metrics['simulation_time']:.2f}s): {run_metrics['jobs_by_deadline']}")
+    print(f"  Jobs after deadline: {run_metrics['jobs_after_deadline']}")
+    print(f"  Total run time: {run_metrics['total_time']:.2f}s")
+    print(f"  Effective throughput (by deadline): {run_metrics['effective_throughput']:.3f} jobs/sec")
+    print(f"  Total throughput: {run_metrics['total_throughput']:.3f} jobs/sec")
     print(f"\nLatency Metrics:")
     print(f"  Avg waiting time: {np.mean(waiting_times):.3f}")
     print(f"  Std waiting time: {np.std(waiting_times):.3f}")
@@ -393,13 +374,13 @@ def run_emotion_aware_experiment(args):
 
         logger = EmotionAwareLogger(
             output_dir=args.output_dir,
-            experiment_name=f"{args.scheduler}_{config.experiment.num_jobs}jobs_load{config.scheduler.system_load:.2f}"
+            experiment_name=f"{args.scheduler}_{run_metrics['total_jobs']}jobs_load{config.scheduler.system_load:.2f}_time{config.experiment.simulation_time:.0f}s"
         )
 
         # Set metadata
         metadata = vars(args)
         metadata['arrival_rate'] = arrival_rate
-        metadata['job_stats'] = job_stats
+        metadata['run_metrics'] = run_metrics
         logger.set_metadata(metadata)
 
         # Log and save
@@ -422,8 +403,8 @@ def main():
     parser.add_argument('--scheduler', type=str, default='FCFS',
                         choices=['FCFS', 'SSJF-Emotion'],
                         help='Scheduling algorithm')
-    parser.add_argument('--num_jobs', type=int, default=100,
-                        help='Number of jobs to run')
+    parser.add_argument('--simulation_time', type=float, default=None,
+                        help='Simulation time duration in seconds')
 
     # System configuration
     parser.add_argument('--system_load', type=float, default=0.6,
@@ -456,22 +437,21 @@ def main():
                         help='Print detailed scheduling progress')
 
     # LLM Inference Configuration (LLM-only)
-    parser.add_argument('--model_name', type=str, default=LLM_MODEL_NAME,
-                        help='HuggingFace model identifier')
-    parser.add_argument('--dataset_path', type=str, default=EMOTION_DATASET_PATH,
-                        help='Path to EmpatheticDialogues dataset')
-    parser.add_argument('--cache_path', type=str, default=RESPONSE_CACHE_PATH,
-                        help='Path to response cache file')
-    parser.add_argument('--use_cache', action='store_true', default=USE_RESPONSE_CACHE,
-                        help='Enable response caching')
-    parser.add_argument('--force_regenerate', action='store_true', default=FORCE_REGENERATE,
-                        help='Force regenerate responses (ignore cache)')
-    parser.add_argument('--device_map', type=str, default=LLM_DEVICE_MAP,
-                        help='Device mapping for model (auto, cuda, cpu)')
-    parser.add_argument('--dtype', type=str, default=LLM_DTYPE,
-                        help='Data type for model weights (auto, float16, bfloat16, float32)')
-    parser.add_argument('--load_in_8bit', action='store_true', default=LLM_LOAD_IN_8BIT,
-                        help='Use 8-bit quantization')
+    # Note: These are loaded from config by default
+    parser.add_argument('--model_name', type=str, default=None,
+                        help='HuggingFace model identifier (overrides config)')
+    parser.add_argument('--dataset_path', type=str, default=None,
+                        help='Path to EmpatheticDialogues dataset (overrides config)')
+    parser.add_argument('--use_cache', action='store_true', default=None,
+                        help='Enable response caching (overrides config)')
+    parser.add_argument('--force_regenerate', action='store_true', default=None,
+                        help='Force regenerate responses (overrides config)')
+    parser.add_argument('--device_map', type=str, default=None,
+                        help='Device mapping for model (overrides config)')
+    parser.add_argument('--dtype', type=str, default=None,
+                        help='Data type for model weights (overrides config)')
+    parser.add_argument('--load_in_8bit', action='store_true', default=None,
+                        help='Use 8-bit quantization (overrides config)')
 
     args = parser.parse_args()
 

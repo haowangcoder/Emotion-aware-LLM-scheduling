@@ -105,8 +105,9 @@ dataset:
   emotion_dataset_path: './dataset'  # Path to EmpatheticDialogues dataset
 
 experiment:
-  # Job Generation
-  num_jobs: 100                  # Number of jobs to run in simulation
+  # Simulation Parameters
+  simulation_time: 200.0         # Simulation time duration in seconds (T)
+                                 # Jobs arrive at rate λ until T is reached, then queue drains
   random_seed: null              # Random seed for reproducibility (null = use system entropy)
 
   # Fairness Metrics
@@ -123,22 +124,30 @@ output:
 # ============================================================================
 # CONFIGURATION NOTES
 # ============================================================================
-# 1. ALPHA SYNCHRONIZATION:
+# 1. SIMULATION MODEL (方案 B: Fixed-Rate Arrival):
+#    - Jobs arrive continuously at rate λ = system_load / E[S]
+#    - Simulation runs for duration T (simulation_time)
+#    - After T, no new arrivals; remaining jobs in queue are processed
+#    - Metrics tracked: jobs completed by deadline T vs total jobs
+#    - Throughput = jobs_completed_by_T / T
+#
+# 2. ALPHA SYNCHRONIZATION:
 #    The alpha parameter (workload.service_time.alpha = 0.5) is used for BOTH:
 #    - Service time prediction: S_i = L_0 * (1 + α * a_i)
 #    - LLM response length: L_i = L_0 * (1 + α * a_i)
 #    This ensures prediction and execution use the same arousal scaling.
 #
-# 2. ENVIRONMENT VARIABLE OVERRIDES:
+# 3. ENVIRONMENT VARIABLE OVERRIDES:
 #    Each parameter can be overridden via environment variable:
 #    - Format: SECTION_SUBSECTION_PARAMETER (e.g., WORKLOAD_SERVICE_TIME_ALPHA)
 #    - Boolean values: 'true' or 'false' (case-insensitive)
 #
-# 3. CLI ARGUMENT OVERRIDES:
+# 4. CLI ARGUMENT OVERRIDES:
 #    Command-line arguments have highest precedence and will override both
 #    default.yaml and environment variables.
 #
-# 4. REMOVED PARAMETERS:
-#    - GAMMA: Arrival rate modification parameter was defined but never used.
-#      Feature removed to clean up dead code.
-#    - GAMMA_NONLINEAR: Non-linear exponent parameter was unused.
+# 5. ARRIVAL RATE CALCULATION:
+#    λ = ρ / E[S] where:
+#    - ρ = system_load (e.g., 0.6)
+#    - E[S] = base_service_time (e.g., 2.0s)
+#    - Example: λ = 0.6 / 2.0 = 0.3 req/sec
