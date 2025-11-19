@@ -32,6 +32,12 @@ uv run python run_simulation.py --scheduler FCFS --num_jobs 100 --random_seed 42
 uv run python run_simulation.py --scheduler SSJF-Emotion --num_jobs 100 --output_dir results/llm_runs
 ```
 
+**Run batch parameter sweep experiments:**
+```bash
+# Run experiments across multiple system loads and alpha values
+./run_experiments.sh
+```
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -39,11 +45,11 @@ uv run python run_simulation.py --scheduler SSJF-Emotion --num_jobs 100 --output
 - [Key Formulas](#key-formulas)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [Batch Experiments](#batch-experiments)
 - [Evaluation Metrics](#evaluation-metrics)
 - [Results](#results)
 - [Output Files](#output-files)
 - [Troubleshooting](#troubleshooting)
-- [Research Directions](#research-directions)
 - [References](#references)
 
 ---
@@ -127,6 +133,7 @@ ls -la dataset/
 ```
 Emotion-aware-LLM-scheduling/
 ├── run_simulation.py           # Main entry point
+├── run_experiments.sh          # Batch experiment runner
 ├── pyproject.toml              # uv project configuration
 ├── dataset/                    # EmpatheticDialogues dataset
 │   ├── train.csv
@@ -463,6 +470,77 @@ uv run python analysis/plot_emotion_results.py
 
 ---
 
+## Batch Experiments
+
+The project includes a batch experiment runner for systematic parameter sweeps across different system loads and alpha values.
+
+### Running Parameter Sweeps
+
+```bash
+# Make the script executable (first time only)
+chmod +x run_experiments.sh
+
+# Run all experiments
+./run_experiments.sh
+```
+
+### Configuration
+
+Edit `run_experiments.sh` to customize:
+
+```bash
+# Configuration
+OUTPUT_DIR="results"
+SCHEDULERS=("FCFS" "SSJF-Emotion")
+NUM_JOBS=50
+RANDOM_SEED=42
+
+# Parameter sweeps
+SYSTEM_LOADS=(1 1.2)
+ALPHAS=(1.5 2 4)
+```
+
+### Output Structure
+
+Each parameter combination creates a separate directory:
+
+```
+results/
+├── load1_alpha1.5/
+│   ├── FCFS_50jobs_load1.00_fixedjobs_jobs.csv
+│   ├── FCFS_50jobs_load1.00_fixedjobs_summary.json
+│   ├── SSJF-Emotion_50jobs_load1.00_fixedjobs_jobs.csv
+│   ├── SSJF-Emotion_50jobs_load1.00_fixedjobs_summary.json
+│   ├── cache/
+│   │   ├── responses.json
+│   │   └── job_configs.json
+│   └── plots/
+│       ├── scheduler_comparison.png
+│       ├── fairness_comparison.png
+│       ├── latency_cdf.png
+│       └── ...
+├── load1_alpha2/
+├── load1_alpha4/
+├── load1.2_alpha1.5/
+├── load1.2_alpha2/
+└── load1.2_alpha4/
+```
+
+### Generated Plots
+
+Each experiment run generates the following visualizations:
+
+- **scheduler_comparison.png**: Bar charts comparing schedulers across multiple metrics
+- **fairness_comparison.png**: Fairness index comparisons between schedulers
+- **latency_cdf.png**: Cumulative distribution of job latencies
+- **completion_curves.png**: Job completion over time
+- **percentile_throughput.png**: Throughput at different percentiles
+- **emotion_heatmap.png**: Performance by emotion category
+- **serving_time_heatmap.png**: Service time distribution by emotion
+- **emotion_metrics_*.png**: Per-scheduler emotion class analysis
+
+---
+
 ## Evaluation Metrics
 
 ### Performance Metrics
@@ -496,25 +574,54 @@ Range: [1/n, 1] where 1 = perfect fairness
 
 ## Results
 
-Experimental results comparing FCFS and SSJF-Emotion schedulers on 100 jobs with system load 0.6:
+The project supports systematic parameter sweep experiments to analyze scheduler behavior across different configurations.
 
-### Scheduler Performance Comparison
+### Parameter Sweep Results
 
-![Scheduler Comparison](results/llm_runs/plots/scheduler_comparison.png)
+Results are organized by parameter combinations (system load × alpha):
 
-Comprehensive comparison of scheduling algorithms across multiple metrics including average waiting time, P99 latency, fairness indices, and throughput. The SSJF-Emotion scheduler demonstrates improved performance by prioritizing tasks with predicted shorter execution times.
+```
+results/
+├── load1_alpha1.5/    # Low load, low alpha
+├── load1_alpha2/      # Low load, medium alpha
+├── load1_alpha4/      # Low load, high alpha
+├── load1.2_alpha1.5/  # High load, low alpha
+├── load1.2_alpha2/    # High load, medium alpha
+└── load1.2_alpha4/    # High load, high alpha
+```
 
-### Latency Distribution
+### Key Visualizations
 
-![Latency CDF](results/llm_runs/plots/latency_cdf.png)
+Each experiment generates comprehensive visualizations:
+
+#### Scheduler Performance Comparison
+
+Comparison of scheduling algorithms across multiple metrics including average waiting time, P99 latency, fairness indices, and throughput. The SSJF-Emotion scheduler demonstrates improved performance by prioritizing tasks with predicted shorter execution times.
+
+#### Latency Distribution
 
 Cumulative distribution function (CDF) of job latencies showing the probability distribution of waiting times across different schedulers. Lower curves indicate better performance with shorter wait times for most jobs.
 
-### Emotion Pattern Analysis
+#### Emotion Pattern Analysis
 
-![Emotion Heatmap](results/llm_runs/plots/emotion_heatmap.png)
+Heatmap visualizations showing the relationship between emotion categories, arousal levels, and scheduling performance. This reveals how different emotions (mapped to arousal levels) impact task characteristics and scheduling outcomes.
 
-Heatmap visualization showing the relationship between emotion categories, arousal levels, and scheduling performance. This reveals how different emotions (mapped to arousal levels) impact task characteristics and scheduling outcomes.
+#### Fairness Analysis
+
+Fairness comparison charts showing how different scheduling algorithms treat jobs across emotion classes (high/medium/low arousal), with Jain Fairness Index calculations.
+
+### Analyzing Results
+
+To view results for a specific parameter combination:
+
+```bash
+# View plots for load=1.2, alpha=2
+ls results/load1.2_alpha2/plots/
+
+# Compare summaries across configurations
+cat results/load1_alpha1.5/FCFS_*_summary.json
+cat results/load1.2_alpha4/SSJF-Emotion_*_summary.json
+```
 
 ---
 
