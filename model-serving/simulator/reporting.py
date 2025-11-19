@@ -4,61 +4,42 @@ from typing import List
 import numpy as np
 
 from analysis.fairness_metrics import analyze_fairness_comprehensive
-from analysis.logger import EmotionAwareLogger
+from analysis.logger import EmotionAwareLogger, percentile_throughput
 from core.job import Job
 
 
 def print_summary_metrics(completed_jobs: List[Job], run_metrics: dict) -> None:
     """
-    Print overall performance and latency metrics.
+    Print overall performance and latency metrics for fixed-jobs experiment.
     """
-    waiting_times = [
-        j.waiting_duration
-        for j in completed_jobs
-        if j.waiting_duration is not None
-    ]
-    turnaround_times = [
-        (j.completion_time - j.arrival_time)
-        for j in completed_jobs
-        if j.completion_time is not None
-    ]
-
     print(f"\n" + "=" * 80)
-    print("Results (Fixed-Rate Arrival)")
+    print("Results (Fixed-Jobs Mode)")
     print("=" * 80)
 
     print(f"\nOverall Performance Metrics:")
     print(f"  Total completed jobs: {run_metrics['total_jobs']}")
-    print(
-        f"  Jobs by deadline ({run_metrics['simulation_time']:.2f}s): "
-        f"{run_metrics['jobs_by_deadline']}"
-    )
-    print(f"  Jobs after deadline: {run_metrics['jobs_after_deadline']}")
     print(f"  Total run time: {run_metrics['total_time']:.2f}s")
-    print(
-        f"  Effective throughput (by deadline): "
-        f"{run_metrics['effective_throughput']:.3f} jobs/sec"
-    )
-    print(
-        f"  Total throughput: {run_metrics['total_throughput']:.3f} jobs/sec"
-    )
+    print(f"  Throughput: {run_metrics['throughput']:.3f} jobs/sec")
+
+    # Percentile throughput
+    thr_p25 = percentile_throughput(completed_jobs, 25)
+    thr_p50 = percentile_throughput(completed_jobs, 50)
+    thr_p75 = percentile_throughput(completed_jobs, 75)
+    print(f"  Throughput P25: {thr_p25:.3f} jobs/sec")
+    print(f"  Throughput P50: {thr_p50:.3f} jobs/sec")
+    print(f"  Throughput P75: {thr_p75:.3f} jobs/sec")
 
     print(f"\nLatency Metrics:")
-    if waiting_times:
-        print(f"  Avg waiting time: {np.mean(waiting_times):.3f}")
-        print(f"  Std waiting time: {np.std(waiting_times):.3f}")
-        print(f"  P50 waiting time: {np.percentile(waiting_times, 50):.3f}")
-        print(f"  P95 waiting time: {np.percentile(waiting_times, 95):.3f}")
-        print(f"  P99 waiting time: {np.percentile(waiting_times, 99):.3f}")
-    else:
-        print("  No waiting time data available")
+    print(f"  Avg waiting time: {run_metrics['avg_waiting_time']:.3f}s")
+    print(f"  P50 waiting time: {run_metrics['p50_waiting_time']:.3f}s")
+    print(f"  P95 waiting time: {run_metrics['p95_waiting_time']:.3f}s")
+    print(f"  P99 waiting time: {run_metrics['p99_waiting_time']:.3f}s")
 
-    print(f"\nTurnaround Time:")
-    if turnaround_times:
-        print(f"  Avg: {np.mean(turnaround_times):.3f}")
-        print(f"  P99: {np.percentile(turnaround_times, 99):.3f}")
-    else:
-        print("  No turnaround time data available")
+    print(f"\nJob Completion Time (JCT):")
+    print(f"  Avg JCT: {run_metrics['avg_jct']:.3f}s")
+    print(f"  P50 JCT: {run_metrics['p50_jct']:.3f}s")
+    print(f"  P95 JCT: {run_metrics['p95_jct']:.3f}s")
+    print(f"  P99 JCT: {run_metrics['p99_jct']:.3f}s")
 
 
 def print_fairness_analysis(completed_jobs: List[Job]) -> None:
@@ -118,13 +99,25 @@ def save_results(
             f"{config.scheduler.algorithm}_"
             f"{run_metrics['total_jobs']}jobs_"
             f"load{config.scheduler.system_load:.2f}_"
-            f"time{config.experiment.simulation_time:.0f}s"
+            f"fixedjobs"
         ),
     )
 
+    # Set metadata with experiment mode
     metadata = vars(args).copy()
+    metadata["experiment_mode"] = "fixed_jobs"
+    metadata["num_jobs"] = run_metrics["total_jobs"]
     metadata["arrival_rate"] = arrival_rate
     metadata["run_metrics"] = run_metrics
+
+    # Add percentile throughput to metrics
+    thr_p25 = percentile_throughput(completed_jobs, 25)
+    thr_p50 = percentile_throughput(completed_jobs, 50)
+    thr_p75 = percentile_throughput(completed_jobs, 75)
+    run_metrics["throughput_p25"] = thr_p25
+    run_metrics["throughput_p50"] = thr_p50
+    run_metrics["throughput_p75"] = thr_p75
+
     logger.set_metadata(metadata)
 
     logger.log_jobs_batch(completed_jobs)

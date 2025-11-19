@@ -12,7 +12,7 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    # Required arguments
+    # Core arguments
     parser.add_argument(
         "--scheduler",
         type=str,
@@ -21,10 +21,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Scheduling algorithm (overrides config.scheduler.algorithm)",
     )
     parser.add_argument(
-        "--simulation_time",
-        type=float,
+        "--num_jobs",
+        type=int,
         default=None,
-        help="Simulation time duration in seconds",
+        help="Number of jobs to run (overrides config.experiment.num_jobs)",
     )
 
     # System configuration

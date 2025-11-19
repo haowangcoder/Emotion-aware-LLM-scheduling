@@ -17,13 +17,7 @@ workload:
                                  # and LLM response length generation (synchronized)
     rho: 1.0                     # ρ: Correlation strength between emotion and service time
     min_service_time: 0.1        # Minimum allowed service time (safety bound)
-    mapping_function: 'linear'   # 'linear', 'exponential', or 'gamma_dist'
-
-  # Task Generation
-  arrival:
-    base_arrival_rate: 2.0       # λ_0: Base arrival rate (tasks/second)
-    # Note: Emotion-aware arrival rate modification (GAMMA parameter)
-    # has been removed as it was not implemented
+    mapping_function: 'linear'   # 'linear'
 
   # Emotion Parameters
   emotion:
@@ -44,7 +38,7 @@ llm:
 
   # Generation Parameters
   generation:
-    max_new_tokens: 1024         # Maximum tokens to generate per response
+    max_new_tokens: 512         # Maximum tokens to generate per response
     temperature: 0.7             # Sampling temperature (0.0 = greedy, 1.0 = more random)
     top_p: 0.9                   # Nucleus sampling threshold
     do_sample: false             # Use sampling instead of greedy decoding
@@ -91,7 +85,7 @@ scheduler:
   # System Load Parameter
   # ρ = (λ * E[S]) / N where N=1 (single GPU)
   # Recommended test values: [0.4, 0.6, 0.8, 0.9]
-  system_load: 0.6               # Target system load (ρ)
+  system_load: 1.2               # Target system load (ρ)
 
   # Starvation Prevention (for SSJF-Emotion)
   starvation_prevention:
@@ -105,9 +99,8 @@ dataset:
   emotion_dataset_path: './dataset'  # Path to EmpatheticDialogues dataset
 
 experiment:
-  # Simulation Parameters
-  simulation_time: 50        # Simulation time duration in seconds (T)
-                                 # Jobs arrive at rate λ until T is reached, then queue drains
+  # Fixed-Jobs Mode Parameters
+  num_jobs: 50                # Number of jobs to generate and run to completion
   random_seed: 42              # Random seed for reproducibility (null = use system entropy)
 
   # Fairness Metrics
@@ -124,12 +117,12 @@ output:
 # ============================================================================
 # CONFIGURATION NOTES
 # ============================================================================
-# 1. SIMULATION MODEL:
-#    - Jobs arrive continuously at rate λ = system_load / E[S]
-#    - Simulation runs for duration T (simulation_time)
-#    - After T, no new arrivals; remaining jobs in queue are processed
-#    - Metrics tracked: jobs completed by deadline T vs total jobs
-#    - Throughput = jobs_completed_by_T / T
+# 1. FIXED-JOBS EXPERIMENT MODEL:
+#    - Generate a fixed number of jobs (num_jobs) with Poisson arrivals
+#    - Run all schedulers on the same job set for fair comparison
+#    - Simulation continues until ALL jobs are completed (no time cutoff)
+#    - Throughput = num_jobs / total_completion_time
+#    - Supports percentile throughput (P25, P50, P75) for early response analysis
 #
 # 2. ALPHA SYNCHRONIZATION:
 #    The alpha parameter (workload.service_time.alpha = 0.5) is used for BOTH:

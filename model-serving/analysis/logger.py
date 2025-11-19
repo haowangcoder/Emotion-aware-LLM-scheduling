@@ -14,12 +14,46 @@ import copy
 from typing import List, Dict, Optional
 from datetime import datetime
 
+import numpy as np
+
 from core.job import Job
 from analysis.fairness_metrics import (
     calculate_per_class_metrics,
     calculate_fairness_across_emotions,
     analyze_fairness_comprehensive
 )
+
+
+def percentile_throughput(completed_jobs: List[Job], percentage: float = 25.0) -> float:
+    """
+    Calculate throughput at a given percentile of job completions.
+
+    This metric measures the throughput when a certain percentage of jobs have completed,
+    useful for comparing how quickly different schedulers deliver early results.
+
+    Args:
+        completed_jobs: List of completed jobs with completion_time set
+        percentage: The percentile to calculate (e.g., 25 for first quartile)
+
+    Returns:
+        Throughput (jobs/sec) at the given percentile
+    """
+    finish_times = [j.completion_time for j in completed_jobs if j.completion_time is not None]
+    if not finish_times:
+        return 0.0
+
+    finish_times.sort()
+    n = len(finish_times)
+
+    # Calculate the index for the given percentile
+    idx_list = list(range(n))
+    pos = int(np.percentile(idx_list, percentage))
+
+    if pos <= 0 or finish_times[pos] <= 0:
+        return 0.0
+
+    # Throughput = number of jobs completed / time to complete them
+    return (pos + 1) / finish_times[pos]
 
 
 class EmotionAwareLogger:

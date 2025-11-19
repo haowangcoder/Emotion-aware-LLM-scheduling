@@ -87,8 +87,8 @@ def save_job_config_if_needed(
         print(f"\nSaving job configuration for future reproducibility...")
 
         job_config_metadata = {
+            "experiment_mode": "fixed_jobs",
             "num_jobs": len(completed_jobs),
-            "simulation_time": config.experiment.simulation_time,
             "arrival_rate": arrival_rate,
             "system_load": config.scheduler.system_load,
             "random_seed": config.experiment.random_seed,

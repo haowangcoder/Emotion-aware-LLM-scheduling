@@ -2,122 +2,72 @@ from typing import List, Tuple
 
 import numpy as np
 
-from core.emotion import EmotionConfig
 from core.job import Job
-from workload.service_time_mapper import ServiceTimeConfig
 
 
 def run_scheduling_loop(
     scheduler,
-    arrival_rate: float,
-    simulation_time: float,
-    emotion_config: EmotionConfig,
-    service_time_config: ServiceTimeConfig,
-    enable_emotion: bool = True,
+    jobs: List[Job],
     verbose: bool = False,
     llm_handler=None,
     llm_skip_on_error: bool = True,
-    pre_generated_jobs: List[Job] | None = None,
 ) -> Tuple[List[Job], dict]:
     """
-    Run emotion-aware job scheduling loop with fixed-rate arrivals.
+    Run fixed-num_jobs scheduling loop.
 
-    This function implements the core simulation mechanics and is intentionally
-    kept independent from configuration loading, logging, and LLM setup.
+    This function implements the core simulation mechanics for fixed job count experiments.
+    The loop continues until all jobs are completed, with no time window cutoff.
+
+    Args:
+        scheduler: Scheduler instance to use for job selection
+        jobs: List of pre-generated jobs to schedule
+        verbose: Whether to print progress information
+        llm_handler: Optional LLM handler for real inference
+        llm_skip_on_error: Whether to skip failed jobs or abort
+
+    Returns:
+        Tuple of (completed_jobs, metrics)
     """
-    from workload.task_generator import generate_job_on_demand
+    if not jobs:
+        return [], {"total_jobs": 0, "total_time": 0.0, "throughput": 0.0}
+
+    # Sort jobs by arrival time
+    jobs = sorted(jobs, key=lambda j: j.arrival_time)
+    total_jobs = len(jobs)
 
     if verbose:
         print(f"\nStarting scheduling run with {scheduler.name} scheduler")
-        print(f"  Arrival rate: {arrival_rate:.3f} req/sec")
-        print(f"  Simulation time: {simulation_time:.2f}s")
-        if pre_generated_jobs:
-            print(f"  Using pre-generated jobs: {len(pre_generated_jobs)}")
+        print(f"  Total jobs: {total_jobs}")
 
     # Scheduling state
     current_time = 0.0
     waiting_queue: List[Job] = []
     completed_jobs: List[Job] = []
-    next_job_id = 0
-    next_arrival_time = 0.0
+    next_index = 0
 
-    # Track whether we've entered drain phase
-    drain_phase_started = False
+    # Main scheduling loop - continue until all jobs completed
+    while len(completed_jobs) < total_jobs:
+        # Add arrived jobs to waiting queue
+        while next_index < total_jobs and jobs[next_index].arrival_time <= current_time:
+            new_job = jobs[next_index]
+            waiting_queue.append(new_job)
 
-    # Pre-generated jobs setup
-    if pre_generated_jobs:
-        # Sort by arrival time to ensure correct order
-        pre_generated_jobs = sorted(pre_generated_jobs, key=lambda j: j.arrival_time)
-        job_index = 0
-        total_jobs = len(pre_generated_jobs)
-        if total_jobs > 0:
-            next_arrival_time = pre_generated_jobs[0].arrival_time
-    else:
-        job_index = None
-        total_jobs = None
-
-    # Phase 1: Generate arrivals until simulation_time
-    if verbose:
-        print(f"\n=== Phase 1: Arrival Phase (0 - {simulation_time:.2f}s) ===")
-
-    while current_time < simulation_time or waiting_queue:
-        # Generate new arrivals if we're still in the arrival phase
-        while current_time >= next_arrival_time and next_arrival_time < simulation_time:
-            if pre_generated_jobs and job_index is not None and job_index < total_jobs:  # type: ignore[operator]
-                # Use pre-generated job
-                new_job = pre_generated_jobs[job_index]
-                waiting_queue.append(new_job)
-
-                if verbose and job_index % 50 == 0:
-                    print(
-                        f"  Time {new_job.arrival_time:.2f}: Job {new_job.job_id} arrived "
-                        f"(emotion: {new_job.emotion_label}, queue: {len(waiting_queue)})"
-                    )
-
-                job_index += 1
-                if job_index < total_jobs:  # type: ignore[operator]
-                    next_arrival_time = pre_generated_jobs[job_index].arrival_time
-                else:
-                    next_arrival_time = simulation_time  # No more jobs
-            else:
-                # Generate job on-demand
-                new_job = generate_job_on_demand(
-                    job_id=next_job_id,
-                    arrival_time=next_arrival_time,
-                    emotion_config=emotion_config,
-                    service_time_config=service_time_config,
-                    enable_emotion=enable_emotion,
+            if verbose and next_index % 50 == 0:
+                print(
+                    f"  Time {new_job.arrival_time:.2f}: Job {new_job.job_id} arrived "
+                    f"(emotion: {new_job.emotion_label}, queue: {len(waiting_queue)})"
                 )
-                waiting_queue.append(new_job)
 
-                if verbose and next_job_id % 50 == 0:
-                    print(
-                        f"  Time {next_arrival_time:.2f}: Job {next_job_id} arrived "
-                        f"(emotion: {new_job.emotion_label}, queue: {len(waiting_queue)})"
-                    )
+            next_index += 1
 
-                # Schedule next arrival using exponential distribution
-                inter_arrival_time = np.random.exponential(1.0 / arrival_rate)
-                next_arrival_time += inter_arrival_time
-                next_job_id += 1
-
-        # Check if we've transitioned to drain phase
-        if current_time >= simulation_time and not drain_phase_started:
-            # Mark the transition to drain phase
-            drain_phase_started = True
-            if verbose:
-                print(f"\n=== Phase 2: Drain Phase (starting at {current_time:.2f}s) ===")
-                print(f"  Jobs still waiting: {len(waiting_queue)}")
-
-        # If queue is empty, advance time
-        if not waiting_queue:
-            if next_arrival_time < simulation_time:
-                # Jump to next arrival
-                current_time = next_arrival_time
-            else:
-                # No more arrivals and queue empty - done
-                break
+        # If queue is empty and there are more jobs, fast-forward time
+        if not waiting_queue and next_index < total_jobs:
+            current_time = jobs[next_index].arrival_time
             continue
+
+        # If queue is empty and no more jobs, we're done
+        if not waiting_queue:
+            break
 
         # Schedule next job
         selected_job = scheduler.schedule(waiting_queue, current_time=current_time)
@@ -137,14 +87,21 @@ def run_scheduling_loop(
         selected_job.waiting_duration = current_time - selected_job.arrival_time
         scheduler.on_job_scheduled(selected_job, current_time)
 
+        # Print job info in verbose mode
+        if verbose:
+            print(
+                f"  [{len(completed_jobs)+1}/{total_jobs}] Time {current_time:.2f}s: "
+                f"Job {selected_job.job_id} | "
+                f"emotion={selected_job.emotion_label} ({selected_job.emotion_class}) | "
+                f"arousal={selected_job.arousal:.2f} | "
+                f"arrival={selected_job.arrival_time:.2f}s | "
+                f"wait={selected_job.waiting_duration:.2f}s | "
+                f"pred_exec={selected_job.execution_duration:.2f}s | "
+                f"queue={len(waiting_queue)}"
+            )
+
         # Use real LLM inference if handler provided
         if llm_handler is not None:
-            if verbose and len(completed_jobs) % 10 == 0:
-                print(
-                    f"  Time {current_time:.2f}: Executing job {selected_job.job_id} "
-                    f"with LLM (emotion: {selected_job.emotion_label}, "
-                    f"predicted: {selected_job.execution_duration:.2f}s)"
-                )
 
             # Execute with real LLM model
             success = llm_handler.execute_job(selected_job)
@@ -171,43 +128,94 @@ def run_scheduling_loop(
         scheduler.on_job_completed(selected_job, current_time)
         completed_jobs.append(selected_job)
 
-    # Calculate metrics for both phases
-    # IMPORTANT: Only count jobs that completed within the time window
-    # This correctly reflects the "effective throughput" in a fixed time window
-    jobs_within_window = [
-        j for j in completed_jobs if j.completion_time is not None and j.completion_time <= simulation_time
-    ]
-    jobs_after_window = [
-        j for j in completed_jobs if j.completion_time is not None and j.completion_time > simulation_time
-    ]
-
-    total_jobs = len(completed_jobs)
-    jobs_by_deadline_count = len(jobs_within_window)
-    jobs_after_deadline = len(jobs_after_window)
-
-    metrics = {
-        "total_jobs": total_jobs,
-        "jobs_by_deadline": jobs_by_deadline_count,
-        "jobs_after_deadline": jobs_after_deadline,
-        "simulation_time": simulation_time,
-        "total_time": current_time,
-        "effective_throughput": jobs_by_deadline_count / simulation_time
-        if simulation_time > 0
-        else 0,
-        "total_throughput": total_jobs / current_time if current_time > 0 else 0,
-        "arrival_rate": arrival_rate,
-    }
+    # Calculate metrics
+    metrics = compute_fixed_jobs_metrics(completed_jobs)
 
     if verbose:
         print(f"\n=== Run Completed ===")
-        print(f"  Total simulation time: {current_time:.2f}s")
-        print(f"  Jobs completed by deadline: {jobs_by_deadline_count}")
-        print(f"  Jobs completed after deadline: {jobs_after_deadline}")
-        print(f"  Total completed jobs: {total_jobs}")
-        print(f"  Effective throughput: {metrics['effective_throughput']:.3f} jobs/sec")
+        print(f"  Total time: {metrics['total_time']:.2f}s")
+        print(f"  Total completed jobs: {metrics['total_jobs']}")
+        print(f"  Throughput: {metrics['throughput']:.3f} jobs/sec")
+        print(f"  Avg waiting time: {metrics['avg_waiting_time']:.3f}s")
+        print(f"  Avg JCT: {metrics['avg_jct']:.3f}s")
 
     return completed_jobs, metrics
 
 
-__all__ = ["run_scheduling_loop"]
+def compute_fixed_jobs_metrics(completed_jobs: List[Job]) -> dict:
+    """
+    Compute metrics for fixed-num_jobs experiment.
+
+    Args:
+        completed_jobs: List of completed jobs with timing information
+
+    Returns:
+        Dictionary of metrics
+    """
+    if not completed_jobs:
+        return {
+            "total_jobs": 0,
+            "total_time": 0.0,
+            "throughput": 0.0,
+            "avg_waiting_time": 0.0,
+            "avg_jct": 0.0,
+            "p50_waiting_time": 0.0,
+            "p95_waiting_time": 0.0,
+            "p99_waiting_time": 0.0,
+            "p50_jct": 0.0,
+            "p95_jct": 0.0,
+            "p99_jct": 0.0,
+        }
+
+    total_jobs = len(completed_jobs)
+
+    # Get completion times and calculate total time
+    completion_times = [j.completion_time for j in completed_jobs if j.completion_time is not None]
+    total_time = max(completion_times) if completion_times else 0.0
+
+    # Calculate waiting times
+    waiting_times = [j.waiting_duration for j in completed_jobs if j.waiting_duration is not None]
+
+    # Calculate JCT (Job Completion Time = waiting + execution)
+    jcts = []
+    for j in completed_jobs:
+        if j.completion_time is not None and j.arrival_time is not None:
+            jct = j.completion_time - j.arrival_time
+            jcts.append(jct)
+
+    # Compute statistics
+    avg_waiting_time = np.mean(waiting_times) if waiting_times else 0.0
+    avg_jct = np.mean(jcts) if jcts else 0.0
+
+    # Percentiles for waiting time
+    p50_waiting = np.percentile(waiting_times, 50) if waiting_times else 0.0
+    p95_waiting = np.percentile(waiting_times, 95) if waiting_times else 0.0
+    p99_waiting = np.percentile(waiting_times, 99) if waiting_times else 0.0
+
+    # Percentiles for JCT
+    p50_jct = np.percentile(jcts, 50) if jcts else 0.0
+    p95_jct = np.percentile(jcts, 95) if jcts else 0.0
+    p99_jct = np.percentile(jcts, 99) if jcts else 0.0
+
+    # Throughput
+    throughput = total_jobs / total_time if total_time > 0 else 0.0
+
+    metrics = {
+        "total_jobs": total_jobs,
+        "total_time": total_time,
+        "throughput": throughput,
+        "avg_waiting_time": float(avg_waiting_time),
+        "avg_jct": float(avg_jct),
+        "p50_waiting_time": float(p50_waiting),
+        "p95_waiting_time": float(p95_waiting),
+        "p99_waiting_time": float(p99_waiting),
+        "p50_jct": float(p50_jct),
+        "p95_jct": float(p95_jct),
+        "p99_jct": float(p99_jct),
+    }
+
+    return metrics
+
+
+__all__ = ["run_scheduling_loop", "compute_fixed_jobs_metrics"]
 

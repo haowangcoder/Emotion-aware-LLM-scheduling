@@ -137,8 +137,8 @@ class DatasetConfig:
 
 @dataclass
 class ExperimentConfig:
-    """Experiment configuration"""
-    simulation_time: float = 200.0  # Simulation time in seconds
+    """Experiment configuration for fixed-jobs mode"""
+    num_jobs: int = 100  # Number of jobs to generate and run
     random_seed: Optional[int] = None
     fairness_metric: str = 'waiting_time'
     calculate_fairness: bool = True
@@ -280,7 +280,7 @@ class ConfigLoader:
             ('DATASET_EMOTION_DATASET_PATH', lambda c, v: setattr(c.dataset, 'emotion_dataset_path', v)),
 
             # Experiment
-            ('EXPERIMENT_SIMULATION_TIME', lambda c, v: setattr(c.experiment, 'simulation_time', float(v))),
+            ('EXPERIMENT_NUM_JOBS', lambda c, v: setattr(c.experiment, 'num_jobs', int(v))),
             ('EXPERIMENT_RANDOM_SEED', lambda c, v: setattr(c.experiment, 'random_seed', int(v) if v.lower() != 'null' else None)),
 
             # Output
@@ -305,7 +305,7 @@ class ConfigLoader:
         # Map CLI argument names to config attributes
         cli_mappings = {
             'scheduler': lambda c, v: setattr(c.scheduler, 'algorithm', v),
-            'simulation_time': lambda c, v: setattr(c.experiment, 'simulation_time', v),
+            'num_jobs': lambda c, v: setattr(c.experiment, 'num_jobs', v),
             'system_load': lambda c, v: setattr(c.scheduler, 'system_load', v),
             'base_service_time': lambda c, v: setattr(c.workload.service_time, 'base_service_time', v),
             'alpha': lambda c, v: setattr(c.workload.service_time, 'alpha', v),
