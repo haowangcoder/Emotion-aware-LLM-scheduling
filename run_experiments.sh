@@ -12,8 +12,8 @@ NUM_JOBS=50
 RANDOM_SEED=42
 
 # Parameter sweeps (uncomment/modify as needed)
-SYSTEM_LOADS=(0.9)
-ALPHAS=(0.7)
+SYSTEM_LOADS=(1.2)
+ALPHAS=(0.5)
 
 echo "=== Starting Batch Experiments ==="
 echo "Output directory: $OUTPUT_DIR"
