@@ -1,15 +1,14 @@
 """
-Configuration module for emotion-aware LLM scheduling.
+Configuration package for emotion-aware LLM scheduling.
 
-This module consolidates all configuration parameters into logical groups:
-- base: General settings, paths, and experiment configuration
-- llm_config: LLM model, generation, and caching parameters
-- scheduler_config: Scheduling algorithm and system load settings
-- workload_config: Task generation and emotion-aware workload parameters
+Use the YAML-based configuration loader:
+
+    from config.config_loader import load_config, get_alpha
+
+The legacy Python config modules (base.py, llm_config.py, scheduler_config.py,
+workload_config.py) have been removed.
 """
 
-# Import all configuration parameters for convenient access
-from .base import *
-from .llm_config import *
-from .scheduler_config import *
-from .workload_config import *
+from .config_loader import load_config, get_alpha  # Convenience re-export
+
+__all__ = ["load_config", "get_alpha"]

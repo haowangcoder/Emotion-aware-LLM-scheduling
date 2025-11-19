@@ -23,46 +23,46 @@ from typing import Tuple, Dict, List
 # Higher values indicate higher emotional activation/arousal
 EMOTION_AROUSAL_MAP = {
     # High Arousal Positive (0.6 to 1.0)
-    'excited': 0.95,
-    'joyful': 0.85,
-    'surprised': 0.80,
-    'anticipating': 0.75,
-    'impressed': 0.70,
-    'proud': 0.65,
+    'excited': 0.8,
+    'joyful': 0.8,
+    'surprised': 0.8,
+    'anticipating': 0.8,
+    'impressed': 0.8,
+    'proud': 0.8,
 
     # High Arousal Negative (0.6 to 1.0)
-    'terrified': 0.95,
-    'afraid': 0.90,
-    'anxious': 0.85,
-    'angry': 0.90,
-    'furious': 0.95,
-    'annoyed': 0.70,
-    'disgusted': 0.75,
+    'terrified': 0.8,
+    'afraid': 0.8,
+    'anxious': 0.8,
+    'angry': 0.8,
+    'furious': 0.8,
+    'annoyed': 0.8,
+    'disgusted': 0.8,
 
     # Medium-High Arousal (0.3 to 0.6)
-    'hopeful': 0.55,
-    'trusting': 0.45,
-    'faithful': 0.45,
-    'caring': 0.40,
-    'grateful': 0.50,
-    'confident': 0.55,
-    'jealous': 0.60,
-    'embarrassed': 0.65,
+    'hopeful': 0,
+    'trusting': 0,
+    'faithful': 0,
+    'caring': 0,
+    'grateful': 0,
+    'confident': 0,
+    'jealous': 0,
+    'embarrassed': 0,
 
     # Medium-Low Arousal (-0.3 to 0.3)
-    'sentimental': 0.20,
-    'nostalgic': 0.10,
-    'content': 0.05,
-    'prepared': 0.15,
-    'apprehensive': 0.25,
-    'guilty': 0.20,
-    'ashamed': 0.30,
+    'sentimental': -0.8,
+    'nostalgic': -0.8,
+    'content': -0.8,
+    'prepared': -0.8,
+    'apprehensive': -0.8,
+    'guilty': -0.8,
+    'ashamed': -0.8,
 
     # Low Arousal Negative (-1.0 to -0.3)
-    'sad': -0.60,
-    'lonely': -0.70,
-    'disappointed': -0.50,
-    'devastated': -0.65,
+    'sad': -0.8,
+    'lonely': -0.8,
+    'disappointed': -0.8,
+    'devastated': -0.8,
 }
 
 # Default emotion probability distribution (uniform for simplicity)
@@ -225,41 +225,3 @@ def get_emotion_statistics(config: EmotionConfig = None) -> Dict:
         'medium_arousal_count': medium_count,
         'low_arousal_count': low_count,
     }
-
-
-# Example usage and testing
-if __name__ == '__main__':
-    print("=" * 60)
-    print("Emotion Module Test")
-    print("=" * 60)
-
-    # Create default config
-    config = EmotionConfig()
-
-    # Print emotion statistics
-    stats = get_emotion_statistics(config)
-    print(f"\nEmotion Statistics:")
-    print(f"  Total emotions: {stats['num_emotions']}")
-    print(f"  Arousal range: [{stats['arousal_min']:.2f}, {stats['arousal_max']:.2f}]")
-    print(f"  Arousal mean: {stats['arousal_mean']:.2f}")
-    print(f"  Arousal std: {stats['arousal_std']:.2f}")
-    print(f"  High arousal emotions: {stats['high_arousal_count']}")
-    print(f"  Medium arousal emotions: {stats['medium_arousal_count']}")
-    print(f"  Low arousal emotions: {stats['low_arousal_count']}")
-
-    # Sample some emotions
-    print(f"\nSample Emotions (n=10):")
-    samples = sample_emotions_batch(10, config)
-    for i, (emotion, arousal) in enumerate(samples, 1):
-        category = config.classify_arousal(arousal)
-        print(f"  {i}. {emotion:15s} | Arousal: {arousal:5.2f} | Category: {category}")
-
-    # Test with noise
-    print(f"\nTesting arousal with noise (std=0.1):")
-    config_noisy = EmotionConfig(arousal_noise_std=0.1)
-    print(f"  Base arousal for 'excited': {EMOTION_AROUSAL_MAP['excited']:.2f}")
-    for i in range(5):
-        arousal = config_noisy.get_arousal('excited', add_noise=True)
-        print(f"    Sample {i+1}: {arousal:.3f}")
-
-    print("\n" + "=" * 60)

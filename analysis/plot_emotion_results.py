@@ -52,7 +52,7 @@ def plot_scheduler_comparison_barplot(results: Dict[str, Dict],
         output_path: Path to save the figure
     """
     if metrics is None:
-        metrics = ['avg_waiting_time', 'p99_waiting_time', 'avg_turnaround_time', 'throughput']
+        metrics = ['avg_waiting_time', 'p99_waiting_time', 'avg_jct', 'throughput']
 
     num_metrics = len(metrics)
     fig, axes = plt.subplots(1, num_metrics, figsize=(5*num_metrics, 5))
@@ -133,12 +133,30 @@ def _compute_scheduler_metrics_from_df(df: pd.DataFrame) -> Dict[str, float]:
     turnaround = df['turnaround_time'].dropna().to_numpy()
     finish_times = df['finish_time'].dropna().to_numpy()
 
+    # Basic metrics
     metrics = {
         'avg_waiting_time': float(np.mean(waiting)) if waiting.size else 0.0,
+        'p50_waiting_time': float(np.percentile(waiting, 50)) if waiting.size else 0.0,
+        'p95_waiting_time': float(np.percentile(waiting, 95)) if waiting.size else 0.0,
         'p99_waiting_time': float(np.percentile(waiting, 99)) if waiting.size else 0.0,
-        'avg_turnaround_time': float(np.mean(turnaround)) if turnaround.size else 0.0,
+        'avg_jct': float(np.mean(turnaround)) if turnaround.size else 0.0,
+        'p50_jct': float(np.percentile(turnaround, 50)) if turnaround.size else 0.0,
+        'p95_jct': float(np.percentile(turnaround, 95)) if turnaround.size else 0.0,
+        'p99_jct': float(np.percentile(turnaround, 99)) if turnaround.size else 0.0,
         'throughput': float(len(df) / finish_times.max()) if finish_times.size and finish_times.max() > 0 else 0.0,
     }
+
+    # Percentile throughput
+    if finish_times.size > 0:
+        sorted_times = np.sort(finish_times)
+        n = len(sorted_times)
+        for pct in [25, 50, 75]:
+            idx = int(n * pct / 100)
+            if idx > 0 and sorted_times[idx] > 0:
+                metrics[f'throughput_p{pct}'] = float((idx + 1) / sorted_times[idx])
+            else:
+                metrics[f'throughput_p{pct}'] = 0.0
+
     return metrics
 
 
@@ -153,6 +171,53 @@ def _compute_jain_fairness_from_df(df: pd.DataFrame) -> float:
     numerator = (vals.sum() ** 2)
     denominator = (len(vals) * (vals ** 2).sum())
     return float(numerator / denominator) if denominator > 0 else 0.0
+
+
+def plot_percentile_throughput(results: Dict[str, Dict],
+                                output_path: str = 'percentile_throughput.png'):
+    """
+    Plot percentile throughput comparison across schedulers.
+
+    Shows throughput at P25, P50, P75 completion milestones.
+
+    Args:
+        results: Dictionary mapping scheduler_name -> metrics_dict
+        output_path: Path to save the figure
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    schedulers = list(results.keys())
+    percentiles = ['throughput_p25', 'throughput_p50', 'throughput_p75', 'throughput']
+    labels = ['P25', 'P50', 'P75', 'Overall']
+
+    x = np.arange(len(schedulers))
+    width = 0.2
+    colors = sns.color_palette("viridis", len(percentiles))
+
+    for i, (pct, label) in enumerate(zip(percentiles, labels)):
+        values = [results[sched].get(pct, 0) for sched in schedulers]
+        bars = ax.bar(x + i * width, values, width, label=label, color=colors[i], alpha=0.8)
+
+        # Add value labels on bars
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                        f'{height:.2f}',
+                        ha='center', va='bottom', fontsize=8)
+
+    ax.set_xlabel('Scheduler')
+    ax.set_ylabel('Throughput (jobs/sec)')
+    ax.set_title('Percentile Throughput Comparison\n(Higher is Better)')
+    ax.set_xticks(x + width * 1.5)
+    ax.set_xticklabels(schedulers, rotation=45, ha='right')
+    ax.legend(title='Completion %')
+    ax.grid(axis='y', alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Saved percentile throughput plot to: {output_path}")
+    plt.close()
 
 
 def scan_llm_runs_and_generate_plots(runs_dir: str = 'results/llm_runs', output_dir: str = None):
@@ -194,6 +259,10 @@ def scan_llm_runs_and_generate_plots(runs_dir: str = 'results/llm_runs', output_
     plot_fairness_comparison(
         fairness_results,
         output_path=os.path.join(plots_dir, 'fairness_comparison.png')
+    )
+    plot_percentile_throughput(
+        scheduler_results,
+        output_path=os.path.join(plots_dir, 'percentile_throughput.png')
     )
     print(f"Comparison plots saved to: {plots_dir}")
 
@@ -392,6 +461,96 @@ def plot_emotion_class_comparison_heatmap(dfs: Dict[str, pd.DataFrame],
     plt.close()
 
 
+def plot_serving_time_comparison_heatmap(dfs: Dict[str, pd.DataFrame],
+                                          output_path: str = 'serving_time_heatmap.png'):
+    """
+    Create side-by-side heatmaps comparing predicted vs actual serving time
+    across schedulers and emotion classes
+
+    Args:
+        dfs: Dictionary mapping scheduler_name -> DataFrame with job logs
+        output_path: Path to save the figure
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+    # Prepare data
+    schedulers = list(dfs.keys())
+    emotion_classes = ['high', 'medium', 'low']
+
+    # Build data matrices for predicted and actual serving time
+    predicted_matrix = []
+    actual_matrix = []
+
+    for scheduler_name in schedulers:
+        df = dfs[scheduler_name]
+        predicted_row = []
+        actual_row = []
+
+        for emotion_class in emotion_classes:
+            class_data = df[df['emotion_class'] == emotion_class]
+
+            # Predicted service time
+            predicted_data = class_data['predicted_serving_time'].dropna()
+            predicted_avg = predicted_data.mean() if len(predicted_data) > 0 else 0
+            predicted_row.append(predicted_avg)
+
+            # Actual execution duration
+            actual_data = class_data['actual_serving_time'].dropna()
+            actual_avg = actual_data.mean() if len(actual_data) > 0 else 0
+            actual_row.append(actual_avg)
+
+        predicted_matrix.append(predicted_row)
+        actual_matrix.append(actual_row)
+
+    predicted_matrix = np.array(predicted_matrix)
+    actual_matrix = np.array(actual_matrix)
+
+    # Use same color scale for both heatmaps
+    vmin = min(predicted_matrix.min(), actual_matrix.min())
+    vmax = max(predicted_matrix.max(), actual_matrix.max())
+
+    # Plot predicted serving time
+    im1 = ax1.imshow(predicted_matrix, cmap='YlOrRd', aspect='auto', vmin=vmin, vmax=vmax)
+    ax1.set_xticks(range(len(emotion_classes)))
+    ax1.set_yticks(range(len(schedulers)))
+    ax1.set_xticklabels([f'{ec.capitalize()} Arousal' for ec in emotion_classes])
+    ax1.set_yticklabels(schedulers)
+    ax1.set_title('Predicted Service Time', fontsize=12, fontweight='bold')
+
+    # Add text annotations for predicted
+    for i in range(len(schedulers)):
+        for j in range(len(emotion_classes)):
+            text = ax1.text(j, i, f'{predicted_matrix[i, j]:.2f}',
+                          ha="center", va="center", color="black", fontsize=10)
+
+    # Plot actual serving time
+    im2 = ax2.imshow(actual_matrix, cmap='YlOrRd', aspect='auto', vmin=vmin, vmax=vmax)
+    ax2.set_xticks(range(len(emotion_classes)))
+    ax2.set_yticks(range(len(schedulers)))
+    ax2.set_xticklabels([f'{ec.capitalize()} Arousal' for ec in emotion_classes])
+    ax2.set_yticklabels(schedulers)
+    ax2.set_title('Actual Execution Duration', fontsize=12, fontweight='bold')
+
+    # Add text annotations for actual
+    for i in range(len(schedulers)):
+        for j in range(len(emotion_classes)):
+            text = ax2.text(j, i, f'{actual_matrix[i, j]:.2f}',
+                          ha="center", va="center", color="black", fontsize=10)
+
+    # Add shared colorbar
+    fig.subplots_adjust(right=0.85)
+    cbar_ax = fig.add_axes([0.87, 0.15, 0.02, 0.7])
+    cbar = fig.colorbar(im2, cax=cbar_ax, label='Time (seconds)')
+
+    # Overall title
+    fig.suptitle('Serving Time Comparison: Predicted vs Actual\nby Scheduler and Emotion Class',
+                 fontsize=14, fontweight='bold', y=0.98)
+
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Saved serving time comparison heatmap to: {output_path}")
+    plt.close()
+
+
 def generate_comprehensive_report(result_dirs: Dict[str, str],
                                    output_dir: str = 'results/plots/'):
     """
@@ -439,9 +598,29 @@ def generate_comprehensive_report(result_dirs: Dict[str, str],
         output_path=os.path.join(output_dir, 'emotion_heatmap.png')
     )
 
+    # 5. Serving time comparison heatmap (predicted vs actual)
+    plot_serving_time_comparison_heatmap(
+        dfs,
+        output_path=os.path.join(output_dir, 'serving_time_heatmap.png')
+    )
+
     print(f"\nComprehensive report generated successfully!")
 
 
 if __name__ == '__main__':
-    # Auto-scan default llm_runs folder and generate all plots
-    scan_llm_runs_and_generate_plots()
+    # Allow specifying the scan directory from command line
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Scan LLM scheduling results and generate visualization plots."
+    )
+    parser.add_argument(
+        "--runs-dir",
+        type=str,
+        default="results/llm_runs",
+        help="Directory to scan for '*_jobs.csv' files (default: %(default)s).",
+    )
+    args = parser.parse_args()
+
+    # Auto-scan given (or default) llm_runs folder and generate all plots
+    scan_llm_runs_and_generate_plots(runs_dir=args.runs_dir)

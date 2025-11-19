@@ -14,12 +14,46 @@ import copy
 from typing import List, Dict, Optional
 from datetime import datetime
 
+import numpy as np
+
 from core.job import Job
 from analysis.fairness_metrics import (
     calculate_per_class_metrics,
     calculate_fairness_across_emotions,
     analyze_fairness_comprehensive
 )
+
+
+def percentile_throughput(completed_jobs: List[Job], percentage: float = 25.0) -> float:
+    """
+    Calculate throughput at a given percentile of job completions.
+
+    This metric measures the throughput when a certain percentage of jobs have completed,
+    useful for comparing how quickly different schedulers deliver early results.
+
+    Args:
+        completed_jobs: List of completed jobs with completion_time set
+        percentage: The percentile to calculate (e.g., 25 for first quartile)
+
+    Returns:
+        Throughput (jobs/sec) at the given percentile
+    """
+    finish_times = [j.completion_time for j in completed_jobs if j.completion_time is not None]
+    if not finish_times:
+        return 0.0
+
+    finish_times.sort()
+    n = len(finish_times)
+
+    # Calculate the index for the given percentile
+    idx_list = list(range(n))
+    pos = int(np.percentile(idx_list, percentage))
+
+    if pos <= 0 or finish_times[pos] <= 0:
+        return 0.0
+
+    # Throughput = number of jobs completed / time to complete them
+    return (pos + 1) / finish_times[pos]
 
 
 class EmotionAwareLogger:
@@ -55,14 +89,18 @@ class EmotionAwareLogger:
         Args:
             job: Completed Job object
         """
+        # Calculate actual service time used for completion
+        actual_service = job.actual_execution_duration if job.actual_execution_duration else job.execution_duration
+
         log_entry = {
             'job_id': job.job_id,
             'emotion_label': job.emotion_label,
             'arousal': job.arousal,
             'emotion_class': job.emotion_class,
             'arrival_time': job.arrival_time,
-            'service_time': job.execution_duration,
-            'start_time': (job.completion_time - job.execution_duration) if job.completion_time else None,
+            'predicted_serving_time': job.execution_duration,
+            'actual_serving_time': job.actual_execution_duration,
+            'start_time': (job.completion_time - actual_service) if job.completion_time else None,
             'finish_time': job.completion_time,
             'waiting_time': job.waiting_duration,
             'turnaround_time': (job.completion_time - job.arrival_time) if job.completion_time else None,
@@ -72,8 +110,6 @@ class EmotionAwareLogger:
         if hasattr(job, 'response_text'):
             log_entry['response_text'] = job.response_text
             log_entry['output_token_length'] = job.output_token_length
-            log_entry['actual_execution_duration'] = job.actual_execution_duration
-            log_entry['predicted_execution_duration'] = job.predicted_execution_duration
             log_entry['cached'] = job.cached
             log_entry['error_msg'] = job.error_msg
             log_entry['fallback_used'] = job.fallback_used
@@ -199,6 +235,10 @@ class EmotionAwareLogger:
             }
         }
 
+        # Add run_metrics if available (Fixed-rate arrival metrics)
+        if 'run_metrics' in sanitized_metadata:
+            summary['run_metrics'] = sanitized_metadata['run_metrics']
+
         # Add LLM-specific metrics if using real model inference
         if completed_jobs and hasattr(completed_jobs[0], 'response_text'):
             # Collect LLM-related data
@@ -206,7 +246,6 @@ class EmotionAwareLogger:
 
             if jobs_with_llm:
                 actual_times = [j.actual_execution_duration for j in jobs_with_llm if j.actual_execution_duration is not None]
-                predicted_times = [j.predicted_execution_duration for j in jobs_with_llm if j.predicted_execution_duration is not None]
                 output_lengths = [j.output_token_length for j in jobs_with_llm if j.output_token_length is not None]
                 cached_count = sum(1 for j in jobs_with_llm if j.cached)
                 fallback_count = sum(1 for j in jobs_with_llm if j.fallback_used)
@@ -224,16 +263,20 @@ class EmotionAwareLogger:
                     'error_count': error_count,
                 }
 
-                # Prediction accuracy metrics (if predictions available)
-                if actual_times and predicted_times and len(actual_times) == len(predicted_times):
-                    prediction_errors = [abs(a - p) for a, p in zip(actual_times, predicted_times)]
-                    relative_errors = [abs(a - p) / a if a > 0 else 0 for a, p in zip(actual_times, predicted_times)]
+                # Prediction accuracy metrics using execution_duration as predicted value
+                predicted_from_execution = [j.execution_duration for j in jobs_with_llm if j.actual_execution_duration is not None]
+                actual_for_comparison = [j.actual_execution_duration for j in jobs_with_llm if j.actual_execution_duration is not None]
+
+                if actual_for_comparison and predicted_from_execution and len(actual_for_comparison) == len(predicted_from_execution):
+                    prediction_errors = [abs(a - p) for a, p in zip(actual_for_comparison, predicted_from_execution)]
+                    relative_errors = [abs(a - p) / a if a > 0 else 0 for a, p in zip(actual_for_comparison, predicted_from_execution)]
 
                     llm_metrics['prediction_accuracy'] = {
                         'avg_absolute_error': float(np.mean(prediction_errors)),
                         'std_absolute_error': float(np.std(prediction_errors)),
                         'avg_relative_error': float(np.mean(relative_errors)),
                         'median_relative_error': float(np.median(relative_errors)),
+                        'max_absolute_error': float(np.max(prediction_errors)),
                     }
 
                 summary['llm_metrics'] = llm_metrics

@@ -1,0 +1,146 @@
+# ============================================================================
+# Emotion-aware LLM Scheduling - Default Configuration
+# ============================================================================
+# This is the single source of truth for all default configuration values.
+# Configuration precedence: default.yaml → environment variables → CLI args
+
+# ============================================================================
+# WORKLOAD GENERATION
+# ============================================================================
+workload:
+  # Service Time Mapping Parameters
+  # Formula: S_i = base_service_time * (1 + alpha * arousal_i)
+  service_time:
+    base_service_time: 2.0      # L_0: Base service time when arousal = 0 (seconds)
+    alpha: 0.5                   # α: Sensitivity coefficient for arousal impact
+                                 # NOTE: Same alpha used for both service time prediction
+                                 # and LLM response length generation (synchronized)
+    rho: 1.0                     # ρ: Correlation strength between emotion and service time
+    min_service_time: 0.1        # Minimum allowed service time (safety bound)
+    mapping_function: 'linear'   # 'linear'
+
+  # Emotion Parameters
+  emotion:
+    arousal_noise_std: 0.0       # Standard deviation of noise added to arousal values
+    enable_emotion_aware: true   # Enable/disable emotion-aware features globally
+
+# ============================================================================
+# LLM INFERENCE CONFIGURATION
+# ============================================================================
+llm:
+  # Model Configuration
+  model:
+    name: 'meta-llama/Meta-Llama-3-8B-Instruct'  # HuggingFace model identifier
+    device_map: 'auto'           # 'auto', 'cuda', 'cpu', or specific GPU mapping
+    dtype: 'auto'                # 'auto', 'float16', 'bfloat16', 'float32'
+    trust_remote_code: true      # Allow custom model code (needed for some models)
+    load_in_8bit: false          # Use 8-bit quantization for memory efficiency
+
+  # Generation Parameters
+  generation:
+    max_new_tokens: 512         # Maximum tokens to generate per response
+    temperature: 0.7             # Sampling temperature (0.0 = greedy, 1.0 = more random)
+    top_p: 0.9                   # Nucleus sampling threshold
+    do_sample: false             # Use sampling instead of greedy decoding
+    repetition_penalty: 1.1      # Penalty for repeating tokens
+
+  # Prompt Configuration
+  prompt:
+    include_system_prompt: true  # Include system instruction in prompt
+    include_emotion_hint: false  # Explicitly mention user's emotion in prompt
+    max_conversation_turns: 2    # Max turns of conversation history to include
+
+    # Emotion-aware response length control
+    # Formula: L_i = base_response_length * (1 + alpha * arousal_i)
+    emotion_length_control:
+      enabled: true              # Enable emotion-based response length control
+      base_response_length: 100  # L_0: Base response length in tokens
+      # Note: Uses same alpha (0.5) from workload.service_time.alpha
+
+  # Response Caching
+  cache:
+    use_response_cache: true     # Enable response caching for reproducibility
+    cache_dir: 'results/cache'   # Directory to store cache files
+    cache_file: 'responses.json' # Cache file name
+    force_regenerate: false      # Force regenerate even if cached (ignores cache)
+
+    # Job Configuration Cache
+    use_saved_job_config: true   # Use saved job configurations if available
+    job_config_file: 'job_configs.json'  # Job config file name
+    force_new_job_config: false  # Force generate new job configurations
+
+  # Error Handling
+  error_handling:
+    max_retries: 2               # Maximum retries on generation failure
+    enable_cpu_fallback: true    # Fallback to CPU if GPU OOM
+    skip_on_error: true          # Skip job on persistent errors (vs fail entire experiment)
+
+# ============================================================================
+# SCHEDULER CONFIGURATION
+# ============================================================================
+scheduler:
+  # Algorithm Selection
+  algorithm: 'FCFS'              # 'FCFS', 'SJF', 'SJFP', 'SSJF-Emotion'
+
+  # System Load Parameter
+  # ρ = (λ * E[S]) / N where N=1 (single GPU)
+  # Recommended test values: [0.4, 0.6, 0.8, 0.9]
+  system_load: 1.2               # Target system load (ρ)
+
+  # Starvation Prevention (for SSJF-Emotion)
+  starvation_prevention:
+    threshold: .inf              # Absolute time threshold (inf = disabled by default)
+    coefficient: 3.0             # Relative threshold (multiple of execution duration)
+
+# ============================================================================
+# DATASET AND EXPERIMENT
+# ============================================================================
+dataset:
+  emotion_dataset_path: './dataset'  # Path to EmpatheticDialogues dataset
+
+experiment:
+  # Fixed-Jobs Mode Parameters
+  num_jobs: 50                # Number of jobs to generate and run to completion
+  random_seed: 42              # Random seed for reproducibility (null = use system entropy)
+
+  # Fairness Metrics
+  fairness_metric: 'waiting_time'  # 'waiting_time' or 'turnaround_time'
+  calculate_fairness: true       # Whether to calculate fairness metrics
+
+# ============================================================================
+# OUTPUT AND LOGGING
+# ============================================================================
+output:
+  results_dir: 'results/llm_runs/'  # Directory to save results
+  verbose: true                 # Print detailed scheduling progress
+
+# ============================================================================
+# CONFIGURATION NOTES
+# ============================================================================
+# 1. FIXED-JOBS EXPERIMENT MODEL:
+#    - Generate a fixed number of jobs (num_jobs) with Poisson arrivals
+#    - Run all schedulers on the same job set for fair comparison
+#    - Simulation continues until ALL jobs are completed (no time cutoff)
+#    - Throughput = num_jobs / total_completion_time
+#    - Supports percentile throughput (P25, P50, P75) for early response analysis
+#
+# 2. ALPHA SYNCHRONIZATION:
+#    The alpha parameter (workload.service_time.alpha = 0.5) is used for BOTH:
+#    - Service time prediction: S_i = L_0 * (1 + α * a_i)
+#    - LLM response length: L_i = L_0 * (1 + α * a_i)
+#    This ensures prediction and execution use the same arousal scaling.
+#
+# 3. ENVIRONMENT VARIABLE OVERRIDES:
+#    Each parameter can be overridden via environment variable:
+#    - Format: SECTION_SUBSECTION_PARAMETER (e.g., WORKLOAD_SERVICE_TIME_ALPHA)
+#    - Boolean values: 'true' or 'false' (case-insensitive)
+#
+# 4. CLI ARGUMENT OVERRIDES:
+#    Command-line arguments have highest precedence and will override both
+#    default.yaml and environment variables.
+#
+# 5. ARRIVAL RATE CALCULATION:
+#    λ = ρ / E[S] where:
+#    - ρ = system_load (e.g., 0.6)
+#    - E[S] = base_service_time (e.g., 2.0s)
+#    - Example: λ = 0.6 / 2.0 = 0.3 req/sec

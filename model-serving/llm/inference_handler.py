@@ -23,7 +23,6 @@ from llm.dataset_loader import EmpatheticDialoguesLoader
 from llm.prompt_builder import PromptBuilder
 from llm.response_cache import ResponseCache
 from core.job import Job
-from config import *
 
 logger = logging.getLogger(__name__)
 
@@ -38,14 +37,28 @@ class LLMInferenceHandler:
 
     def __init__(
         self,
-        model_name: str = LLM_MODEL_NAME,
-        dataset_path: str = EMOTION_DATASET_PATH,
-        cache_path: Optional[str] = RESPONSE_CACHE_PATH,
-        use_cache: bool = USE_RESPONSE_CACHE,
-        force_regenerate: bool = FORCE_REGENERATE,
-        device_map: str = LLM_DEVICE_MAP,
-        dtype: str = LLM_DTYPE,
-        load_in_8bit: bool = LLM_LOAD_IN_8BIT
+        model_name: str = 'meta-llama/Meta-Llama-3-8B-Instruct',
+        dataset_path: str = './dataset',
+        cache_path: Optional[str] = 'results/cache/responses.json',
+        use_cache: bool = True,
+        force_regenerate: bool = False,
+        device_map: str = 'auto',
+        dtype: str = 'auto',
+        load_in_8bit: bool = False,
+        # Prompt configuration
+        include_emotion_hint: bool = False,
+        enable_emotion_length_control: bool = True,
+        base_response_length: int = 100,
+        alpha: float = 0.5,
+        max_conversation_turns: int = 2,
+        # Generation parameters
+        max_new_tokens: int = 1024,
+        temperature: float = 0.7,
+        top_p: float = 0.9,
+        do_sample: bool = False,
+        repetition_penalty: float = 1.1,
+        # Error handling
+        max_retries: int = 2
     ):
         """
         Initialize LLM inference handler.
@@ -59,12 +72,25 @@ class LLMInferenceHandler:
             device_map: Device mapping for model
             dtype: Data type for model weights
             load_in_8bit: Use 8-bit quantization
+            include_emotion_hint: Include emotion hints in prompts
+            enable_emotion_length_control: Enable emotion-aware response length control
+            base_response_length: Base response length L_0 in tokens
+            alpha: Scaling factor α for arousal impact (synchronized with service time mapping)
+            max_conversation_turns: Maximum conversation history turns to include
+            max_new_tokens: Maximum tokens to generate
+            temperature: Sampling temperature
+            top_p: Nucleus sampling threshold
+            do_sample: Use sampling instead of greedy decoding
+            repetition_penalty: Penalty for repeating tokens
+            max_retries: Maximum retries on generation failure
         """
         self.model_name = model_name
         self.dataset_path = dataset_path
         self.cache_path = cache_path
         self.use_cache = use_cache and not force_regenerate
         self.force_regenerate = force_regenerate
+        self.max_retries = max_retries
+        self.max_conversation_turns = max_conversation_turns
 
         # Initialize components
         logger.info("Initializing LLM Inference Handler...")
@@ -92,7 +118,10 @@ class LLMInferenceHandler:
 
         # 3. Initialize Prompt Builder
         self.prompt_builder = PromptBuilder(
-            include_emotion_hint=LLM_INCLUDE_EMOTION_HINT
+            include_emotion_hint=include_emotion_hint,
+            enable_emotion_length_control=enable_emotion_length_control,
+            base_response_length=base_response_length,
+            alpha=alpha
         )
 
         # 4. Initialize Response Cache
@@ -105,16 +134,16 @@ class LLMInferenceHandler:
 
         # Generation parameters
         self.gen_params = {
-            "max_new_tokens": LLM_MAX_NEW_TOKENS,
-            "temperature": LLM_TEMPERATURE,
-            "top_p": LLM_TOP_P,
-            "do_sample": LLM_DO_SAMPLE,
-            "repetition_penalty": LLM_REPETITION_PENALTY
+            "max_new_tokens": max_new_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "do_sample": do_sample,
+            "repetition_penalty": repetition_penalty
         }
 
         logger.info("LLM Inference Handler initialized successfully")
 
-    def execute_job(self, job: Job, max_retries: int = LLM_MAX_RETRIES) -> bool:
+    def execute_job(self, job: Job, max_retries: Optional[int] = None) -> bool:
         """
         Execute a job using real LLM inference.
 
@@ -129,11 +158,15 @@ class LLMInferenceHandler:
 
         Args:
             job: Job object to execute
-            max_retries: Maximum retry attempts on failure
+            max_retries: Maximum retry attempts on failure (uses instance default if None)
 
         Returns:
             bool: True if successful, False if failed
         """
+        # Use instance max_retries if not specified
+        if max_retries is None:
+            max_retries = self.max_retries
+
         # Get conversation context from dataset based on emotion
         emotion = job.get_emotion_label()
 
@@ -142,13 +175,16 @@ class LLMInferenceHandler:
             job.set_error_msg("No emotion label")
             return False
 
+        # Get arousal value for emotion-aware response length control
+        arousal = job.get_arousal()
+
         # Get user context from dataset
         # Use conversation_index if available (for reproducibility)
         conversation_index = getattr(job, 'conversation_index', None)
 
         user_context, selected_index = self.dataset_loader.get_user_context_by_emotion(
             emotion=emotion.lower(),
-            max_turns=LLM_MAX_CONVERSATION_TURNS,
+            max_turns=self.max_conversation_turns,
             conversation_index=conversation_index
         )
 
@@ -160,10 +196,11 @@ class LLMInferenceHandler:
             logger.warning(f"No conversation found for emotion: {emotion}, using fallback")
             user_context = f"I'm feeling {emotion} right now."
 
-        # Build prompt
+        # Build prompt with arousal for emotion-aware response length
         prompt = self.prompt_builder.build_prompt(
             user_context=user_context,
-            emotion=emotion
+            emotion=emotion,
+            arousal=arousal
         )
 
         # Store conversation context in job
@@ -183,9 +220,6 @@ class LLMInferenceHandler:
                 job.set_cached(True)
                 job.set_fallback_used(cached_result.get("fallback_used", False))
                 job.set_model_name(self.model_name)
-
-                # Also update execution_duration for scheduling clock
-                job.set_execution_duration(cached_result["execution_time"])
 
                 return True
 
@@ -217,9 +251,6 @@ class LLMInferenceHandler:
                 job.set_cached(False)
                 job.set_fallback_used(result["fallback_used"])
                 job.set_model_name(self.model_name)
-
-                # Update execution_duration for scheduling clock
-                job.set_execution_duration(result["execution_time"])
 
                 # Cache the result (if caching enabled)
                 if self.use_cache and self.response_cache:
@@ -266,104 +297,3 @@ class LLMInferenceHandler:
     def get_model_info(self) -> Dict[str, Any]:
         """Get model information."""
         return self.llm_engine.get_model_info()
-
-
-def test_llm_inference_handler():
-    """Test LLM inference handler with sample jobs."""
-    print(f"\n{'='*60}")
-    print("Testing LLM Inference Handler")
-    print(f"{'='*60}\n")
-
-    # Import needed for test
-    from emotion import sample_emotion, EmotionConfig
-    from service_time_mapper import map_service_time, ServiceTimeConfig
-
-    # Initialize handler (use smaller model for testing if needed)
-    try:
-        handler = LLMInferenceHandler(
-            model_name="meta-llama/Meta-Llama-3-8B-Instruct",
-            dataset_path="./dataset",
-            cache_path="/tmp/test_llm_cache.json",
-            use_cache=True
-        )
-    except Exception as e:
-        print(f"Failed to initialize handler: {e}")
-        print("Make sure you have:")
-        print("1. HuggingFace token configured (for Llama models)")
-        print("2. Dataset downloaded to ./dataset")
-        print("3. Sufficient GPU memory or set device_map='cpu'")
-        return
-
-    print(f"\nModel info: {handler.get_model_info()}")
-
-    # Create test jobs with different emotions
-    emotion_config = EmotionConfig()
-    service_time_config = ServiceTimeConfig()
-
-    test_emotions = ["excited", "sad", "anxious"]
-
-    jobs = []
-    for i, emotion in enumerate(test_emotions):
-        # Sample emotion (or use predefined)
-        arousal = emotion_config.get_arousal(emotion)
-        emotion_class = emotion_config.classify_arousal(arousal)
-
-        # Calculate predicted service time
-        predicted_time = map_service_time(arousal, service_time_config)
-
-        # Create job
-        job = Job(
-            job_id=i,
-            execution_duration=predicted_time,  # Will be replaced with actual time
-            arrival_time=i * 5.0,
-            predicted_execution_duration=predicted_time,
-            emotion_label=emotion,
-            arousal=arousal,
-            emotion_class=emotion_class
-        )
-
-        jobs.append(job)
-
-    # Execute jobs
-    print(f"\n{'='*60}")
-    print("Executing test jobs:")
-    print(f"{'='*60}\n")
-
-    for job in jobs:
-        print(f"\nJob {job.get_job_id()} - Emotion: {job.get_emotion_label()}")
-        print("-" * 60)
-
-        success = handler.execute_job(job)
-
-        if success:
-            print(f"✓ Success")
-            print(f"  Response: {job.get_response_text()[:100]}...")
-            print(f"  Actual time: {job.get_actual_execution_duration():.3f}s")
-            print(f"  Predicted time: {job.get_predicted_execution_duration():.3f}s")
-            print(f"  Output tokens: {job.get_output_token_length()}")
-            print(f"  Cached: {job.is_cached()}")
-            print(f"  Fallback used: {job.is_fallback_used()}")
-        else:
-            print(f"✗ Failed")
-            print(f"  Error: {job.get_error_msg()}")
-
-    # Save cache and show stats
-    print(f"\n{'='*60}")
-    print("Cache Statistics:")
-    print(f"{'='*60}\n")
-
-    handler.save_cache()
-    stats = handler.get_cache_stats()
-
-    for key, value in stats.items():
-        print(f"  {key}: {value}")
-
-
-if __name__ == "__main__":
-    # Set logging level
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-
-    test_llm_inference_handler()
