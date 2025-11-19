@@ -221,9 +221,6 @@ class LLMInferenceHandler:
                 job.set_fallback_used(cached_result.get("fallback_used", False))
                 job.set_model_name(self.model_name)
 
-                # Also update execution_duration for scheduling clock
-                job.set_execution_duration(cached_result["execution_time"])
-
                 return True
 
         # Generate response with retries
@@ -254,9 +251,6 @@ class LLMInferenceHandler:
                 job.set_cached(False)
                 job.set_fallback_used(result["fallback_used"])
                 job.set_model_name(self.model_name)
-
-                # Update execution_duration for scheduling clock
-                job.set_execution_duration(result["execution_time"])
 
                 # Cache the result (if caching enabled)
                 if self.use_cache and self.response_cache:

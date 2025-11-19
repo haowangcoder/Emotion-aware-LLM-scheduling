@@ -120,8 +120,9 @@ def run_scheduling_loop(
                 print("Set LLM_SKIP_ON_ERROR=True to skip failed jobs instead")
                 break
 
-        # Advance time (uses actual LLM time if llm_handler was used)
-        current_time += selected_job.execution_duration
+        # Advance time (uses actual LLM time if available, otherwise predicted)
+        actual_time = selected_job.actual_execution_duration or selected_job.execution_duration
+        current_time += actual_time
         selected_job.completion_time = current_time
         selected_job.status = "COMPLETED"
 

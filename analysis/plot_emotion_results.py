@@ -490,12 +490,12 @@ def plot_serving_time_comparison_heatmap(dfs: Dict[str, pd.DataFrame],
             class_data = df[df['emotion_class'] == emotion_class]
 
             # Predicted service time
-            predicted_data = class_data['service_time'].dropna()
+            predicted_data = class_data['predicted_serving_time'].dropna()
             predicted_avg = predicted_data.mean() if len(predicted_data) > 0 else 0
             predicted_row.append(predicted_avg)
 
             # Actual execution duration
-            actual_data = class_data['actual_execution_duration'].dropna()
+            actual_data = class_data['actual_serving_time'].dropna()
             actual_avg = actual_data.mean() if len(actual_data) > 0 else 0
             actual_row.append(actual_avg)
 
