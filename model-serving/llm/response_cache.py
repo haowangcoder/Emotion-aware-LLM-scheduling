@@ -39,17 +39,26 @@ class ResponseCache:
         Args:
             cache_file: Path to cache file (JSON format)
         """
-        self.cache_file = cache_file
+        # Initialize cache and stats FIRST (always required)
         self.cache = {}  # In-memory cache: prompt_hash -> response_data
         self.stats = {
             "hits": 0,
             "misses": 0,
             "saves": 0
         }
+        
+        # Handle cache file path
+        if cache_file:
+            if os.path.isabs(cache_file) or "/" in cache_file:
+                self.cache_file = cache_file   # already full path
+            else:
+                self.cache_file = cache_file
+        else:
+            self.cache_file = None
 
-        # Load existing cache if file provided
-        if cache_file and os.path.exists(cache_file):
-            self.load_from_disk(cache_file)
+        # Load existing cache if file exists
+        if self.cache_file and os.path.exists(self.cache_file):
+            self.load_from_disk(self.cache_file)
 
     def _hash_prompt(self, prompt: str, model_name: Optional[str] = None) -> str:
         """

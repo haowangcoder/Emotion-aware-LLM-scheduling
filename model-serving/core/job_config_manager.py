@@ -165,15 +165,10 @@ class JobConfigManager:
 def create_job_config_manager(config_file: Optional[str] = None) -> JobConfigManager:
     """
     Factory function to create a JobConfigManager instance.
-
-    Args:
-        config_file: Path to config file. If None, uses default path.
-
-    Returns:
-        JobConfigManager instance
+    Explicitly require a provided config_file so that the system
+    never falls back to hardcoded results/cache paths.
     """
     if config_file is None:
-        # Default path
-        config_file = "results/cache/job_configs.json"
+        raise ValueError("JobConfigManager requires an explicit config_file path")
 
     return JobConfigManager(config_file)

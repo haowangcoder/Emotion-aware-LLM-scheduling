@@ -1,0 +1,148 @@
+================================================================================
+Emotion-aware LLM Scheduling Simulator (Fixed-Jobs Mode)
+================================================================================
+Log file: results/llm_runs_job50_load1.2/experiment_20251122_010437.log
+
+Experiment Configuration:
+  Scheduler: SSJF-Emotion
+  Experiment mode: fixed_jobs
+  Number of jobs: 50
+  System load (ρ): 1.2
+  Base service time (L_0): 2.0
+  Alpha (α): 0.8
+  Calculated arrival rate (λ): 0.600 req/sec
+  Random seed: 42
+
+Job Configuration:
+  Use saved config: True
+  Force new config: False
+  Config file: results/llm_runs_job50_load1.2/cache/job_configs.json
+  Attempting to load existing job configuration...
+[JobConfigManager] Loaded 50 job configurations from results/llm_runs_job50_load1.2/cache/job_configs.json
+[JobConfigManager] Config metadata: {'experiment_mode': 'fixed_jobs', 'num_jobs': 50, 'arrival_rate': 0.6, 'system_load': 1.2, 'random_seed': 42, 'base_service_time': 2.0, 'alpha': 0.8, 'rho': 1.0, 'enable_emotion_aware': True, 'model_name': 'meta-llama/Meta-Llama-3-8B-Instruct', 'created_at': '2025-11-22T01:04:35.999020', 'version': '1.0'}
+  Generating jobs from loaded configuration...
+  ✓ Loaded 50 jobs from saved configuration
+
+Creating SSJF-Emotion scheduler...
+
+Initializing LLM Inference Handler...
+  Model: meta-llama/Meta-Llama-3-8B-Instruct
+  Dataset: ./dataset
+  Cache: Enabled
+  LLM handler initialized successfully
+  Model loaded on device: cuda:0
+
+Running scheduling (fixed_jobs mode)...
+
+Starting scheduling run with SSJF-Emotion scheduler
+  Total jobs: 50
+  Time 0.78: Job 0 arrived (emotion: terrified, queue: 1)
+  [1/50] Time 0.78s: Job 0 | emotion=terrified (high) | arousal=0.80 | arrival=0.78s | wait=0.00s | pred_exec=3.28s | queue=0
+  [2/50] Time 5.80s: Job 1 | emotion=disappointed (low) | arousal=-0.80 | arrival=5.80s | wait=0.00s | pred_exec=0.72s | queue=0
+  [3/50] Time 7.99s: Job 2 | emotion=lonely (low) | arousal=-0.80 | arrival=7.99s | wait=0.00s | pred_exec=0.72s | queue=0
+  [4/50] Time 9.52s: Job 3 | emotion=hopeful (medium) | arousal=0.00 | arrival=9.52s | wait=0.00s | pred_exec=2.00s | queue=0
+  [5/50] Time 10.90s: Job 4 | emotion=hopeful (medium) | arousal=0.00 | arrival=9.80s | wait=1.10s | pred_exec=2.00s | queue=2
+  [6/50] Time 12.50s: Job 5 | emotion=hopeful (medium) | arousal=0.00 | arrival=10.08s | wait=2.42s | pred_exec=2.00s | queue=1
+  [7/50] Time 13.84s: Job 7 | emotion=sad (low) | arousal=-0.80 | arrival=13.53s | wait=0.31s | pred_exec=0.72s | queue=1
+  [8/50] Time 15.29s: Job 6 | emotion=angry (high) | arousal=0.80 | arrival=10.18s | wait=5.11s | pred_exec=3.28s | queue=1
+  [9/50] Time 17.40s: Job 9 | emotion=sad (low) | arousal=-0.80 | arrival=17.12s | wait=0.28s | pred_exec=0.72s | queue=2
+  [10/50] Time 18.16s: Job 10 | emotion=caring (medium) | arousal=0.00 | arrival=17.15s | wait=1.01s | pred_exec=2.00s | queue=1
+  [11/50] Time 19.69s: Job 8 | emotion=anticipating (high) | arousal=0.80 | arrival=15.06s | wait=4.63s | pred_exec=3.28s | queue=0
+  [12/50] Time 22.99s: Job 11 | emotion=devastated (low) | arousal=-0.80 | arrival=22.99s | wait=0.00s | pred_exec=0.72s | queue=0
+  [13/50] Time 25.97s: Job 12 | emotion=afraid (high) | arousal=0.80 | arrival=25.97s | wait=0.00s | pred_exec=3.28s | queue=0
+  [14/50] Time 27.40s: Job 14 | emotion=jealous (medium) | arousal=0.00 | arrival=26.70s | wait=0.70s | pred_exec=2.00s | queue=2
+  [15/50] Time 29.71s: Job 17 | emotion=ashamed (low) | arousal=-0.80 | arrival=28.88s | wait=0.82s | pred_exec=0.72s | queue=3
+  [16/50] Time 30.84s: Job 15 | emotion=embarrassed (medium) | arousal=0.00 | arrival=27.04s | wait=3.80s | pred_exec=2.00s | queue=4
+  [17/50] Time 33.20s: Job 16 | emotion=caring (medium) | arousal=0.00 | arrival=27.64s | wait=5.55s | pred_exec=2.00s | queue=6
+  [18/50] Time 34.52s: Job 19 | emotion=trusting (medium) | arousal=0.00 | arrival=30.40s | wait=4.12s | pred_exec=2.00s | queue=6
+  [19/50] Time 36.52s: Job 20 | emotion=jealous (medium) | arousal=0.00 | arrival=31.98s | wait=4.55s | pred_exec=2.00s | queue=6
+  [20/50] Time 38.09s: Job 21 | emotion=caring (medium) | arousal=0.00 | arrival=32.23s | wait=5.87s | pred_exec=2.00s | queue=7
+  [21/50] Time 39.71s: Job 27 | emotion=sentimental (low) | arousal=-0.80 | arrival=38.71s | wait=0.99s | pred_exec=0.72s | queue=7
+  [22/50] Time 40.31s: Job 29 | emotion=content (low) | arousal=-0.80 | arrival=40.29s | wait=0.02s | pred_exec=0.72s | queue=8
+  [23/50] Time 40.86s: Job 24 | emotion=hopeful (medium) | arousal=0.00 | arrival=34.58s | wait=6.29s | pred_exec=2.00s | queue=7
+  [24/50] Time 42.18s: Job 30 | emotion=lonely (low) | arousal=-0.80 | arrival=41.85s | wait=0.33s | pred_exec=0.72s | queue=8
+  [25/50] Time 42.93s: Job 31 | emotion=grateful (medium) | arousal=0.00 | arrival=42.16s | wait=0.77s | pred_exec=2.00s | queue=8
+  [26/50] Time 44.35s: Job 13 | emotion=afraid (high) | arousal=0.80 | arrival=26.37s | wait=17.98s | pred_exec=3.28s | queue=7
+  [27/50] Time 46.61s: Job 18 | emotion=joyful (high) | arousal=0.80 | arrival=29.82s | wait=16.79s | pred_exec=3.28s | queue=6
+  [28/50] Time 48.24s: Job 33 | emotion=content (low) | arousal=-0.80 | arrival=47.23s | wait=1.01s | pred_exec=0.72s | queue=6
+  [29/50] Time 48.86s: Job 22 | emotion=disgusted (high) | arousal=0.80 | arrival=32.80s | wait=16.06s | pred_exec=3.28s | queue=5
+  [30/50] Time 50.55s: Job 23 | emotion=anxious (high) | arousal=0.80 | arrival=33.56s | wait=16.99s | pred_exec=3.28s | queue=4
+  [31/50] Time 53.11s: Job 25 | emotion=impressed (high) | arousal=0.80 | arrival=37.14s | wait=15.97s | pred_exec=3.28s | queue=4
+  [32/50] Time 55.40s: Job 26 | emotion=annoyed (high) | arousal=0.80 | arrival=37.51s | wait=17.89s | pred_exec=3.28s | queue=3
+  [33/50] Time 56.88s: Job 36 | emotion=ashamed (low) | arousal=-0.80 | arrival=56.21s | wait=0.67s | pred_exec=0.72s | queue=5
+  [34/50] Time 57.77s: Job 37 | emotion=apprehensive (low) | arousal=-0.80 | arrival=56.38s | wait=1.39s | pred_exec=0.72s | queue=4
+  [35/50] Time 58.61s: Job 28 | emotion=afraid (high) | arousal=0.80 | arrival=40.21s | wait=18.40s | pred_exec=3.28s | queue=4
+  [36/50] Time 60.53s: Job 39 | emotion=disappointed (low) | arousal=-0.80 | arrival=59.27s | wait=1.27s | pred_exec=0.72s | queue=5
+  [37/50] Time 61.26s: Job 42 | emotion=content (low) | arousal=-0.80 | arrival=60.68s | wait=0.58s | pred_exec=0.72s | queue=6
+  [38/50] Time 61.88s: Job 40 | emotion=hopeful (medium) | arousal=0.00 | arrival=59.48s | wait=2.39s | pred_exec=2.00s | queue=5
+  [39/50] Time 63.55s: Job 41 | emotion=grateful (medium) | arousal=0.00 | arrival=60.62s | wait=2.93s | pred_exec=2.00s | queue=4
+  [40/50] Time 64.89s: Job 43 | emotion=devastated (low) | arousal=-0.80 | arrival=64.68s | wait=0.21s | pred_exec=0.72s | queue=4
+  [41/50] Time 65.65s: Job 44 | emotion=sentimental (low) | arousal=-0.80 | arrival=65.18s | wait=0.47s | pred_exec=0.72s | queue=4
+  [42/50] Time 66.68s: Job 32 | emotion=angry (high) | arousal=0.80 | arrival=42.27s | wait=24.41s | pred_exec=3.28s | queue=3
+  [43/50] Time 68.81s: Job 45 | emotion=grateful (medium) | arousal=0.00 | arrival=66.99s | wait=1.82s | pred_exec=2.00s | queue=4
+  [44/50] Time 70.46s: Job 47 | emotion=sad (low) | arousal=-0.80 | arrival=68.84s | wait=1.62s | pred_exec=0.72s | queue=5
+  [45/50] Time 71.24s: Job 48 | emotion=sad (low) | arousal=-0.80 | arrival=70.15s | wait=1.09s | pred_exec=0.72s | queue=5
+  [46/50] Time 72.26s: Job 46 | emotion=hopeful (medium) | arousal=0.00 | arrival=67.61s | wait=4.65s | pred_exec=2.00s | queue=4
+  [47/50] Time 73.91s: Job 34 | emotion=annoyed (high) | arousal=0.80 | arrival=52.85s | wait=21.06s | pred_exec=3.28s | queue=3
+  [48/50] Time 76.24s: Job 35 | emotion=joyful (high) | arousal=0.80 | arrival=55.60s | wait=20.64s | pred_exec=3.28s | queue=2
+  [49/50] Time 78.26s: Job 38 | emotion=joyful (high) | arousal=0.80 | arrival=58.30s | wait=19.96s | pred_exec=3.28s | queue=1
+  [50/50] Time 80.24s: Job 49 | emotion=impressed (high) | arousal=0.80 | arrival=70.50s | wait=9.74s | pred_exec=3.28s | queue=0
+
+=== Run Completed ===
+  Total time: 82.69s
+  Total completed jobs: 50
+  Throughput: 0.605 jobs/sec
+  Avg waiting time: 5.693s
+  Avg JCT: 7.162s
+
+Saving LLM response cache...
+  Cache stats: 50 entries, 100.0% hit rate
+
+Skipping job config save (loaded from existing configuration)
+
+================================================================================
+Results (Time-Window Mode: 83s window)
+================================================================================
+
+Overall Performance Metrics:
+  Total completed jobs: 50
+  Total run time: 82.69s
+  Throughput: 0.605 jobs/sec
+  Throughput P25: 0.475 jobs/sec
+  Throughput P50: 0.564 jobs/sec
+  Throughput P75: 0.598 jobs/sec
+
+Latency Metrics:
+  Avg waiting time: 5.693s
+  P50 waiting time: 1.721s
+  P95 waiting time: 20.330s
+  P99 waiting time: 22.770s
+
+Job Completion Time (JCT):
+  Avg JCT: 7.162s
+  P50 JCT: 3.239s
+  P95 JCT: 22.332s
+  P99 JCT: 24.994s
+
+Fairness Analysis:
+  Waiting Time Fairness:
+    Jain Index: 0.5023
+    CV: 0.9953
+    Max/Min Ratio: 22.9286
+
+  Per-Emotion-Class Waiting Time:
+    high: 14.101
+    low: 0.615
+    medium: 2.998
+
+Per-Emotion-Class Detailed Metrics:
+  Class      Count    Avg Wait     P99 Wait     Avg Service 
+  ------------------------------------------------------------
+  high       16       14.101       23.908       3.280       
+  low        18       0.615        1.585        0.720       
+  medium     16       2.998        6.224        2.000       
+
+Saving results to: results/llm_runs_job50_load1.2
+Job logs saved to: results/llm_runs_job50_load1.2/SSJF-Emotion_50jobs_load1.20_fixed_jobs.csv
+Summary statistics saved to: results/llm_runs_job50_load1.2/SSJF-Emotion_50jobs_load1.20_fixed_summary.json
+Results saved successfully!

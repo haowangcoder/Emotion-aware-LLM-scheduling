@@ -60,101 +60,162 @@ class LLMEngine:
         load_in_8bit: bool = False
     ) -> bool:
         """
-        Load HuggingFace model and tokenizer.
+        Load a HuggingFace model and tokenizer.
 
-        Args:
-            model_name: Model identifier (e.g., "meta-llama/Meta-Llama-3-8B-Instruct")
-            device_map: Device placement ("auto", "cuda", "cpu")
-            dtype: Data type ("auto", "float16", "bfloat16", "float32")
-            trust_remote_code: Allow custom model code
-            load_in_8bit: Use 8-bit quantization for memory efficiency
+        IMPORTANT:
+        To prevent corrupted GPU outputs (garbled text) caused by certain
+        combinations of:
+            - torch 2.2.x
+            - transformers 4.40.x
+            - FlashAttention / fused kernels
+            - bf16 or auto dtype
+            - SDPA fast attention
+            - device_map='auto'
+            - H100 GPUs
+        we override the user configuration and enforce a "safe GPU mode".
 
-        Returns:
-            bool: True if loaded successfully, False otherwise
+        Safe GPU mode forces:
+            - torch_dtype = float16
+            - device_map = {"": "cuda"}     (single-GPU placement)
+            - attn_implementation = "eager" (disable FlashAttention/SDPA)
+
+        This ensures stable, deterministic, non-corrupted outputs on H100.
+
+        The external config values for `device_map` and `dtype` are still read,
+        but they will be ignored for GPU loading to ensure correctness.
+
+        CPU fallback still uses proper float32 loading.
         """
+
         if self._loaded and self._model_name == model_name:
             logger.info(f"Model {model_name} already loaded.")
             return True
 
         try:
             logger.info(f"Loading model: {model_name}")
-            logger.info(f"Device map: {device_map}, dtype: {dtype}")
+            logger.info(f"(requested config) device_map={device_map}, dtype={dtype}")
 
+            # ------------------------------------------------------------------
             # Check CUDA availability
+            # ------------------------------------------------------------------
             cuda_available = torch.cuda.is_available()
             if cuda_available:
                 gpu_name = torch.cuda.get_device_name(0)
                 gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1e9
                 logger.info(f"CUDA available: {gpu_name} ({gpu_memory:.2f} GB)")
             else:
-                logger.warning("CUDA not available, will use CPU (slower)")
+                logger.warning("CUDA not available. CPU mode will be used.")
 
+            # ------------------------------------------------------------------
             # Load tokenizer
+            # ------------------------------------------------------------------
             logger.info("Loading tokenizer...")
             self._tokenizer = AutoTokenizer.from_pretrained(
                 model_name,
                 trust_remote_code=trust_remote_code
             )
 
-            # Ensure tokenizer has pad token
+            # Ensure tokenizer has a pad token
             if self._tokenizer.pad_token is None:
                 self._tokenizer.pad_token = self._tokenizer.eos_token
                 logger.info(f"Set pad_token to eos_token: {self._tokenizer.eos_token}")
 
-            # Prepare model loading kwargs
+            # ------------------------------------------------------------------
+            # Build model loading kwargs (safe defaults)
+            # ------------------------------------------------------------------
             model_kwargs = {
                 "trust_remote_code": trust_remote_code,
             }
 
-            # Handle dtype
-            if dtype == "auto":
-                model_kwargs["torch_dtype"] = "auto"
-            elif dtype == "float16":
-                model_kwargs["torch_dtype"] = torch.float16
-            elif dtype == "bfloat16":
-                model_kwargs["torch_dtype"] = torch.bfloat16
-            elif dtype == "float32":
-                model_kwargs["torch_dtype"] = torch.float32
+            # === SAFE GPU MODE ==================================================
+            if cuda_available and not load_in_8bit:
+                # GPU-safe configuration:
+                # - avoid FlashAttention / SDPA kernels
+                # - avoid bf16/auto dtype instability
+                # - avoid multi-GPU sharding and device_map="auto"
+                model_kwargs.update(
+                    {
+                        "torch_dtype": torch.float16,
+                        "device_map": {"": "cuda"},    # single device placement
+                        "attn_implementation": "eager" # disable fused attention
+                    }
+                )
+                logger.info(
+                    "Using SAFE GPU config: torch_dtype=float16, "
+                    "device_map={'': 'cuda'}, attn_implementation='eager'"
+                )
 
-            # Handle device mapping
-            if device_map == "auto":
-                model_kwargs["device_map"] = "auto"
+            # === 8-BIT MODE (optional) ==========================================
+            elif cuda_available and load_in_8bit:
+                model_kwargs.update(
+                    {
+                        "device_map": {"": "cuda"},
+                        "load_in_8bit": True,
+                    }
+                )
+                logger.info(
+                    "Using 8-bit GPU config: device_map={'': 'cuda'}, load_in_8bit=True"
+                )
+
+            # === CPU MODE =======================================================
             else:
-                model_kwargs["device_map"] = device_map
+                model_kwargs.update(
+                    {
+                        "torch_dtype": torch.float32,
+                        "device_map": "cpu",
+                    }
+                )
+                logger.info("Using CPU config: torch_dtype=float32, device_map='cpu'")
 
-            # Handle 8-bit quantization
-            if load_in_8bit:
-                model_kwargs["load_in_8bit"] = True
-                logger.info("Using 8-bit quantization")
-
-            # Load model
+            # ------------------------------------------------------------------
+            # Load model weights
+            # ------------------------------------------------------------------
             logger.info("Loading model weights (this may take a minute)...")
-            self._model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                **model_kwargs
-            )
 
-            # Set to evaluation mode
+            try:
+                self._model = AutoModelForCausalLM.from_pretrained(
+                    model_name,
+                    **model_kwargs,
+                )
+            except TypeError as e:
+                # Some older model versions do not support `attn_implementation`
+                if "attn_implementation" in str(e):
+                    logger.warning(
+                        "Parameter `attn_implementation` not supported. Retrying without it."
+                    )
+                    model_kwargs.pop("attn_implementation", None)
+                    self._model = AutoModelForCausalLM.from_pretrained(
+                        model_name,
+                        **model_kwargs,
+                    )
+                else:
+                    raise
+
+            # ------------------------------------------------------------------
+            # Finalize
+            # ------------------------------------------------------------------
             self._model.eval()
-
-            # Store configuration
             self._model_name = model_name
             self._device = next(self._model.parameters()).device
             self._loaded = True
 
             logger.info(f"Model loaded successfully on device: {self._device}")
-            logger.info(f"Model config max_position_embeddings: {self._model.config.max_position_embeddings}")
+            if hasattr(self._model.config, "max_position_embeddings"):
+                logger.info(
+                    f"max_position_embeddings: {self._model.config.max_position_embeddings}"
+                )
 
             return True
 
         except torch.cuda.OutOfMemoryError as e:
             logger.error(f"CUDA OOM during model loading: {e}")
-            logger.info("Attempting to load on CPU...")
+            logger.info("Attempting CPU fallback...")
             return self._load_on_cpu(model_name, trust_remote_code)
 
         except Exception as e:
             logger.error(f"Failed to load model: {e}")
             return False
+
 
     def _load_on_cpu(self, model_name: str, trust_remote_code: bool) -> bool:
         """Fallback: load model on CPU."""

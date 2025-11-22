@@ -5,6 +5,11 @@
 
 set -e  # Exit on error
 
+rm -f results/cache/job_configs.json
+rm -f results/cache/responses.json
+
+rm -rf results/llm_runs
+
 # Configuration
 OUTPUT_DIR="results/llm_runs"
 SCHEDULERS=("FCFS" "SSJF-Emotion")

@@ -26,6 +26,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Number of jobs to run (overrides config.experiment.num_jobs)",
     )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default=None,
+        choices=["fixed_jobs", "time_window"],
+        help="Experiment mode (overrides config.experiment.mode)",
+    )
+    parser.add_argument(
+        "--simulation_duration",
+        type=float,
+        default=None,
+        help="Simulation duration for time_window mode (overrides config.experiment.simulation_duration)",
+    )
 
     # System configuration
     parser.add_argument(

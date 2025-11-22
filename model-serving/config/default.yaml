@@ -12,7 +12,7 @@ workload:
   # Formula: S_i = base_service_time * (1 + alpha * arousal_i)
   service_time:
     base_service_time: 2.0      # L_0: Base service time when arousal = 0 (seconds)
-    alpha: 0.5                   # α: Sensitivity coefficient for arousal impact
+    alpha: 0.8                   # α: Sensitivity coefficient for arousal impact
                                  # NOTE: Same alpha used for both service time prediction
                                  # and LLM response length generation (synchronized)
     rho: 1.0                     # ρ: Correlation strength between emotion and service time
@@ -23,6 +23,12 @@ workload:
   emotion:
     arousal_noise_std: 0.0       # Standard deviation of noise added to arousal values
     enable_emotion_aware: true   # Enable/disable emotion-aware features globally
+  
+    use_stratified_sampling: true # stratified sampling
+    class_distribution:
+      high: 0.33
+      medium: 0.33
+      low: 0.34
 
 # ============================================================================
 # LLM INFERENCE CONFIGURATION
@@ -60,19 +66,19 @@ llm:
   # Response Caching
   cache:
     use_response_cache: true     # Enable response caching for reproducibility
-    cache_dir: 'results/cache'   # Directory to store cache files
+    cache_dir: null              # Directory to store cache files, use placeholder, actual path will be set in config_loader
     cache_file: 'responses.json' # Cache file name
     force_regenerate: false      # Force regenerate even if cached (ignores cache)
 
     # Job Configuration Cache
-    use_saved_job_config: true   # Use saved job configurations if available
+    use_saved_job_config: true
     job_config_file: 'job_configs.json'  # Job config file name
-    force_new_job_config: false  # Force generate new job configurations
+    force_new_job_config: false
 
   # Error Handling
   error_handling:
-    max_retries: 2               # Maximum retries on generation failure
-    enable_cpu_fallback: true    # Fallback to CPU if GPU OOM
+    max_retries: 1               # Maximum retries on generation failure
+    enable_cpu_fallback: false    # Fallback to CPU if GPU OOM
     skip_on_error: true          # Skip job on persistent errors (vs fail entire experiment)
 
 # ============================================================================
@@ -90,7 +96,7 @@ scheduler:
   # Starvation Prevention (for SSJF-Emotion)
   starvation_prevention:
     threshold: .inf              # Absolute time threshold (inf = disabled by default)
-    coefficient: 3.0             # Relative threshold (multiple of execution duration)
+    coefficient: 10.0             # Relative threshold (multiple of execution duration)
 
 # ============================================================================
 # DATASET AND EXPERIMENT
@@ -99,9 +105,17 @@ dataset:
   emotion_dataset_path: './dataset'  # Path to EmpatheticDialogues dataset
 
 experiment:
+  # Experiment Mode Selection
+  mode: 'fixed_jobs'           # 'fixed_jobs' or 'time_window'
+  
   # Fixed-Jobs Mode Parameters
-  num_jobs: 50                # Number of jobs to generate and run to completion
-  random_seed: 42              # Random seed for reproducibility (null = use system entropy)
+  num_jobs: 50                 # Number of jobs (for fixed_jobs mode)
+  
+  # Time-Window Mode Parameters
+  simulation_duration: 300.0   # Simulation duration in seconds (for time_window mode)
+  
+  # Common Parameters
+  random_seed: 42              # Random seed for reproducibility
 
   # Fairness Metrics
   fairness_metric: 'waiting_time'  # 'waiting_time' or 'turnaround_time'

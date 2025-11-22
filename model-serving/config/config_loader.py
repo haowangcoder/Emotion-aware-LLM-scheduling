@@ -37,6 +37,12 @@ class EmotionConfig:
     """Emotion parameters configuration."""
     arousal_noise_std: float = 0.0
     enable_emotion_aware: bool = True
+    use_stratified_sampling: bool = True
+    class_distribution: dict = field(default_factory=lambda: {
+        'high': 0.33,
+        'medium': 0.34,
+        'low': 0.33
+    })
 
 
 @dataclass
@@ -136,9 +142,18 @@ class DatasetConfig:
 
 
 @dataclass
+# class ExperimentConfig:
+#     """Experiment configuration for fixed-jobs mode"""
+#     num_jobs: int = 100  # Number of jobs to generate and run
+#     random_seed: Optional[int] = None
+#     fairness_metric: str = 'waiting_time'
+#     calculate_fairness: bool = True
+
 class ExperimentConfig:
-    """Experiment configuration for fixed-jobs mode"""
-    num_jobs: int = 100  # Number of jobs to generate and run
+    """Experiment configuration"""
+    mode: str = 'fixed_jobs'  # Experiment mode: 'fixed_jobs' or 'time_window'
+    num_jobs: int = 100  # Number of jobs (for fixed_jobs) or trace size (for time_window)
+    simulation_duration: float = 300.0  # Simulation duration for time_window mode (seconds)
     random_seed: Optional[int] = None
     fairness_metric: str = 'waiting_time'
     calculate_fairness: bool = True
@@ -306,6 +321,8 @@ class ConfigLoader:
         cli_mappings = {
             'scheduler': lambda c, v: setattr(c.scheduler, 'algorithm', v),
             'num_jobs': lambda c, v: setattr(c.experiment, 'num_jobs', v),
+            'mode': lambda c, v: setattr(c.experiment, 'mode', v), 
+            'simulation_duration': lambda c, v: setattr(c.experiment, 'simulation_duration', v),
             'system_load': lambda c, v: setattr(c.scheduler, 'system_load', v),
             'base_service_time': lambda c, v: setattr(c.workload.service_time, 'base_service_time', v),
             'alpha': lambda c, v: setattr(c.workload.service_time, 'alpha', v),
@@ -338,8 +355,8 @@ class ConfigLoader:
         """Validate configuration and issue warnings for potential issues."""
         # Check alpha synchronization
         alpha = config.workload.service_time.alpha
-        if not (0 < alpha <= 2.0):
-            warnings.warn(f"Alpha value {alpha} is outside typical range (0, 2.0]")
+        if not (0 < alpha <= 1.0):
+            warnings.warn(f"Alpha value {alpha} is outside typical range (0, 1.0]")
 
         # Check system load
         if not (0 < config.scheduler.system_load < 1):
@@ -405,7 +422,19 @@ class ConfigLoader:
 
 def load_config(config_path: Optional[Path] = None, cli_args: Optional[Dict[str, Any]] = None) -> Config:
     """Convenience function to load configuration."""
-    return ConfigLoader.load(config_path, cli_args)
+    # ============================================
+    # Patch cache paths so they follow output_dir
+    # ============================================
+    config = ConfigLoader.load(config_path, cli_args)
+    output_dir = config.output.results_dir
+    cache_base = os.path.join(output_dir, "cache")
+
+    config.llm.cache.cache_dir = cache_base
+    config.llm.cache.full_cache_path = os.path.join(cache_base, config.llm.cache.cache_file)
+    config.llm.cache.full_job_config_path = os.path.join(cache_base, config.llm.cache.job_config_file)
+
+    os.makedirs(cache_base, exist_ok=True)
+    return config
 
 
 def get_alpha(config: Config) -> float:
