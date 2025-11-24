@@ -189,6 +189,76 @@ def sample_emotions_batch(n: int, config: EmotionConfig = None) -> List[Tuple[st
     """
     return [sample_emotion(config) for _ in range(n)]
 
+def sample_emotions_batch_stratified(
+    num_jobs: int,
+    emotion_config: EmotionConfig,
+    class_distribution: Dict[str, float] = None
+) -> List[Tuple[str, float]]:
+    """
+    Batch sample emotions with stratified sampling by arousal class.
+    
+    Ensures the target distribution across all samples for fair comparison.
+    
+    Args:
+        num_jobs: Number of jobs to generate
+        emotion_config: EmotionConfig object
+        class_distribution: Target distribution for each class
+                          e.g., {'high': 0.33, 'medium': 0.34, 'low': 0.33}
+                          If None, uses uniform distribution (1/3 each)
+    
+    Returns:
+        List of (emotion_label, arousal) tuples
+    """
+    if class_distribution is None:
+        # Default: uniform distribution
+        class_distribution = {'high': 1/3, 'medium': 1/3, 'low': 1/3}
+    
+    # Calculate count for each class
+    class_counts = {}
+    remaining = num_jobs
+    
+    # Allocate jobs to high and medium first
+    for cls in ['high', 'medium']:
+        class_counts[cls] = int(num_jobs * class_distribution[cls])
+        remaining -= class_counts[cls]
+    
+    # Allocate remaining to low (ensures total is exactly num_jobs)
+    class_counts['low'] = remaining
+    
+    # Group emotions by arousal class
+    emotions_by_class = {'high': [], 'medium': [], 'low': []}
+    for emotion, base_arousal in emotion_config.emotion_arousal_map.items():
+        emotion_class = emotion_config.classify_arousal(base_arousal)
+        emotions_by_class[emotion_class].append((emotion, base_arousal))
+    
+    # Sample from each class
+    emotions_arousal = []
+    
+    for cls, count in class_counts.items():
+        available_emotions = emotions_by_class[cls]
+        
+        if not available_emotions:
+            # Fallback: if no emotions in this class, use any emotion
+            available_emotions = list(emotion_config.emotion_arousal_map.items())
+        
+        # Sample 'count' emotions from this class
+        for _ in range(count):
+            emotion, base_arousal = available_emotions[
+                np.random.randint(len(available_emotions))
+            ]
+            
+            # Add noise if configured
+            arousal = base_arousal
+            if emotion_config.arousal_noise_std > 0:
+                noise = np.random.normal(0, emotion_config.arousal_noise_std)
+                arousal = arousal + noise
+            
+            emotions_arousal.append((emotion, arousal))
+    
+    # Shuffle to randomize order
+    np.random.shuffle(emotions_arousal)
+    
+    return emotions_arousal
 
 def get_emotion_statistics(config: EmotionConfig = None) -> Dict:
     """

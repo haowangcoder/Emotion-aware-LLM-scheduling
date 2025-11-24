@@ -233,3 +233,128 @@ def get_emotion_aware_statistics(job_list: List[Job]) -> Dict:
     }
 
     return stats
+
+def generate_job_trace(
+    num_jobs: int,
+    arrival_rate: float,
+    emotion_config: EmotionConfig = None,
+    service_time_config: ServiceTimeConfig = None,
+    enable_emotion: bool = True,
+    random_seed: int = None,
+    use_stratified_sampling: bool = True,  # for strastification
+    class_distribution: Dict[str, float] = None,  # e.g., {'high': 0.33, 'medium': 0.34, 'low': 0.33}
+) -> List[Dict]:
+    """
+    Generate a complete job trace for reproducible experiments across schedulers.
+    
+    This creates a pre-determined sequence of job arrivals, emotions, and service times
+    that can be reused by different schedulers for fair comparison.
+    
+    Args:
+        num_jobs: Number of jobs to generate
+        arrival_rate: Arrival rate (λ) for Poisson process
+        emotion_config: EmotionConfig object
+        service_time_config: ServiceTimeConfig object
+        enable_emotion: Whether to enable emotion-aware features
+        random_seed: Random seed for reproducibility
+        use_stratified_sampling: Whether to use stratified sampling by arousal class
+        class_distribution: Target distribution, e.g., {'high': 0.33, 'medium': 0.34, 'low': 0.33}
+
+    
+    Returns:
+        List of job configuration dictionaries
+    """
+    if emotion_config is None:
+        emotion_config = EmotionConfig()
+    if service_time_config is None:
+        service_time_config = ServiceTimeConfig()
+    
+    # Set random seed
+    if random_seed is not None:
+        np.random.seed(random_seed)
+        import random
+        random.seed(random_seed)
+    
+    # Generate arrival times
+    arrival_times = _generate_arrival_times(num_jobs, arrival_rate)
+    
+    # Generate emotions (stratified or simple random)
+    if enable_emotion:
+        if use_stratified_sampling:
+            from core.emotion import sample_emotions_batch_stratified
+            emotions_arousal = sample_emotions_batch_stratified(
+                num_jobs, emotion_config, class_distribution
+            )
+        else:
+            emotions_arousal = sample_emotions_batch(num_jobs, emotion_config)
+    else:
+        emotions_arousal = [('neutral', 0.0)] * num_jobs
+    
+    # Create trace
+    trace = []
+    for job_id in range(num_jobs):
+        emotion_label, arousal = emotions_arousal[job_id]
+        service_time = map_service_time(arousal, service_time_config) if enable_emotion \
+                      else service_time_config.base_service_time
+        
+        trace.append({
+            'job_id': job_id,
+            'arrival_time': float(arrival_times[job_id]),
+            'emotion': emotion_label,
+            'arousal': float(arousal),
+            'service_time': float(service_time),
+        })
+    
+    # Print distribution statistics
+    if enable_emotion:
+        class_counts = {'high': 0, 'medium': 0, 'low': 0}
+        for _, arousal in emotions_arousal:
+            cls = emotion_config.classify_arousal(arousal)
+            class_counts[cls] += 1
+        
+        print(f"  Emotion class distribution:")
+        for cls in ['high', 'medium', 'low']:
+            pct = class_counts[cls] / num_jobs * 100
+            print(f"    {cls}: {class_counts[cls]} ({pct:.1f}%)")
+
+    return trace
+
+
+
+def create_jobs_from_trace(
+    trace: List[Dict],
+    emotion_config: EmotionConfig = None,
+    max_jobs: int = None
+    ) -> List[Job]:
+    """
+    Create Job objects from a pre-generated trace.
+    
+    Args:
+        trace: List of job configuration dictionaries
+        emotion_config: EmotionConfig object (for arousal classification)
+        max_jobs: Maximum number of jobs to create (None = all)
+    
+    Returns:
+        List of Job objects
+    """
+    if emotion_config is None:
+        emotion_config = EmotionConfig()
+    
+    jobs = []
+    trace_subset = trace[:max_jobs] if max_jobs else trace
+    
+    for job_config in trace_subset:
+        arousal = job_config['arousal']
+        emotion_class = emotion_config.classify_arousal(arousal)
+        
+        job = Job(
+            job_id=job_config['job_id'],
+            execution_duration=job_config['service_time'],
+            arrival_time=job_config['arrival_time'],
+            emotion_label=job_config['emotion'],
+            arousal=arousal,
+            emotion_class=emotion_class
+        )
+        jobs.append(job)
+    
+    return jobs

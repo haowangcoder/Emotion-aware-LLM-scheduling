@@ -10,18 +10,32 @@ from core.job import Job
 
 def print_summary_metrics(completed_jobs: List[Job], run_metrics: dict) -> None:
     """
-    Print overall performance and latency metrics for fixed-jobs experiment.
+    Print overall performance and latency metrics for both fixed-jobs and time-window experiments.
+
+    This function is defensive: it uses dict.get with defaults so that missing
+    keys never cause a crash (e.g., when no jobs are completed).
     """
     print(f"\n" + "=" * 80)
-    print("Results (Fixed-Jobs Mode)")
+    mode = "Fixed-Jobs" if "num_jobs" in run_metrics else "Time-Window"
+    mode_info = (
+        f"{run_metrics.get('total_jobs', len(completed_jobs))} jobs"
+        if mode == "Fixed-Jobs"
+        else f"{run_metrics.get('total_time', 0.0):.0f}s window"
+    )
+    print(f"Results ({mode} Mode: {mode_info})")
     print("=" * 80)
 
+    # ---- Overall performance ----
     print(f"\nOverall Performance Metrics:")
-    print(f"  Total completed jobs: {run_metrics['total_jobs']}")
-    print(f"  Total run time: {run_metrics['total_time']:.2f}s")
-    print(f"  Throughput: {run_metrics['throughput']:.3f} jobs/sec")
+    total_jobs = run_metrics.get("total_jobs", len(completed_jobs))
+    total_time = run_metrics.get("total_time", 0.0)
+    throughput = run_metrics.get("throughput", 0.0)
 
-    # Percentile throughput
+    print(f"  Total completed jobs: {total_jobs}")
+    print(f"  Total run time: {total_time:.2f}s")
+    print(f"  Throughput: {throughput:.3f} jobs/sec")
+
+    # Percentile throughput based on completed_jobs
     thr_p25 = percentile_throughput(completed_jobs, 25)
     thr_p50 = percentile_throughput(completed_jobs, 50)
     thr_p75 = percentile_throughput(completed_jobs, 75)
@@ -29,17 +43,30 @@ def print_summary_metrics(completed_jobs: List[Job], run_metrics: dict) -> None:
     print(f"  Throughput P50: {thr_p50:.3f} jobs/sec")
     print(f"  Throughput P75: {thr_p75:.3f} jobs/sec")
 
+    # ---- Latency metrics ----
+    avg_wait = run_metrics.get("avg_waiting_time", 0.0)
+    p50_wait = run_metrics.get("p50_waiting_time", 0.0)
+    p95_wait = run_metrics.get("p95_waiting_time", 0.0)
+    p99_wait = run_metrics.get("p99_waiting_time", 0.0)
+
     print(f"\nLatency Metrics:")
-    print(f"  Avg waiting time: {run_metrics['avg_waiting_time']:.3f}s")
-    print(f"  P50 waiting time: {run_metrics['p50_waiting_time']:.3f}s")
-    print(f"  P95 waiting time: {run_metrics['p95_waiting_time']:.3f}s")
-    print(f"  P99 waiting time: {run_metrics['p99_waiting_time']:.3f}s")
+    print(f"  Avg waiting time: {avg_wait:.3f}s")
+    print(f"  P50 waiting time: {p50_wait:.3f}s")
+    print(f"  P95 waiting time: {p95_wait:.3f}s")
+    print(f"  P99 waiting time: {p99_wait:.3f}s")
+
+    # ---- JCT metrics ----
+    avg_jct = run_metrics.get("avg_jct", 0.0)
+    p50_jct = run_metrics.get("p50_jct", 0.0)
+    p95_jct = run_metrics.get("p95_jct", 0.0)
+    p99_jct = run_metrics.get("p99_jct", 0.0)
 
     print(f"\nJob Completion Time (JCT):")
-    print(f"  Avg JCT: {run_metrics['avg_jct']:.3f}s")
-    print(f"  P50 JCT: {run_metrics['p50_jct']:.3f}s")
-    print(f"  P95 JCT: {run_metrics['p95_jct']:.3f}s")
-    print(f"  P99 JCT: {run_metrics['p99_jct']:.3f}s")
+    print(f"  Avg JCT: {avg_jct:.3f}s")
+    print(f"  P50 JCT: {p50_jct:.3f}s")
+    print(f"  P95 JCT: {p95_jct:.3f}s")
+    print(f"  P99 JCT: {p99_jct:.3f}s")
+
 
 
 def print_fairness_analysis(completed_jobs: List[Job]) -> None:
@@ -93,19 +120,33 @@ def save_results(
     print(f"\nSaving results to: {output_dir}")
     os.makedirs(output_dir, exist_ok=True)
 
+    # logger = EmotionAwareLogger(
+    #     output_dir=output_dir,
+    #     experiment_name=(
+    #         f"{config.scheduler.algorithm}_"
+    #         f"{run_metrics['total_jobs']}jobs_"
+    #         f"load{config.scheduler.system_load:.2f}_"
+    #         f"fixedjobs"
+    #     ),
+    # )
+
+    mode = config.experiment.mode
+    if mode == "fixed_jobs":
+        exp_suffix = f"{run_metrics['total_jobs']}jobs_load{config.scheduler.system_load:.2f}_fixed"
+    else:
+        exp_suffix = f"{int(config.experiment.simulation_duration)}s_load{config.scheduler.system_load:.2f}_window"
+
     logger = EmotionAwareLogger(
         output_dir=output_dir,
-        experiment_name=(
-            f"{config.scheduler.algorithm}_"
-            f"{run_metrics['total_jobs']}jobs_"
-            f"load{config.scheduler.system_load:.2f}_"
-            f"fixedjobs"
-        ),
+        experiment_name=f"{config.scheduler.algorithm}_{exp_suffix}",
     )
 
     # Set metadata with experiment mode
     metadata = vars(args).copy()
-    metadata["experiment_mode"] = "fixed_jobs"
+    # metadata["experiment_mode"] = "fixed_jobs"
+    metadata["experiment_mode"] = mode
+    if mode == "time_window":
+        metadata["simulation_duration"] = config.experiment.simulation_duration
     metadata["num_jobs"] = run_metrics["total_jobs"]
     metadata["arrival_rate"] = arrival_rate
     metadata["run_metrics"] = run_metrics

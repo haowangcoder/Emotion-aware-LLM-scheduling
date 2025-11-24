@@ -12,9 +12,7 @@ def build_job_config_manager(config) -> Tuple[JobConfigManager, str]:
     """
     Build JobConfigManager and its underlying file path from config.
     """
-    job_config_path = os.path.join(
-        config.llm.cache.cache_dir, config.llm.cache.job_config_file
-    )
+    job_config_path = config.llm.cache.full_job_config_path
     job_config_manager = JobConfigManager(job_config_path)
     return job_config_manager, job_config_path
 
