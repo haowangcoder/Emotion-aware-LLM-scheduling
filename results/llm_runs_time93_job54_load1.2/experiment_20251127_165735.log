@@ -1,0 +1,156 @@
+================================================================================
+Emotion-aware LLM Scheduling Simulator (Time-Window Mode)
+================================================================================
+Log file: results/llm_runs_time93_job54_load1.2/experiment_20251127_165735.log
+
+Experiment Configuration:
+  Scheduler: SSJF-Valence
+  Valence beta (π_i = 1 + β(-v_i)): 0.8
+  Experiment mode: time_window
+  Simulation duration: 93.0s
+  Trace size: 54 jobs (pre-generated)
+  System load (ρ): 1.2
+  Base service time (L_0): 2.0
+  Alpha (α): 0.8
+  Calculated arrival rate (λ): 0.600 req/sec
+  Random seed: 42
+
+Loading time-window job trace from: results/llm_runs_time93_job54_load1.2/cache/time_window_trace.json
+  ✓ Loaded trace with 108 jobs
+
+Creating SSJF-Valence scheduler...
+
+Initializing LLM Inference Handler...
+  Model: meta-llama/Meta-Llama-3-8B-Instruct
+  Dataset: ./dataset
+  Cache: Enabled
+  LLM handler initialized successfully
+  Model loaded on device: cuda:0
+
+Running scheduling (time_window mode)...
+
+Starting time-window scheduling with SSJF-Valence
+  Simulation duration: 93.0s
+  Total jobs in trace: 108
+  Time 0.78: Job 0 arrived
+  Time 0.78s: Job 0 | emotion=surprised (high) | wait=0.00s | service=3.28s | queue=0
+  Time 7.94s: Job 1 | emotion=content (low) | wait=2.14s | service=0.72s | queue=0
+  Time 8.52s: Job 2 | emotion=caring (medium) | wait=0.53s | service=2.00s | queue=0
+  Time 10.33s: Job 3 | emotion=embarrassed (medium) | wait=0.82s | service=2.00s | queue=3
+  Time 12.00s: Job 4 | emotion=embarrassed (medium) | wait=2.20s | service=2.00s | queue=2
+  Time 13.60s: Job 7 | emotion=terrified (high) | wait=0.07s | service=3.28s | queue=2
+  Time 16.29s: Job 6 | emotion=caring (medium) | wait=6.11s | service=2.00s | queue=2
+  Time 18.41s: Job 9 | emotion=anxious (high) | wait=1.29s | service=3.28s | queue=3
+  Time 21.30s: Job 8 | emotion=impressed (high) | wait=6.23s | service=3.28s | queue=2
+  Time 23.11s: Job 11 | emotion=apprehensive (low) | wait=0.12s | service=0.72s | queue=2
+  Time 24.69s: Job 5 | emotion=joyful (high) | wait=14.61s | service=3.28s | queue=1
+  Time 26.82s: Job 13 | emotion=embarrassed (medium) | wait=0.46s | service=2.00s | queue=3
+  Time 29.05s: Job 17 | emotion=disappointed (low) | wait=0.17s | service=0.72s | queue=5
+  Time 29.94s: Job 14 | emotion=nostalgic (low) | wait=3.24s | service=0.72s | queue=5
+  Time 31.11s: Job 19 | emotion=apprehensive (low) | wait=0.71s | service=0.72s | queue=5
+  Time 31.72s: Job 10 | emotion=anticipating (high) | wait=14.57s | service=3.28s | queue=4
+  Time 34.62s: Job 20 | emotion=annoyed (high) | wait=2.65s | service=3.28s | queue=8
+  Time 37.31s: Job 23 | emotion=disgusted (high) | wait=3.75s | service=3.28s | queue=8
+  Time 39.30s: Job 24 | emotion=angry (high) | wait=4.73s | service=3.28s | queue=9
+  Time 41.90s: Job 25 | emotion=jealous (medium) | wait=4.76s | service=2.00s | queue=11
+  Time 43.76s: Job 32 | emotion=embarrassed (medium) | wait=1.49s | service=2.00s | queue=12
+  Time 45.29s: Job 21 | emotion=surprised (high) | wait=13.06s | service=3.28s | queue=11
+  Time 46.84s: Job 22 | emotion=impressed (high) | wait=14.03s | service=3.28s | queue=10
+  Time 49.06s: Job 29 | emotion=sentimental (low) | wait=8.77s | service=0.72s | queue=10
+  Time 49.96s: Job 30 | emotion=caring (medium) | wait=8.11s | service=2.00s | queue=9
+  Time 51.64s: Job 31 | emotion=surprised (high) | wait=9.48s | service=3.28s | queue=8
+  Time 53.76s: Job 34 | emotion=surprised (high) | wait=0.91s | service=3.28s | queue=8
+  Time 56.44s: Job 35 | emotion=disgusted (high) | wait=0.84s | service=3.28s | queue=10
+  Time 58.31s: Job 38 | emotion=afraid (high) | wait=0.02s | service=3.28s | queue=10
+  Time 60.25s: Job 37 | emotion=sentimental (low) | wait=3.87s | service=0.72s | queue=11
+  Time 61.25s: Job 42 | emotion=lonely (low) | wait=0.57s | service=0.72s | queue=12
+  Time 62.21s: Job 39 | emotion=caring (medium) | wait=2.94s | service=2.00s | queue=11
+  Time 63.88s: Job 40 | emotion=prepared (low) | wait=4.40s | service=0.72s | queue=10
+  Time 64.57s: Job 12 | emotion=trusting (medium) | wait=38.61s | service=2.00s | queue=9
+  Time 65.90s: Job 43 | emotion=nostalgic (low) | wait=1.22s | service=0.72s | queue=10
+  Time 67.02s: Job 45 | emotion=ashamed (low) | wait=0.03s | service=0.72s | queue=10
+  Time 67.70s: Job 46 | emotion=caring (medium) | wait=0.09s | service=2.00s | queue=10
+  Time 69.51s: Job 15 | emotion=grateful (medium) | wait=42.48s | service=2.00s | queue=10
+  Time 70.84s: Job 48 | emotion=devastated (low) | wait=0.68s | service=0.72s | queue=11
+  Time 71.53s: Job 16 | emotion=content (low) | wait=43.89s | service=0.72s | queue=10
+  Time 72.36s: Job 18 | emotion=faithful (medium) | wait=42.53s | service=2.00s | queue=9
+  Time 74.14s: Job 26 | emotion=anticipating (high) | wait=36.63s | service=3.28s | queue=8
+  Time 76.22s: Job 27 | emotion=content (low) | wait=37.50s | service=0.72s | queue=7
+  Time 76.32: Job 50 arrived
+  Time 78.17s: Job 50 | emotion=sentimental (low) | wait=1.85s | service=0.72s | queue=7
+  Time 79.04s: Job 51 | emotion=guilty (low) | wait=0.24s | service=0.72s | queue=7
+  Time 80.00s: Job 28 | emotion=hopeful (medium) | wait=39.79s | service=2.00s | queue=6
+  Time 81.78s: Job 33 | emotion=confident (medium) | wait=34.55s | service=2.00s | queue=5
+  Time 83.49s: Job 52 | emotion=embarrassed (medium) | wait=0.01s | service=2.00s | queue=5
+  Time 85.35s: Job 36 | emotion=content (low) | wait=29.15s | service=0.72s | queue=4
+  Time 85.97s: Job 41 | emotion=content (low) | wait=25.35s | service=0.72s | queue=3
+  Time 86.86s: Job 44 | emotion=proud (high) | wait=21.68s | service=3.28s | queue=2
+  Time 89.23s: Job 54 | emotion=annoyed (high) | wait=0.48s | service=3.28s | queue=3
+  Time 91.81s: Job 47 | emotion=content (low) | wait=22.98s | service=0.72s | queue=2
+  Time 92.66s: Job 49 | emotion=content (low) | wait=22.17s | service=0.72s | queue=1
+  Reached time window limit: 93.0s
+
+=== Time Window Completed ===
+  Simulation duration: 93.0s
+  Completed jobs: 54
+  Throughput: 0.581 jobs/sec
+  Avg waiting time: 10.732s
+
+Saving LLM response cache...
+  Cache stats: 139 entries, 25.9% hit rate
+
+Skipping job config save in time_window mode (trace is stored in results/cache/time_window_trace.json).
+
+================================================================================
+Results (Time-Window Mode: 93s window)
+================================================================================
+
+Overall Performance Metrics:
+  Total completed jobs: 54
+  Total run time: 93.00s
+  Throughput: 0.581 jobs/sec
+  Throughput P25: 0.450 jobs/sec
+  Throughput P50: 0.478 jobs/sec
+  Throughput P75: 0.553 jobs/sec
+
+Latency Metrics:
+  Avg waiting time: 10.732s
+  P50 waiting time: 3.493s
+  P95 waiting time: 40.732s
+  P99 waiting time: 43.170s
+
+Job Completion Time (JCT):
+  Avg JCT: 12.446s
+  P50 JCT: 5.214s
+  P95 JCT: 42.347s
+  P99 JCT: 44.504s
+
+Fairness Analysis:
+  Waiting Time Fairness:
+    Jain Index: 0.9505
+    CV: 0.2283
+    Max/Min Ratio: 1.7489
+
+  Per-Emotion-Class Waiting Time:
+    high: 8.057
+    low: 10.452
+    medium: 14.092
+
+Per-Emotion-Class Detailed Metrics:
+  Class      Count    Avg Wait     P99 Wait     Avg Service 
+  ------------------------------------------------------------
+  high       18       8.057        34.089       3.280       
+  low        20       10.452       42.676       0.720       
+  medium     16       14.092       42.523       2.000       
+
+Valence-weighted Fairness (β=0.8):
+  Weighted Jain Index: 0.7339
+  Weights: {'neutral': 1.0, 'positive': 0.3599999999999999, 'negative': 1.6400000000000001}
+    neutral: avg_wait=4.992
+    positive: avg_wait=29.289
+    negative: avg_wait=1.241
+
+Saving results to: results/llm_runs_time93_job54_load1.2
+Job logs saved to: results/llm_runs_time93_job54_load1.2/SSJF-Valence_93s_load1.20_window_jobs.csv
+Summary statistics saved to: results/llm_runs_time93_job54_load1.2/SSJF-Valence_93s_load1.20_window_summary.json
+Results saved successfully!
