@@ -46,11 +46,15 @@ def generate_job_on_demand(
     if enable_emotion:
         emotion_label, arousal = sample_emotion(emotion_config)
         emotion_class = emotion_config.classify_arousal(arousal)
+        valence = emotion_config.get_valence(emotion_label)
+        valence_class = emotion_config.classify_valence(valence)
         service_time = map_service_time(arousal, service_time_config)
     else:
         emotion_label = 'neutral'
         arousal = 0.0
         emotion_class = 'medium'
+        valence = 0.0
+        valence_class = 'neutral'
         service_time = service_time_config.base_service_time
 
     # Create job
@@ -60,7 +64,9 @@ def generate_job_on_demand(
         arrival_time=arrival_time,
         emotion_label=emotion_label,
         arousal=arousal,
-        emotion_class=emotion_class
+        emotion_class=emotion_class,
+        valence=valence,
+        valence_class=valence_class,
     )
 
     return job
@@ -114,13 +120,23 @@ def create_emotion_aware_jobs(
                     arousal = emotion_config.get_arousal(emotion, add_noise=False)
                 else:
                     arousal = 0.0
-            emotions_arousal.append((emotion, arousal))
+            # Use saved valence if available; otherwise compute from emotion label
+            valence = job_config.get('valence')
+            if valence is None:
+                if enable_emotion and emotion in emotion_config.emotion_valence_map:
+                    valence = emotion_config.get_valence(emotion)
+                else:
+                    valence = 0.0
+            emotions_arousal.append((emotion, arousal, valence))
     elif enable_emotion:
         # Sample emotions for all jobs
-        emotions_arousal = sample_emotions_batch(num_jobs, emotion_config)
+        emotions_arousal = []
+        for emotion, arousal in sample_emotions_batch(num_jobs, emotion_config):
+            valence = emotion_config.get_valence(emotion)
+            emotions_arousal.append((emotion, arousal, valence))
     else:
         # Neutral emotion if disabled
-        emotions_arousal = [('neutral', 0.0)] * num_jobs
+        emotions_arousal = [('neutral', 0.0, 0.0)] * num_jobs
 
     # Generate arrival times: use saved values if loading from config, otherwise generate new
     if job_configs is not None:
@@ -136,20 +152,25 @@ def create_emotion_aware_jobs(
     # Create jobs with emotion attributes
     job_list = []
     for job_id in range(num_jobs):
-        emotion_label, arousal = emotions_arousal[job_id]
+        emotion_label, arousal, valence = emotions_arousal[job_id]
         emotion_class = emotion_config.classify_arousal(arousal)
+        valence_class = None
 
         # Get service time: use saved value if loading from config, otherwise calculate
         if job_configs is not None and job_id < len(job_configs):
             # Use exact saved service_time to ensure identical scheduling decisions
             service_time = job_configs[job_id].get('service_time',
                                                     map_service_time(arousal, service_time_config))
+            valence_class = job_configs[job_id].get('valence_class')
         elif enable_emotion:
             # Calculate service time from arousal
             service_time = map_service_time(arousal, service_time_config)
         else:
             # Use default service time if emotion disabled
             service_time = service_time_config.base_service_time
+
+        if valence_class is None:
+            valence_class = emotion_config.classify_valence(valence)
 
         arrival_time = arrival_times[job_id]
 
@@ -160,7 +181,9 @@ def create_emotion_aware_jobs(
             arrival_time=arrival_time,
             emotion_label=emotion_label,
             arousal=arousal,
-            emotion_class=emotion_class
+            emotion_class=emotion_class,
+            valence=valence,
+            valence_class=valence_class,
         )
 
         # Set conversation_index if loading from config
@@ -214,6 +237,12 @@ def get_emotion_aware_statistics(job_list: List[Job]) -> Dict:
         'medium': emotion_classes.count('medium'),
         'low': emotion_classes.count('low')
     }
+    valence_classes = [job.valence_class for job in job_list if job.valence_class is not None]
+    valence_counts = {
+        'negative': valence_classes.count('negative'),
+        'neutral': valence_classes.count('neutral'),
+        'positive': valence_classes.count('positive'),
+    }
 
     # Calculate arrival intervals
     arrival_intervals = np.diff(arrival_times) if len(arrival_times) > 1 else [0]
@@ -229,6 +258,7 @@ def get_emotion_aware_statistics(job_list: List[Job]) -> Dict:
         'arrival_interval_mean': np.mean(arrival_intervals),
         'arrival_interval_std': np.std(arrival_intervals),
         'emotion_class_counts': class_counts,
+        'valence_class_counts': valence_counts,
         'total_duration': arrival_times[-1] if arrival_times else 0,
     }
 
@@ -294,6 +324,12 @@ def generate_job_trace(
     trace = []
     for job_id in range(num_jobs):
         emotion_label, arousal = emotions_arousal[job_id]
+        if enable_emotion:
+            valence = emotion_config.get_valence(emotion_label)
+            valence_class = emotion_config.classify_valence(valence)
+        else:
+            valence = 0.0
+            valence_class = 'neutral'
         service_time = map_service_time(arousal, service_time_config) if enable_emotion \
                       else service_time_config.base_service_time
         
@@ -302,6 +338,8 @@ def generate_job_trace(
             'arrival_time': float(arrival_times[job_id]),
             'emotion': emotion_label,
             'arousal': float(arousal),
+            'valence': float(valence),
+            'valence_class': valence_class,
             'service_time': float(service_time),
         })
     
@@ -346,6 +384,13 @@ def create_jobs_from_trace(
     for job_config in trace_subset:
         arousal = job_config['arousal']
         emotion_class = emotion_config.classify_arousal(arousal)
+        valence = job_config.get('valence')
+        if valence is None:
+            if job_config['emotion'] in emotion_config.emotion_valence_map:
+                valence = emotion_config.get_valence(job_config['emotion'])
+            else:
+                valence = 0.0
+        valence_class = job_config.get('valence_class') or emotion_config.classify_valence(valence)
         
         job = Job(
             job_id=job_config['job_id'],
@@ -353,7 +398,9 @@ def create_jobs_from_trace(
             arrival_time=job_config['arrival_time'],
             emotion_label=job_config['emotion'],
             arousal=arousal,
-            emotion_class=emotion_class
+            emotion_class=emotion_class,
+            valence=valence,
+            valence_class=valence_class,
         )
         jobs.append(job)
     

@@ -7,7 +7,7 @@ def create_scheduler(config):
     Create scheduler instance based on configuration.
     """
     from core.scheduler_base import FCFSScheduler
-    from core.ssjf_emotion import SSJFEmotionScheduler
+    from core.ssjf_emotion import SSJFEmotionScheduler, SSJFValenceScheduler
 
     algorithm = config.scheduler.algorithm
     print(f"\nCreating {algorithm} scheduler...")
@@ -17,6 +17,14 @@ def create_scheduler(config):
         scheduler = SSJFEmotionScheduler(
             starvation_threshold=config.scheduler.starvation_prevention.threshold,
             starvation_coefficient=config.scheduler.starvation_prevention.coefficient,
+        )
+    elif algorithm == "SSJF-Valence":
+        valence_cfg = config.scheduler.valence_priority
+        scheduler = SSJFValenceScheduler(
+            beta=valence_cfg.beta,
+            starvation_threshold=config.scheduler.starvation_prevention.threshold,
+            valence_weight_map=valence_cfg.class_weights if getattr(valence_cfg, "class_weights", None) else None,
+            min_positive_weight=valence_cfg.min_positive_weight,
         )
     else:
         raise ValueError(f"Unknown scheduler: {algorithm}")
@@ -92,4 +100,3 @@ def save_cache_if_needed(llm_handler) -> None:
 
 
 __all__ = ["create_scheduler", "init_llm_handler", "save_cache_if_needed"]
-

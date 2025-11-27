@@ -3,7 +3,11 @@ Test for SSJF emotion scheduler module.
 """
 
 from core.job import Job
-from core.ssjf_emotion import SSJFEmotionScheduler, SSJFEmotionPriorityScheduler
+from core.ssjf_emotion import (
+    SSJFEmotionScheduler,
+    SSJFEmotionPriorityScheduler,
+    SSJFValenceScheduler,
+)
 from core.scheduler_base import FCFSScheduler
 import random
 
@@ -19,6 +23,8 @@ def test_ssjf_emotion():
     emotions = ['excited', 'sad', 'angry', 'calm', 'neutral']
     arousals = [0.9, -0.6, 0.8, -0.3, 0.0]
     emotion_classes = ['high', 'low', 'high', 'low', 'medium']
+    valences = [0.8, -0.8, -0.8, 0.0, 0.0]
+    valence_classes = ['positive', 'negative', 'negative', 'neutral', 'neutral']
 
     # Service times computed from arousal
     # S_i = 2.0 * (1 + 0.5 * a_i)
@@ -32,7 +38,9 @@ def test_ssjf_emotion():
             arrival_time=i * 1.0,
             emotion_label=emotions[i],
             arousal=arousals[i],
-            emotion_class=emotion_classes[i]
+            emotion_class=emotion_classes[i],
+            valence=valences[i],
+            valence_class=valence_classes[i],
         )
         jobs.append(job)
 
@@ -140,6 +148,16 @@ def test_ssjf_emotion():
         print(f"{job.job_id} ", end="")
         queue_ssjf.remove(job)
     print()
+
+    # Test 6: Valence-weighted scheduler should prioritize negative valence
+    print("\n6. Valence-Weighted Scheduling")
+    valence_scheduler = SSJFValenceScheduler(beta=1.0)
+    queue_valence = [
+        Job(100, execution_duration=5.0, arrival_time=0.0, valence=-0.8, valence_class='negative'),
+        Job(101, execution_duration=1.0, arrival_time=0.0, valence=0.8, valence_class='positive'),
+    ]
+    first_job = valence_scheduler.schedule(queue_valence, current_time=0.0)
+    print(f"   Selected job (expect negative valence first): {first_job.job_id}")
 
     print("\n" + "=" * 70)
 

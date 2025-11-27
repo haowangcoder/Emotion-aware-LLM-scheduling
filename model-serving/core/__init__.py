@@ -12,17 +12,19 @@ from .job import Job
 from .emotion import (
     EmotionConfig,
     EMOTION_AROUSAL_MAP,
+    EMOTION_VALENCE_MAP,
     sample_emotion,
     sample_emotions_batch,
     get_emotion_statistics
 )
 from .scheduler_base import SchedulerBase, FCFSScheduler, SJFScheduler
-from .ssjf_emotion import SSJFEmotionScheduler, SSJFEmotionPriorityScheduler
+from .ssjf_emotion import SSJFEmotionScheduler, SSJFEmotionPriorityScheduler, SSJFValenceScheduler
 
 __all__ = [
     'Job',
     'EmotionConfig',
     'EMOTION_AROUSAL_MAP',
+    'EMOTION_VALENCE_MAP',
     'sample_emotion',
     'sample_emotions_batch',
     'get_emotion_statistics',
@@ -31,4 +33,5 @@ __all__ = [
     'SJFScheduler',
     'SSJFEmotionScheduler',
     'SSJFEmotionPriorityScheduler',
+    'SSJFValenceScheduler',
 ]

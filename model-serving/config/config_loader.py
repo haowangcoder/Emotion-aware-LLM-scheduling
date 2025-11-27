@@ -128,11 +128,20 @@ class StarvationPreventionConfig:
 
 
 @dataclass
+class ValencePriorityConfig:
+    """Valence-priority configuration for SSJF-Valence scheduler."""
+    beta: float = 0.0
+    min_positive_weight: float = 0.1
+    class_weights: dict = field(default_factory=dict)
+
+
+@dataclass
 class SchedulerConfig:
     """Scheduler configuration."""
     algorithm: str = 'FCFS'
     system_load: float = 0.6
     starvation_prevention: StarvationPreventionConfig = field(default_factory=StarvationPreventionConfig)
+    valence_priority: ValencePriorityConfig = field(default_factory=ValencePriorityConfig)
 
 
 @dataclass
@@ -290,6 +299,8 @@ class ConfigLoader:
             ('SCHEDULER_SYSTEM_LOAD', lambda c, v: setattr(c.scheduler, 'system_load', float(v))),
             ('SCHEDULER_STARVATION_PREVENTION_THRESHOLD', lambda c, v: setattr(c.scheduler.starvation_prevention, 'threshold', float(v))),
             ('SCHEDULER_STARVATION_PREVENTION_COEFFICIENT', lambda c, v: setattr(c.scheduler.starvation_prevention, 'coefficient', float(v))),
+            ('SCHEDULER_VALENCE_PRIORITY_BETA', lambda c, v: setattr(c.scheduler.valence_priority, 'beta', float(v))),
+            ('SCHEDULER_VALENCE_PRIORITY_MIN_POSITIVE_WEIGHT', lambda c, v: setattr(c.scheduler.valence_priority, 'min_positive_weight', float(v))),
 
             # Dataset
             ('DATASET_EMOTION_DATASET_PATH', lambda c, v: setattr(c.dataset, 'emotion_dataset_path', v)),
@@ -332,6 +343,7 @@ class ConfigLoader:
             'random_seed': lambda c, v: setattr(c.experiment, 'random_seed', v),
             'starvation_threshold': lambda c, v: setattr(c.scheduler.starvation_prevention, 'threshold', v),
             'starvation_coefficient': lambda c, v: setattr(c.scheduler.starvation_prevention, 'coefficient', v),
+            'beta': lambda c, v: setattr(c.scheduler.valence_priority, 'beta', v),
             'output_dir': lambda c, v: setattr(c.output, 'results_dir', v),
             'verbose': lambda c, v: setattr(c.output, 'verbose', v),
             'model_name': lambda c, v: setattr(c.llm.model, 'name', v),

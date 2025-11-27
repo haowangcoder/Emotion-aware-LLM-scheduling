@@ -198,3 +198,82 @@ class SSJFEmotionPriorityScheduler(SchedulerBase):
         selected_job = min(waiting_queue, key=get_priority_score)
 
         return selected_job
+
+
+class SSJFValenceScheduler(SchedulerBase):
+    """
+    Valence-weighted scheduler that ignores service time and schedules purely by valence weight.
+
+    Weight is defined as π_i = 1 + β(-v_i) where v_i ∈ {-0.8, 0, 0.8}.
+    - Negative valence -> higher weight (served earlier)
+    - Neutral -> baseline
+    - Positive -> lower weight
+    """
+
+    def __init__(
+        self,
+        beta: float = 0.0,
+        valence_weight_map: Dict[str, float] = None,
+        starvation_threshold: float = float("inf"),
+        min_positive_weight: float = 0.1,
+    ):
+        super().__init__(name="SSJF-Valence")
+        self.beta = beta
+        self.starvation_threshold = starvation_threshold
+        self.min_positive_weight = min_positive_weight
+        self.valence_weight_map = valence_weight_map or self._build_weight_map(beta)
+
+    def _build_weight_map(self, beta: float) -> Dict[str, float]:
+        """Generate default weights from beta using discrete valence values."""
+        neg = 1.0 + 0.8 * beta
+        neu = 1.0
+        pos = max(1.0 - 0.8 * beta, self.min_positive_weight)
+        return {
+            "negative": neg,
+            "neutral": neu,
+            "positive": pos,
+        }
+
+    def _get_valence_class(self, job: Job) -> str:
+        """Get valence class from job, falling back to valence value if needed."""
+        if getattr(job, "valence_class", None):
+            return job.valence_class
+        valence_value = getattr(job, "valence", None)
+        if valence_value is None:
+            return None
+        if valence_value > 0:
+            return "positive"
+        if valence_value < 0:
+            return "negative"
+        return "neutral"
+
+    def _get_valence_weight(self, job: Job) -> float:
+        """Return weight for a job; default to 1.0 if unknown."""
+        valence_class = self._get_valence_class(job)
+        return self.valence_weight_map.get(valence_class, 1.0)
+
+    def schedule(self, waiting_queue: List[Job], current_time: float = 0) -> Optional[Job]:
+        """
+        Select the job with the highest valence weight (ignores service time).
+
+        Starvation protection: if any job waits longer than starvation_threshold,
+        schedule it immediately.
+        """
+        if not waiting_queue:
+            return None
+
+        # Starvation check
+        if self.starvation_threshold < float("inf"):
+            for job in waiting_queue:
+                waiting_time = current_time - job.arrival_time
+                if waiting_time >= self.starvation_threshold:
+                    return job
+
+        # Choose highest weight; break ties by earliest arrival_time
+        def weight_key(job: Job):
+            weight = self._get_valence_weight(job)
+            arrival = getattr(job, "arrival_time", 0) or 0
+            return (weight, -arrival)
+
+        selected_job = max(waiting_queue, key=weight_key)
+        return selected_job

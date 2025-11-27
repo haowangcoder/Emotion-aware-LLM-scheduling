@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--scheduler",
         type=str,
         default=None,
-        choices=["FCFS", "SSJF-Emotion"],
+        choices=["FCFS", "SSJF-Emotion", "SSJF-Valence"],
         help="Scheduling algorithm (overrides config.scheduler.algorithm)",
     )
     parser.add_argument(
@@ -125,6 +125,15 @@ def build_parser() -> argparse.ArgumentParser:
             "(overrides config.scheduler.starvation_prevention.coefficient)"
         ),
     )
+    parser.add_argument(
+        "--beta",
+        type=float,
+        default=None,
+        help=(
+            "Valence weight beta (overrides config.scheduler.valence_priority.beta). "
+            "Used by SSJF-Valence."
+        ),
+    )
 
     # Output configuration
     parser.add_argument(
@@ -198,4 +207,3 @@ def main() -> None:
 
 
 __all__ = ["build_parser", "main"]
-

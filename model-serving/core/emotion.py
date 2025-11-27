@@ -65,6 +65,48 @@ EMOTION_AROUSAL_MAP = {
     'devastated': -0.8,
 }
 
+# Emotion-to-Valence mapping (discrete three-level: -0.8, 0, 0.8)
+# Negative valence (e.g., sad/afraid) gets -0.8; neutral gets 0; positive gets 0.8
+EMOTION_VALENCE_MAP = {
+    # Positive valence
+    'excited': 0.8,
+    'joyful': 0.8,
+    'anticipating': 0.8,
+    'proud': 0.8,
+    'hopeful': 0.8,
+    'trusting': 0.8,
+    'faithful': 0.8,
+    'grateful': 0.8,
+    'confident': 0.8,
+    'content': 0.8,
+
+    # Neutral valence
+    'sentimental': 0.0,
+    'nostalgic': 0.0,
+    'prepared': 0.0,
+    'impressed':0.0,
+    'caring': 0.0,
+    'surprised': 0.0,
+
+    # Negative valence
+    'terrified': -0.8,
+    'afraid': -0.8,
+    'anxious': -0.8,
+    'angry': -0.8,
+    'furious': -0.8,
+    'annoyed': -0.8,
+    'disgusted': -0.8,
+    'jealous': -0.8,
+    'embarrassed': -0.8,
+    'apprehensive': -0.8,
+    'guilty': -0.8,
+    'ashamed': -0.8,
+    'sad': -0.8,
+    'lonely': -0.8,
+    'disappointed': -0.8,
+    'devastated': -0.8,
+}
+
 # Default emotion probability distribution (uniform for simplicity)
 # Can be customized based on actual EmpatheticDialogues dataset statistics
 DEFAULT_EMOTION_PROBS = {emotion: 1.0/len(EMOTION_AROUSAL_MAP)
@@ -76,6 +118,7 @@ class EmotionConfig:
 
     def __init__(self,
                  emotion_arousal_map: Dict[str, float] = None,
+                 emotion_valence_map: Dict[str, float] = None,
                  emotion_probs: Dict[str, float] = None,
                  arousal_noise_std: float = 0.0):
         """
@@ -83,11 +126,13 @@ class EmotionConfig:
 
         Args:
             emotion_arousal_map: Dictionary mapping emotion labels to arousal values
+            emotion_valence_map: Dictionary mapping emotion labels to valence values
             emotion_probs: Dictionary mapping emotion labels to sampling probabilities
             arousal_noise_std: Standard deviation of Gaussian noise added to arousal
                               (0.0 = no noise, 0.1 = small variation)
         """
         self.emotion_arousal_map = emotion_arousal_map or EMOTION_AROUSAL_MAP
+        self.emotion_valence_map = emotion_valence_map or EMOTION_VALENCE_MAP
         self.emotion_probs = emotion_probs or DEFAULT_EMOTION_PROBS
         self.arousal_noise_std = arousal_noise_std
 
@@ -101,6 +146,8 @@ class EmotionConfig:
         for emotion in self.emotion_probs.keys():
             if emotion not in self.emotion_arousal_map:
                 raise ValueError(f"Emotion '{emotion}' in probabilities not found in arousal map")
+            if emotion not in self.emotion_valence_map:
+                raise ValueError(f"Emotion '{emotion}' in probabilities not found in valence map")
 
     def get_emotions(self) -> List[str]:
         """Return list of all emotion labels"""
@@ -146,6 +193,36 @@ class EmotionConfig:
             return 'medium'
         else:
             return 'low'
+
+    def get_valence(self, emotion: str) -> float:
+        """
+        Get discrete valence value for a given emotion (-0.8, 0, or 0.8).
+
+        Args:
+            emotion: Emotion label
+
+        Returns:
+            Valence value (-0.8 for negative, 0 for neutral, 0.8 for positive)
+        """
+        if emotion not in self.emotion_valence_map:
+            raise ValueError(f"Unknown emotion: {emotion}")
+        return self.emotion_valence_map[emotion]
+
+    def classify_valence(self, valence: float) -> str:
+        """
+        Classify valence into discrete categories (negative/neutral/positive).
+
+        Args:
+            valence: Valence value
+
+        Returns:
+            'negative', 'neutral', or 'positive'
+        """
+        if valence > 0:
+            return 'positive'
+        if valence < 0:
+            return 'negative'
+        return 'neutral'
 
 
 def sample_emotion(config: EmotionConfig = None) -> Tuple[str, float]:
@@ -274,15 +351,22 @@ def get_emotion_statistics(config: EmotionConfig = None) -> Dict:
         config = EmotionConfig()
 
     arousal_values = list(config.emotion_arousal_map.values())
+    valence_values = list(config.emotion_valence_map.values())
 
     # Calculate weighted statistics based on emotion probabilities
     weighted_arousal = sum(config.emotion_arousal_map[e] * config.emotion_probs[e]
                           for e in config.emotion_probs.keys())
+    weighted_valence = sum(config.emotion_valence_map[e] * config.emotion_probs[e]
+                           for e in config.emotion_probs.keys())
 
     # Count emotions by arousal category
     high_count = sum(1 for a in arousal_values if a >= 0.6)
     medium_count = sum(1 for a in arousal_values if -0.3 <= a < 0.6)
     low_count = sum(1 for a in arousal_values if a < -0.3)
+
+    positive_count = sum(1 for v in valence_values if v > 0)
+    neutral_count = sum(1 for v in valence_values if v == 0)
+    negative_count = sum(1 for v in valence_values if v < 0)
 
     return {
         'num_emotions': len(config.emotion_arousal_map),
@@ -294,4 +378,10 @@ def get_emotion_statistics(config: EmotionConfig = None) -> Dict:
         'high_arousal_count': high_count,
         'medium_arousal_count': medium_count,
         'low_arousal_count': low_count,
+        'valence_mean': np.mean(valence_values),
+        'valence_std': np.std(valence_values),
+        'weighted_valence_mean': weighted_valence,
+        'positive_valence_count': positive_count,
+        'neutral_valence_count': neutral_count,
+        'negative_valence_count': negative_count,
     }

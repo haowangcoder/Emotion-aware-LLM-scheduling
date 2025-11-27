@@ -57,6 +57,31 @@ def calculate_jain_fairness_index(values: List[float]) -> float:
     return jain_index
 
 
+def calculate_weighted_jain_index(values: List[float], weights: List[float]) -> float:
+    """
+    Calculate weighted Jain Fairness Index.
+
+    J_w = (Σ w_i x_i)^2 / (n Σ (w_i^2 x_i^2))
+    Falls back to 1.0 when all values are zero; returns 0 if input is empty.
+    """
+    if not values or not weights or len(values) != len(weights):
+        return 0.0
+
+    x = np.array(values, dtype=float)
+    w = np.array(weights, dtype=float)
+
+    if np.all(x == 0):
+        return 1.0
+
+    numerator = (np.sum(w * x)) ** 2
+    denominator = len(values) * np.sum((w ** 2) * (x ** 2))
+
+    if denominator == 0:
+        return 1.0
+
+    return float(numerator / denominator)
+
+
 def group_jobs_by_emotion_class(job_list: List[Job]) -> Dict[str, List[Job]]:
     """
     Group jobs by their emotion class
@@ -95,6 +120,23 @@ def group_jobs_by_emotion_label(job_list: List[Job]) -> Dict[str, List[Job]]:
             grouped[job.emotion_label].append(job)
         else:
             grouped['unknown'].append(job)
+
+    return dict(grouped)
+
+
+def group_jobs_by_valence_class(job_list: List[Job]) -> Dict[str, List[Job]]:
+    """
+    Group jobs by valence_class (negative/neutral/positive).
+    Jobs without valence info are grouped under 'unknown'.
+    """
+    grouped = defaultdict(list)
+
+    for job in job_list:
+        valence_class = getattr(job, "valence_class", None)
+        if valence_class is not None:
+            grouped[valence_class].append(job)
+        else:
+            grouped["unknown"].append(job)
 
     return dict(grouped)
 
@@ -244,6 +286,98 @@ def calculate_fairness_across_emotions(job_list: List[Job],
         'max_min_ratio': max_min_ratio,
         'mean': mean_val,
         'std': std_val
+    }
+
+
+def calculate_valence_fairness(job_list: List[Job],
+                               beta: float = 0.0,
+                               metric: str = 'waiting_time') -> Dict:
+    """
+    Calculate weighted fairness across valence classes using π_i = 1 + β(-v_i).
+
+    - Groups by valence_class (negative/neutral/positive).
+    - Uses group average valence to derive weight.
+    - metric: 'waiting_time' or 'turnaround_time'.
+    """
+    if not job_list:
+        return {
+            'weighted_jain_index': 1.0,
+            'per_valence_values': {},
+            'weights': {},
+            'mean': 0.0,
+            'std': 0.0,
+        }
+
+    grouped = group_jobs_by_valence_class(job_list)
+    if not grouped:
+        return {
+            'weighted_jain_index': 1.0,
+            'per_valence_values': {},
+            'weights': {},
+            'mean': 0.0,
+            'std': 0.0,
+        }
+
+    per_valence = {}
+    weights = {}
+    for valence_class, jobs in grouped.items():
+        if not jobs:
+            continue
+        metric_values = []
+        valences = []
+        for job in jobs:
+            if metric == 'waiting_time' and job.waiting_duration is not None:
+                metric_values.append(job.waiting_duration)
+            elif metric == 'turnaround_time' and job.completion_time is not None:
+                metric_values.append(job.completion_time - job.arrival_time)
+            val_val = getattr(job, "valence", None)
+            if val_val is not None:
+                valences.append(val_val)
+
+        if not metric_values:
+            continue
+
+        avg_metric = float(np.mean(metric_values))
+        # If no valence values on jobs, fall back to representative constants
+        if valences:
+            avg_valence = float(np.mean(valences))
+        else:
+            # Defaults align with discrete mapping used elsewhere
+            if valence_class == 'negative':
+                avg_valence = -0.8
+            elif valence_class == 'positive':
+                avg_valence = 0.8
+            else:
+                avg_valence = 0.0
+
+        weight = 1.0 + beta * (-avg_valence)
+        if weight <= 0:
+            weight = 1e-6  # avoid zero/negative weights
+        per_valence[valence_class] = avg_metric
+        weights[valence_class] = weight
+
+    if not per_valence:
+        return {
+            'weighted_jain_index': 1.0,
+            'per_valence_values': {},
+            'weights': {},
+            'mean': 0.0,
+            'std': 0.0,
+        }
+
+    values_list = list(per_valence.values())
+    weights_list = [weights[k] for k in per_valence.keys()]
+
+    wj = calculate_weighted_jain_index(values_list, weights_list)
+    mean_val = float(np.mean(values_list)) if values_list else 0.0
+    std_val = float(np.std(values_list)) if values_list else 0.0
+
+    return {
+        'weighted_jain_index': wj,
+        'per_valence_values': per_valence,
+        'weights': weights,
+        'mean': mean_val,
+        'std': std_val,
     }
 
 
