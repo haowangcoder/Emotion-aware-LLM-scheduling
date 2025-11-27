@@ -57,6 +57,8 @@ class JobConfigManager:
                 "job_id": job.job_id,
                 "emotion": getattr(job, 'emotion_label', None),
                 "arousal": getattr(job, 'arousal', None),
+                "valence": getattr(job, 'valence', None),
+                "valence_class": getattr(job, 'valence_class', None),
                 "conversation_index": getattr(job, 'conversation_index', None),
                 "arrival_time": job.arrival_time,
                 "service_time": job.execution_duration,

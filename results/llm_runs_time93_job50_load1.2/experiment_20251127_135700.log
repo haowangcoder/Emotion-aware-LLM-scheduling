@@ -1,0 +1,35 @@
+================================================================================
+Emotion-aware LLM Scheduling Simulator (Time-Window Mode)
+================================================================================
+Log file: results/llm_runs_time93_job50_load1.2/experiment_20251127_135700.log
+
+Experiment Configuration:
+  Scheduler: FCFS
+  Experiment mode: time_window
+  Simulation duration: 93.0s
+  Trace size: 50 jobs (pre-generated)
+  System load (ρ): 1.2
+  Base service time (L_0): 2.0
+  Alpha (α): 0.8
+  Calculated arrival rate (λ): 0.600 req/sec
+  Random seed: 42
+
+Generating job trace (time_window mode)...
+  9-class emotion distribution:
+    high_positive: 11 (11.0%)
+    high_neutral: 11 (11.0%)
+    high_negative: 11 (11.0%)
+    medium_positive: 11 (11.0%)
+    medium_neutral: 11 (11.0%)
+    medium_negative: 11 (11.0%)
+    low_positive: 11 (11.0%)
+    low_neutral: 11 (11.0%)
+    low_negative: 12 (12.0%)
+  ✓ Generated trace with 100 jobs and saved to results/llm_runs_time93_job50_load1.2/cache/time_window_trace.json
+
+Creating FCFS scheduler...
+
+Initializing LLM Inference Handler...
+  Model: meta-llama/Meta-Llama-3-8B-Instruct
+  Dataset: ./dataset
+  Cache: Enabled

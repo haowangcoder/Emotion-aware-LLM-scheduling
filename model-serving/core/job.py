@@ -3,7 +3,7 @@
 
 class Job:
     def __init__(self, job_id, execution_duration, arrival_time, predicted_execution_duration=None, status='CREATED',
-                 emotion_label=None, arousal=None, emotion_class=None):
+                 emotion_label=None, arousal=None, emotion_class=None, valence=None, valence_class=None):
         self.job_id = job_id
         self.status = status
         self.arrival_time = arrival_time  # timestamp that the job arrives
@@ -17,6 +17,8 @@ class Job:
         self.emotion_label = emotion_label  # emotion category (e.g., 'excited', 'sad')
         self.arousal = arousal  # arousal value in [-1, 1] range
         self.emotion_class = emotion_class  # categorical label ('high', 'medium', 'low')
+        self.valence = valence  # discrete valence (-0.8, 0, 0.8)
+        self.valence_class = valence_class  # 'negative', 'neutral', 'positive'
 
         # LLM inference fields
         self.response_text = None  # Generated response from LLM
@@ -84,6 +86,18 @@ class Job:
     def get_emotion_class(self):
         return self.emotion_class
 
+    def set_valence(self, valence):
+        self.valence = valence
+
+    def get_valence(self):
+        return self.valence
+
+    def set_valence_class(self, valence_class):
+        self.valence_class = valence_class
+
+    def get_valence_class(self):
+        return self.valence_class
+
     # LLM inference getter/setter methods
     def set_response_text(self, response_text):
         self.response_text = response_text
@@ -143,7 +157,9 @@ class Job:
         if self.emotion_label is not None:
             print('Emotion:', self.emotion_label,
                   'Arousal:', self.arousal,
-                  'Emotion Class:', self.emotion_class)
+                  'Emotion Class:', self.emotion_class,
+                  'Valence:', self.valence,
+                  'Valence Class:', self.valence_class)
         if self.response_text is not None:
             print('Response:', self.response_text[:100] + '...' if len(self.response_text) > 100 else self.response_text)
             print('Output tokens:', self.output_token_length,

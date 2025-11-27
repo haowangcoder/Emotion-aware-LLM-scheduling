@@ -78,6 +78,8 @@ def run_emotion_aware_experiment(args) -> None:
 
         print(f"\nExperiment Configuration:")
         print(f"  Scheduler: {config.scheduler.algorithm}")
+        if config.scheduler.algorithm == "SSJF-Valence":
+            print(f"  Valence beta (π_i = 1 + β(-v_i)): {config.scheduler.valence_priority.beta}")
         print(f"  Experiment mode: {mode}")
 
         if mode == "fixed_jobs":
@@ -261,4 +263,3 @@ def run_emotion_aware_experiment(args) -> None:
 
 
 __all__ = ["run_emotion_aware_experiment"]
-

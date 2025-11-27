@@ -71,7 +71,7 @@ llm:
     force_regenerate: false      # Force regenerate even if cached (ignores cache)
 
     # Job Configuration Cache
-    use_saved_job_config: true
+    use_saved_job_config: false
     job_config_file: 'job_configs.json'  # Job config file name
     force_new_job_config: false
 
@@ -86,7 +86,7 @@ llm:
 # ============================================================================
 scheduler:
   # Algorithm Selection
-  algorithm: 'FCFS'              # 'FCFS', 'SJF', 'SJFP', 'SSJF-Emotion'
+  algorithm: 'FCFS'              # 'FCFS', 'SJF', 'SJFP', 'SSJF-Emotion', 'SSJF-Valence'
 
   # System Load Parameter
   # ρ = (λ * E[S]) / N where N=1 (single GPU)
@@ -97,6 +97,11 @@ scheduler:
   starvation_prevention:
     threshold: .inf              # Absolute time threshold (inf = disabled by default)
     coefficient: 10.0             # Relative threshold (multiple of execution duration)
+
+  # Valence Priority (for SSJF-Valence)
+  valence_priority:
+    beta: 0.8                    # π_i = 1 + β(-v_i), v_i ∈ {-0.8, 0, 0.8}
+    min_positive_weight: 0.1     # Floor for positive-class weight when beta is large
 
 # ============================================================================
 # DATASET AND EXPERIMENT

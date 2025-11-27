@@ -1,0 +1,53 @@
+================================================================================
+Emotion-aware LLM Scheduling Simulator (Time-Window Mode)
+================================================================================
+Log file: results/llm_runs_time80_job50_load1.2/experiment_20251127_135542.log
+
+Experiment Configuration:
+  Scheduler: FCFS
+  Experiment mode: time_window
+  Simulation duration: 80.0s
+  Trace size: 50 jobs (pre-generated)
+  System load (ρ): 1.2
+  Base service time (L_0): 2.0
+  Alpha (α): 0.8
+  Calculated arrival rate (λ): 0.600 req/sec
+  Random seed: 42
+
+Generating job trace (time_window mode)...
+  9-class emotion distribution:
+    high_positive: 11 (11.0%)
+    high_neutral: 11 (11.0%)
+    high_negative: 11 (11.0%)
+    medium_positive: 11 (11.0%)
+    medium_neutral: 11 (11.0%)
+    medium_negative: 11 (11.0%)
+    low_positive: 11 (11.0%)
+    low_neutral: 11 (11.0%)
+    low_negative: 12 (12.0%)
+  ✓ Generated trace with 100 jobs and saved to results/llm_runs_time80_job50_load1.2/cache/time_window_trace.json
+
+Creating FCFS scheduler...
+
+Initializing LLM Inference Handler...
+  Model: meta-llama/Meta-Llama-3-8B-Instruct
+  Dataset: ./dataset
+  Cache: Enabled
+  LLM handler initialized successfully
+  Model loaded on device: cuda:0
+
+Running scheduling (time_window mode)...
+
+Starting time-window scheduling with FCFS
+  Simulation duration: 80.0s
+  Total jobs in trace: 100
+  Time 0.78: Job 0 arrived
+  Time 0.78s: Job 0 | emotion=grateful (medium) | wait=0.00s | service=2.00s | queue=0
+  Time 5.80s: Job 1 | emotion=excited (high) | wait=0.00s | service=3.28s | queue=0
+  Time 8.35s: Job 2 | emotion=caring (medium) | wait=0.36s | service=2.00s | queue=0
+  Time 9.88s: Job 3 | emotion=impressed (high) | wait=0.36s | service=3.28s | queue=1
+  Time 12.39s: Job 4 | emotion=impressed (high) | wait=2.59s | service=3.28s | queue=2
+  Time 13.80s: Job 5 | emotion=furious (high) | wait=3.71s | service=3.28s | queue=2
+  Time 16.26s: Job 6 | emotion=embarrassed (medium) | wait=6.08s | service=2.00s | queue=2
+  Time 18.05s: Job 7 | emotion=caring (medium) | wait=4.51s | service=2.00s | queue=3
+  Time 20.16s: Job 8 | emotion=jealous (medium) | wait=5.10s | service=2.00s | queue=2

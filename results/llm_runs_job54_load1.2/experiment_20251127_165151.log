@@ -1,0 +1,161 @@
+================================================================================
+Emotion-aware LLM Scheduling Simulator (Fixed-Jobs Mode)
+================================================================================
+Log file: results/llm_runs_job54_load1.2/experiment_20251127_165151.log
+
+Experiment Configuration:
+  Scheduler: SSJF-Valence
+  Valence beta (π_i = 1 + β(-v_i)): 0.8
+  Experiment mode: fixed_jobs
+  Number of jobs: 54
+  System load (ρ): 1.2
+  Base service time (L_0): 2.0
+  Alpha (α): 0.8
+  Calculated arrival rate (λ): 0.600 req/sec
+  Random seed: 42
+
+Job Configuration:
+  Use saved config: True
+  Force new config: False
+  Config file: results/llm_runs_job54_load1.2/cache/job_configs.json
+  Attempting to load existing job configuration...
+[JobConfigManager] Loaded 54 job configurations from results/llm_runs_job54_load1.2/cache/job_configs.json
+[JobConfigManager] Config metadata: {'experiment_mode': 'fixed_jobs', 'num_jobs': 54, 'arrival_rate': 0.6, 'system_load': 1.2, 'random_seed': 42, 'base_service_time': 2.0, 'alpha': 0.8, 'rho': 1.0, 'enable_emotion_aware': True, 'model_name': 'meta-llama/Meta-Llama-3-8B-Instruct', 'created_at': '2025-11-27T16:51:28.104095', 'version': '1.0'}
+  Generating jobs from loaded configuration...
+  ✓ Loaded 54 jobs from saved configuration
+
+Creating SSJF-Valence scheduler...
+
+Initializing LLM Inference Handler...
+  Model: meta-llama/Meta-Llama-3-8B-Instruct
+  Dataset: ./dataset
+  Cache: Enabled
+  LLM handler initialized successfully
+  Model loaded on device: cuda:0
+
+Running scheduling (fixed_jobs mode)...
+
+Starting scheduling run with SSJF-Valence scheduler
+  Total jobs: 54
+  Time 0.78: Job 0 arrived (emotion: apprehensive, queue: 1)
+  [1/54] Time 0.78s: Job 0 | emotion=apprehensive (low) | arousal=-0.80 | arrival=0.78s | wait=0.00s | pred_exec=0.72s | queue=0
+  [2/54] Time 5.80s: Job 1 | emotion=prepared (low) | arousal=-0.80 | arrival=5.80s | wait=0.00s | pred_exec=0.72s | queue=0
+  [3/54] Time 7.99s: Job 2 | emotion=prepared (low) | arousal=-0.80 | arrival=7.99s | wait=0.00s | pred_exec=0.72s | queue=0
+  [4/54] Time 9.52s: Job 3 | emotion=guilty (low) | arousal=-0.80 | arrival=9.52s | wait=0.00s | pred_exec=0.72s | queue=0
+  [5/54] Time 10.40s: Job 4 | emotion=terrified (high) | arousal=0.80 | arrival=9.80s | wait=0.60s | pred_exec=3.28s | queue=2
+  [6/54] Time 12.00s: Job 5 | emotion=caring (medium) | arousal=0.00 | arrival=10.08s | wait=1.92s | pred_exec=2.00s | queue=1
+  [7/54] Time 13.83s: Job 7 | emotion=ashamed (low) | arousal=-0.80 | arrival=13.53s | wait=0.30s | pred_exec=0.72s | queue=1
+  [8/54] Time 14.89s: Job 6 | emotion=anticipating (high) | arousal=0.80 | arrival=10.18s | wait=4.71s | pred_exec=3.28s | queue=0
+  [9/54] Time 16.72s: Job 8 | emotion=joyful (high) | arousal=0.80 | arrival=15.06s | wait=1.66s | pred_exec=3.28s | queue=0
+  [10/54] Time 19.09s: Job 9 | emotion=prepared (low) | arousal=-0.80 | arrival=17.12s | wait=1.97s | pred_exec=0.72s | queue=1
+  [11/54] Time 19.70s: Job 10 | emotion=grateful (medium) | arousal=0.00 | arrival=17.15s | wait=2.55s | pred_exec=2.00s | queue=0
+  [12/54] Time 22.99s: Job 11 | emotion=devastated (low) | arousal=-0.80 | arrival=22.99s | wait=0.00s | pred_exec=0.72s | queue=0
+  [13/54] Time 25.97s: Job 12 | emotion=furious (high) | arousal=0.80 | arrival=25.97s | wait=0.00s | pred_exec=3.28s | queue=0
+  [14/54] Time 28.68s: Job 15 | emotion=jealous (medium) | arousal=0.00 | arrival=27.04s | wait=1.64s | pred_exec=2.00s | queue=3
+  [15/54] Time 30.10s: Job 13 | emotion=surprised (high) | arousal=0.80 | arrival=26.37s | wait=3.74s | pred_exec=3.28s | queue=4
+  [16/54] Time 31.61s: Job 19 | emotion=afraid (high) | arousal=0.80 | arrival=30.40s | wait=1.21s | pred_exec=3.28s | queue=4
+  [17/54] Time 33.73s: Job 22 | emotion=furious (high) | arousal=0.80 | arrival=32.80s | wait=0.93s | pred_exec=3.28s | queue=7
+  [18/54] Time 36.26s: Job 24 | emotion=jealous (medium) | arousal=0.00 | arrival=34.58s | wait=1.69s | pred_exec=2.00s | queue=7
+  [19/54] Time 38.00s: Job 25 | emotion=disgusted (high) | arousal=0.80 | arrival=37.14s | wait=0.86s | pred_exec=3.28s | queue=8
+  [20/54] Time 40.27s: Job 26 | emotion=ashamed (low) | arousal=-0.80 | arrival=37.51s | wait=2.76s | pred_exec=0.72s | queue=9
+  [21/54] Time 41.03s: Job 28 | emotion=lonely (low) | arousal=-0.80 | arrival=40.21s | wait=0.82s | pred_exec=0.72s | queue=9
+  [22/54] Time 42.02s: Job 29 | emotion=jealous (medium) | arousal=0.00 | arrival=40.29s | wait=1.73s | pred_exec=2.00s | queue=9
+  [23/54] Time 44.05s: Job 14 | emotion=caring (medium) | arousal=0.00 | arrival=26.70s | wait=17.35s | pred_exec=2.00s | queue=10
+  [24/54] Time 45.34s: Job 17 | emotion=sentimental (low) | arousal=-0.80 | arrival=28.88s | wait=16.46s | pred_exec=0.72s | queue=9
+  [25/54] Time 46.10s: Job 20 | emotion=caring (medium) | arousal=0.00 | arrival=31.98s | wait=14.13s | pred_exec=2.00s | queue=8
+  [26/54] Time 47.61s: Job 23 | emotion=surprised (high) | arousal=0.80 | arrival=33.56s | wait=14.04s | pred_exec=3.28s | queue=8
+  [27/54] Time 50.29s: Job 30 | emotion=prepared (low) | arousal=-0.80 | arrival=41.85s | wait=8.45s | pred_exec=0.72s | queue=7
+  [28/54] Time 50.99s: Job 31 | emotion=caring (medium) | arousal=0.00 | arrival=42.16s | wait=8.83s | pred_exec=2.00s | queue=6
+  [29/54] Time 53.28s: Job 16 | emotion=grateful (medium) | arousal=0.00 | arrival=27.64s | wait=25.63s | pred_exec=2.00s | queue=6
+  [30/54] Time 54.91s: Job 18 | emotion=anticipating (high) | arousal=0.80 | arrival=29.82s | wait=25.08s | pred_exec=3.28s | queue=5
+  [31/54] Time 57.39s: Job 35 | emotion=afraid (high) | arousal=0.80 | arrival=55.60s | wait=1.79s | pred_exec=3.28s | queue=7
+  [32/54] Time 59.59s: Job 38 | emotion=sentimental (low) | arousal=-0.80 | arrival=58.30s | wait=1.29s | pred_exec=0.72s | queue=9
+  [33/54] Time 60.61s: Job 39 | emotion=caring (medium) | arousal=0.00 | arrival=59.27s | wait=1.35s | pred_exec=2.00s | queue=8
+  [34/54] Time 62.95s: Job 42 | emotion=jealous (medium) | arousal=0.00 | arrival=60.68s | wait=2.27s | pred_exec=2.00s | queue=9
+  [35/54] Time 64.45s: Job 21 | emotion=grateful (medium) | arousal=0.00 | arrival=32.23s | wait=32.23s | pred_exec=2.00s | queue=8
+  [36/54] Time 66.16s: Job 27 | emotion=content (low) | arousal=-0.80 | arrival=38.71s | wait=27.45s | pred_exec=0.72s | queue=9
+  [37/54] Time 66.78s: Job 32 | emotion=proud (high) | arousal=0.80 | arrival=42.27s | wait=24.51s | pred_exec=3.28s | queue=8
+  [38/54] Time 69.15s: Job 46 | emotion=jealous (medium) | arousal=0.00 | arrival=67.61s | wait=1.53s | pred_exec=2.00s | queue=10
+  [39/54] Time 70.57s: Job 47 | emotion=jealous (medium) | arousal=0.00 | arrival=68.84s | wait=1.74s | pred_exec=2.00s | queue=11
+  [40/54] Time 71.78s: Job 48 | emotion=impressed (high) | arousal=0.80 | arrival=70.15s | wait=1.62s | pred_exec=3.28s | queue=10
+  [41/54] Time 73.76s: Job 49 | emotion=surprised (high) | arousal=0.80 | arrival=70.50s | wait=3.27s | pred_exec=3.28s | queue=9
+  [42/54] Time 75.89s: Job 33 | emotion=content (low) | arousal=-0.80 | arrival=47.23s | wait=28.66s | pred_exec=0.72s | queue=8
+  Time 76.32: Job 50 arrived (emotion: impressed, queue: 9)
+  [43/54] Time 76.62s: Job 50 | emotion=impressed (high) | arousal=0.80 | arrival=76.32s | wait=0.31s | pred_exec=3.28s | queue=8
+  [44/54] Time 78.15s: Job 34 | emotion=proud (high) | arousal=0.80 | arrival=52.85s | wait=25.31s | pred_exec=3.28s | queue=7
+  [45/54] Time 80.08s: Job 51 | emotion=impressed (high) | arousal=0.80 | arrival=78.80s | wait=1.28s | pred_exec=3.28s | queue=7
+  [46/54] Time 81.69s: Job 36 | emotion=content (low) | arousal=-0.80 | arrival=56.21s | wait=25.49s | pred_exec=0.72s | queue=6
+  [47/54] Time 82.30s: Job 37 | emotion=joyful (high) | arousal=0.80 | arrival=56.38s | wait=25.93s | pred_exec=3.28s | queue=5
+  [48/54] Time 84.36s: Job 52 | emotion=caring (medium) | arousal=0.00 | arrival=83.48s | wait=0.88s | pred_exec=2.00s | queue=5
+  [49/54] Time 85.97s: Job 40 | emotion=confident (medium) | arousal=0.00 | arrival=59.48s | wait=26.49s | pred_exec=2.00s | queue=4
+  [50/54] Time 88.02s: Job 41 | emotion=content (low) | arousal=-0.80 | arrival=60.62s | wait=27.40s | pred_exec=0.72s | queue=4
+  [51/54] Time 88.80s: Job 43 | emotion=content (low) | arousal=-0.80 | arrival=64.68s | wait=24.12s | pred_exec=0.72s | queue=3
+  [52/54] Time 89.44s: Job 44 | emotion=confident (medium) | arousal=0.00 | arrival=65.18s | wait=24.26s | pred_exec=2.00s | queue=2
+  [53/54] Time 90.86s: Job 45 | emotion=hopeful (medium) | arousal=0.00 | arrival=66.99s | wait=23.87s | pred_exec=2.00s | queue=1
+  [54/54] Time 92.31s: Job 53 | emotion=content (low) | arousal=-0.80 | arrival=87.23s | wait=5.07s | pred_exec=0.72s | queue=0
+
+=== Run Completed ===
+  Total time: 92.92s
+  Total completed jobs: 54
+  Throughput: 0.581 jobs/sec
+  Avg waiting time: 9.207s
+  Avg JCT: 10.724s
+
+Saving LLM response cache...
+  Cache stats: 54 entries, 100.0% hit rate
+
+Skipping job config save (loaded from existing configuration)
+
+================================================================================
+Results (Time-Window Mode: 93s window)
+================================================================================
+
+Overall Performance Metrics:
+  Total completed jobs: 54
+  Total run time: 92.92s
+  Throughput: 0.581 jobs/sec
+  Throughput P25: 0.465 jobs/sec
+  Throughput P50: 0.530 jobs/sec
+  Throughput P75: 0.542 jobs/sec
+
+Latency Metrics:
+  Avg waiting time: 9.207s
+  P50 waiting time: 2.121s
+  P95 waiting time: 27.419s
+  P99 waiting time: 30.337s
+
+Job Completion Time (JCT):
+  Avg JCT: 10.724s
+  P50 JCT: 3.770s
+  P95 JCT: 28.306s
+  P99 JCT: 31.530s
+
+Fairness Analysis:
+  Waiting Time Fairness:
+    Jain Index: 0.9827
+    CV: 0.1326
+    Max/Min Ratio: 1.3891
+
+  Per-Emotion-Class Waiting Time:
+    low: 9.458
+    high: 7.602
+    medium: 10.560
+
+Per-Emotion-Class Detailed Metrics:
+  Class      Count    Avg Wait     P99 Wait     Avg Service 
+  ------------------------------------------------------------
+  low        18       9.458        28.454       0.720       
+  high       18       7.602        25.822       3.280       
+  medium     18       10.560       31.253       2.000       
+
+Valence-weighted Fairness (β=0.8):
+  Weighted Jain Index: 0.8101
+  Weights: {'negative': 1.6400000000000001, 'neutral': 1.0, 'positive': 0.3599999999999999}
+    negative: avg_wait=1.103
+    neutral: avg_wait=5.382
+    positive: avg_wait=21.134
+
+Saving results to: results/llm_runs_job54_load1.2
+Job logs saved to: results/llm_runs_job54_load1.2/SSJF-Valence_54jobs_load1.20_fixed_jobs.csv
+Summary statistics saved to: results/llm_runs_job54_load1.2/SSJF-Valence_54jobs_load1.20_fixed_summary.json
+Results saved successfully!

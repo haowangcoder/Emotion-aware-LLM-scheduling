@@ -1,0 +1,148 @@
+================================================================================
+Emotion-aware LLM Scheduling Simulator (Time-Window Mode)
+================================================================================
+Log file: results/llm_runs_time93_job54_load1.2/experiment_20251127_135917.log
+
+Experiment Configuration:
+  Scheduler: SSJF-Emotion
+  Experiment mode: time_window
+  Simulation duration: 93.0s
+  Trace size: 54 jobs (pre-generated)
+  System load (ρ): 1.2
+  Base service time (L_0): 2.0
+  Alpha (α): 0.8
+  Calculated arrival rate (λ): 0.600 req/sec
+  Random seed: 42
+
+Loading time-window job trace from: results/llm_runs_time93_job54_load1.2/cache/time_window_trace.json
+  ✓ Loaded trace with 108 jobs
+
+Creating SSJF-Emotion scheduler...
+
+Initializing LLM Inference Handler...
+  Model: meta-llama/Meta-Llama-3-8B-Instruct
+  Dataset: ./dataset
+  Cache: Enabled
+  LLM handler initialized successfully
+  Model loaded on device: cuda:0
+
+Running scheduling (time_window mode)...
+
+Starting time-window scheduling with SSJF-Emotion
+  Simulation duration: 93.0s
+  Total jobs in trace: 108
+  Time 0.78: Job 0 arrived
+  Time 0.78s: Job 0 | emotion=surprised (high) | wait=0.00s | service=3.28s | queue=0
+  Time 5.80s: Job 1 | emotion=content (low) | wait=0.00s | service=0.72s | queue=0
+  Time 7.99s: Job 2 | emotion=caring (medium) | wait=0.00s | service=2.00s | queue=0
+  Time 9.72s: Job 3 | emotion=embarrassed (medium) | wait=0.21s | service=2.00s | queue=0
+  Time 11.39s: Job 4 | emotion=embarrassed (medium) | wait=1.59s | service=2.00s | queue=2
+  Time 13.00s: Job 6 | emotion=caring (medium) | wait=2.82s | service=2.00s | queue=1
+  Time 14.99s: Job 5 | emotion=joyful (high) | wait=4.91s | service=3.28s | queue=1
+  Time 17.08s: Job 7 | emotion=terrified (high) | wait=3.55s | service=3.28s | queue=1
+  Time 19.33s: Job 8 | emotion=impressed (high) | wait=4.26s | service=3.28s | queue=2
+  Time 21.14s: Job 9 | emotion=anxious (high) | wait=4.02s | service=3.28s | queue=1
+  Time 23.75s: Job 11 | emotion=apprehensive (low) | wait=0.76s | service=0.72s | queue=1
+  Time 24.84s: Job 10 | emotion=anticipating (high) | wait=7.69s | service=3.28s | queue=0
+  Time 26.43s: Job 12 | emotion=trusting (medium) | wait=0.47s | service=2.00s | queue=1
+  Time 28.52s: Job 14 | emotion=nostalgic (low) | wait=1.82s | service=0.72s | queue=3
+  Time 29.12s: Job 16 | emotion=content (low) | wait=1.48s | service=0.72s | queue=3
+  Time 30.63s: Job 17 | emotion=disappointed (low) | wait=1.74s | service=0.72s | queue=4
+  Time 31.47s: Job 19 | emotion=apprehensive (low) | wait=1.07s | service=0.72s | queue=3
+  Time 32.67s: Job 13 | emotion=embarrassed (medium) | wait=6.30s | service=2.00s | queue=4
+  Time 34.43s: Job 15 | emotion=grateful (medium) | wait=7.39s | service=2.00s | queue=5
+  Time 36.00s: Job 18 | emotion=faithful (medium) | wait=6.18s | service=2.00s | queue=5
+  Time 37.37s: Job 25 | emotion=jealous (medium) | wait=0.23s | service=2.00s | queue=5
+  Time 38.81s: Job 27 | emotion=content (low) | wait=0.10s | service=0.72s | queue=6
+  Time 39.49s: Job 20 | emotion=annoyed (high) | wait=7.51s | service=3.28s | queue=5
+  Time 41.53s: Job 29 | emotion=sentimental (low) | wait=1.24s | service=0.72s | queue=6
+  Time 42.17s: Job 28 | emotion=hopeful (medium) | wait=1.96s | service=2.00s | queue=7
+  Time 44.04s: Job 30 | emotion=caring (medium) | wait=2.19s | service=2.00s | queue=7
+  Time 46.33s: Job 32 | emotion=embarrassed (medium) | wait=4.06s | service=2.00s | queue=6
+  Time 47.94s: Job 33 | emotion=confident (medium) | wait=0.71s | service=2.00s | queue=6
+  Time 49.85s: Job 21 | emotion=surprised (high) | wait=17.63s | service=3.28s | queue=5
+  Time 51.46s: Job 22 | emotion=impressed (high) | wait=18.66s | service=3.28s | queue=4
+  Time 53.53s: Job 23 | emotion=disgusted (high) | wait=19.97s | service=3.28s | queue=4
+  Time 55.80s: Job 24 | emotion=angry (high) | wait=21.22s | service=3.28s | queue=4
+  Time 57.94s: Job 36 | emotion=content (low) | wait=1.73s | service=0.72s | queue=5
+  Time 58.68s: Job 37 | emotion=sentimental (low) | wait=2.30s | service=0.72s | queue=5
+  Time 59.47s: Job 39 | emotion=caring (medium) | wait=0.21s | service=2.00s | queue=5
+  Time 61.59s: Job 40 | emotion=prepared (low) | wait=2.11s | service=0.72s | queue=7
+  Time 62.43s: Job 41 | emotion=content (low) | wait=1.81s | service=0.72s | queue=6
+  Time 63.25s: Job 42 | emotion=lonely (low) | wait=2.57s | service=0.72s | queue=5
+  Time 64.11s: Job 26 | emotion=anticipating (high) | wait=26.60s | service=3.28s | queue=4
+  Time 66.19s: Job 43 | emotion=nostalgic (low) | wait=1.51s | service=0.72s | queue=5
+  Time 66.94s: Job 31 | emotion=surprised (high) | wait=24.78s | service=3.28s | queue=4
+  Time 69.15s: Job 45 | emotion=ashamed (low) | wait=2.16s | service=0.72s | queue=6
+  Time 69.89s: Job 47 | emotion=content (low) | wait=1.06s | service=0.72s | queue=5
+  Time 70.99s: Job 48 | emotion=devastated (low) | wait=0.84s | service=0.72s | queue=6
+  Time 71.97s: Job 49 | emotion=content (low) | wait=1.48s | service=0.72s | queue=5
+  Time 73.16s: Job 46 | emotion=caring (medium) | wait=5.55s | service=2.00s | queue=4
+  Time 75.08s: Job 34 | emotion=surprised (high) | wait=22.23s | service=3.28s | queue=3
+  Time 76.32: Job 50 arrived
+  Time 76.81s: Job 50 | emotion=sentimental (low) | wait=0.49s | service=0.72s | queue=3
+  Time 77.93s: Job 35 | emotion=disgusted (high) | wait=22.33s | service=3.28s | queue=2
+  Time 82.42s: Job 51 | emotion=guilty (low) | wait=3.62s | service=0.72s | queue=2
+  Time 83.05s: Job 38 | emotion=afraid (high) | wait=24.75s | service=3.28s | queue=1
+  Time 85.01s: Job 52 | emotion=embarrassed (medium) | wait=1.53s | service=2.00s | queue=1
+  Time 86.40s: Job 44 | emotion=proud (high) | wait=21.22s | service=3.28s | queue=0
+  Time 89.34s: Job 53 | emotion=content (low) | wait=2.11s | service=0.72s | queue=1
+  Time 90.26s: Job 54 | emotion=annoyed (high) | wait=1.51s | service=3.28s | queue=0
+
+=== Time Window Completed ===
+  Simulation duration: 93.0s
+  Completed jobs: 55
+  Throughput: 0.591 jobs/sec
+  Avg waiting time: 5.931s
+
+Saving LLM response cache...
+  Cache stats: 97 entries, 23.6% hit rate
+
+Skipping job config save in time_window mode (trace is stored in results/cache/time_window_trace.json).
+
+================================================================================
+Results (Time-Window Mode: 93s window)
+================================================================================
+
+Overall Performance Metrics:
+  Total completed jobs: 55
+  Total run time: 93.00s
+  Throughput: 0.591 jobs/sec
+  Throughput P25: 0.481 jobs/sec
+  Throughput P50: 0.562 jobs/sec
+  Throughput P75: 0.593 jobs/sec
+
+Latency Metrics:
+  Avg waiting time: 5.931s
+  P50 waiting time: 2.109s
+  P95 waiting time: 23.058s
+  P99 waiting time: 25.618s
+
+Job Completion Time (JCT):
+  Avg JCT: 7.531s
+  P50 JCT: 3.201s
+  P95 JCT: 26.744s
+  P99 JCT: 27.767s
+
+Fairness Analysis:
+  Waiting Time Fairness:
+    Jain Index: 0.5326
+    CV: 0.9368
+    Max/Min Ratio: 9.2213
+
+  Per-Emotion-Class Waiting Time:
+    high: 14.047
+    low: 1.523
+    medium: 2.587
+
+Per-Emotion-Class Detailed Metrics:
+  Class      Count    Avg Wait     P99 Wait     Avg Service 
+  ------------------------------------------------------------
+  high       18       14.047       26.290       3.280       
+  low        21       1.523        3.407        0.720       
+  medium     16       2.587        7.229        2.000       
+
+Saving results to: results/llm_runs_time93_job54_load1.2
+Job logs saved to: results/llm_runs_time93_job54_load1.2/SSJF-Emotion_93s_load1.20_window_jobs.csv
+Summary statistics saved to: results/llm_runs_time93_job54_load1.2/SSJF-Emotion_93s_load1.20_window_summary.json
+Results saved successfully!

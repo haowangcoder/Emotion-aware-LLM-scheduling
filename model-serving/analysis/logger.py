@@ -97,6 +97,8 @@ class EmotionAwareLogger:
             'emotion_label': job.emotion_label,
             'arousal': job.arousal,
             'emotion_class': job.emotion_class,
+            'valence': getattr(job, 'valence', None),
+            'valence_class': getattr(job, 'valence_class', None),
             'arrival_time': job.arrival_time,
             'predicted_serving_time': job.execution_duration,
             'actual_serving_time': job.actual_execution_duration,
@@ -294,6 +296,17 @@ class EmotionAwareLogger:
 
         # Fairness analysis
         fairness_analysis = analyze_fairness_comprehensive(completed_jobs)
+
+        # Optional Phase II valence-weighted fairness
+        valence_beta = self.experiment_metadata.get("valence_beta")
+        valence_fairness = None
+        if valence_beta is not None:
+            from analysis.fairness_metrics import calculate_valence_fairness
+
+            valence_fairness = calculate_valence_fairness(
+                completed_jobs, beta=valence_beta, metric="waiting_time"
+            )
+
         # Convert to serializable format
         fairness_serializable = {}
         for key, value in fairness_analysis.items():
@@ -305,6 +318,11 @@ class EmotionAwareLogger:
                 }
             else:
                 fairness_serializable[key] = value
+        if valence_fairness:
+            fairness_serializable["valence_fairness"] = {
+                k: float(v) if isinstance(v, (np.floating, np.integer)) else v
+                for k, v in valence_fairness.items()
+            }
         summary['fairness_analysis'] = fairness_serializable
 
         # Generic sanitizer to ensure strict JSON (convert NaN/Infinity to strings)

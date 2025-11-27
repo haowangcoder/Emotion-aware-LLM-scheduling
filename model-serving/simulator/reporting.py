@@ -69,7 +69,7 @@ def print_summary_metrics(completed_jobs: List[Job], run_metrics: dict) -> None:
 
 
 
-def print_fairness_analysis(completed_jobs: List[Job]) -> None:
+def print_fairness_analysis(completed_jobs: List[Job], valence_beta: float = None) -> None:
     """
     Print fairness analysis based on completed jobs.
     """
@@ -101,6 +101,20 @@ def print_fairness_analysis(completed_jobs: List[Job]) -> None:
                 f"{metrics['p99_waiting_time']:<12.3f} "
                 f"{metrics['avg_execution_time']:<12.3f}"
             )
+
+    # Optional Phase II: valence-weighted fairness
+    if valence_beta is not None:
+        from analysis.fairness_metrics import calculate_valence_fairness
+
+        valence_fairness = calculate_valence_fairness(
+            completed_jobs, beta=valence_beta, metric="waiting_time"
+        )
+        if valence_fairness.get("per_valence_values"):
+            print(f"\nValence-weighted Fairness (β={valence_beta}):")
+            print(f"  Weighted Jain Index: {valence_fairness['weighted_jain_index']:.4f}")
+            print(f"  Weights: {valence_fairness['weights']}")
+            for vcls, val in valence_fairness["per_valence_values"].items():
+                print(f"    {vcls}: avg_wait={val:.3f}")
 
 
 def save_results(
@@ -150,6 +164,8 @@ def save_results(
     metadata["num_jobs"] = run_metrics["total_jobs"]
     metadata["arrival_rate"] = arrival_rate
     metadata["run_metrics"] = run_metrics
+    if config.scheduler.algorithm == "SSJF-Valence":
+        metadata["valence_beta"] = config.scheduler.valence_priority.beta
 
     # Add percentile throughput to metrics
     thr_p25 = percentile_throughput(completed_jobs, 25)
@@ -179,7 +195,13 @@ def report_and_save_results(
     High-level helper to print and persist experiment results.
     """
     print_summary_metrics(completed_jobs, run_metrics)
-    print_fairness_analysis(completed_jobs)
+    valence_beta = None
+    try:
+        if getattr(config.scheduler, "algorithm", "") == "SSJF-Valence":
+            valence_beta = getattr(config.scheduler.valence_priority, "beta", None)
+    except Exception:
+        valence_beta = None
+    print_fairness_analysis(completed_jobs, valence_beta=valence_beta)
     save_results(args, config, completed_jobs, run_metrics, arrival_rate)
 
 

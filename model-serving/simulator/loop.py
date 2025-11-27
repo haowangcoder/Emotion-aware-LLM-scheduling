@@ -273,6 +273,13 @@ def run_scheduling_loop_time_window(
             job_config = job_trace[next_trace_index]
             arousal = job_config['arousal']
             emotion_class = emotion_config.classify_arousal(arousal)
+            valence = job_config.get('valence')
+            if valence is None:
+                if job_config['emotion'] in emotion_config.emotion_valence_map:
+                    valence = emotion_config.get_valence(job_config['emotion'])
+                else:
+                    valence = 0.0
+            valence_class = job_config.get('valence_class') or emotion_config.classify_valence(valence)
             
             new_job = Job(
                 job_id=job_config['job_id'],
@@ -280,7 +287,9 @@ def run_scheduling_loop_time_window(
                 arrival_time=job_config['arrival_time'],
                 emotion_label=job_config['emotion'],
                 arousal=arousal,
-                emotion_class=emotion_class
+                emotion_class=emotion_class,
+                valence=valence,
+                valence_class=valence_class
             )
             waiting_queue.append(new_job)
             
