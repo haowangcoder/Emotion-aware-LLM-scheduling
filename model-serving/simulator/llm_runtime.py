@@ -7,7 +7,7 @@ def create_scheduler(config):
     Create scheduler instance based on configuration.
     """
     from core.scheduler_base import FCFSScheduler
-    from core.ssjf_emotion import SSJFEmotionScheduler, SSJFValenceScheduler
+    from core.ssjf_emotion import SSJFEmotionScheduler, SSJFValenceScheduler, SSJFCombinedScheduler
 
     algorithm = config.scheduler.algorithm
     print(f"\nCreating {algorithm} scheduler...")
@@ -25,6 +25,14 @@ def create_scheduler(config):
             starvation_threshold=config.scheduler.starvation_prevention.threshold,
             valence_weight_map=valence_cfg.class_weights if getattr(valence_cfg, "class_weights", None) else None,
             min_positive_weight=valence_cfg.min_positive_weight,
+        )
+    elif algorithm == "SSJF-Combined":
+        scheduler = SSJFCombinedScheduler(
+            beta=config.scheduler.valence_priority.beta,
+            alpha=config.workload.service_time.alpha,
+            base_service_time=config.workload.service_time.base_service_time,
+            starvation_threshold=config.scheduler.starvation_prevention.threshold,
+            starvation_coefficient=config.scheduler.starvation_prevention.coefficient,
         )
     else:
         raise ValueError(f"Unknown scheduler: {algorithm}")

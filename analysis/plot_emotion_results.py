@@ -91,10 +91,13 @@ def plot_scheduler_comparison_barplot(results: Dict[str, Dict],
 def plot_fairness_comparison(fairness_results: Dict[str, float],
                               output_path: str = 'fairness_comparison.png'):
     """
-    Plot Jain Fairness Index comparison across schedulers
+    Plot Fairness Index comparison across schedulers
+
+    - FCFS, SSJF-Emotion: Jain Fairness Index (by emotion_class)
+    - SSJF-Valence, SSJF-Combined: Weighted Jain Fairness Index (by valence_class)
 
     Args:
-        fairness_results: Dictionary mapping scheduler_name -> jain_index
+        fairness_results: Dictionary mapping scheduler_name -> fairness_index
         output_path: Path to save the figure
     """
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -107,8 +110,9 @@ def plot_fairness_comparison(fairness_results: Dict[str, float],
 
     ax.set_yticks(range(len(schedulers)))
     ax.set_yticklabels(schedulers)
-    ax.set_xlabel('Jain Fairness Index')
-    ax.set_title('Fairness Comparison Across Schedulers\n(Higher is Better, 1.0 = Perfect Fairness)')
+    ax.set_xlabel('Fairness Index')
+    ax.set_title('Fairness Comparison Across Schedulers\n(Higher is Better, 1.0 = Perfect Fairness)\n'
+                 'FCFS/SSJF-Emotion: Jain Index | SSJF-Valence/Combined: Weighted Jain Index')
     ax.set_xlim(0, 1.05)
     ax.axvline(x=1.0, color='green', linestyle='--', alpha=0.5, label='Perfect Fairness')
     ax.grid(axis='x', alpha=0.3)
@@ -171,6 +175,79 @@ def _compute_jain_fairness_from_df(df: pd.DataFrame) -> float:
     numerator = (vals.sum() ** 2)
     denominator = (len(vals) * (vals ** 2).sum())
     return float(numerator / denominator) if denominator > 0 else 0.0
+
+
+def _compute_weighted_jain_fairness_from_df(df: pd.DataFrame, beta: float = 0.8) -> float:
+    """
+    Compute Weighted Jain Fairness Index over per-valence-class average waiting time.
+
+    Used for SSJF-Valence and SSJF-Combined schedulers.
+    Weight: π_i = 1 + β(-v_i), where v_i is the average valence of the class.
+    """
+    if 'valence_class' not in df.columns:
+        return 0.0
+
+    df_valid = df.dropna(subset=['waiting_time'])
+    if df_valid.empty:
+        return 0.0
+
+    grp = df_valid.groupby('valence_class')['waiting_time'].mean()
+
+    if grp.empty:
+        return 0.0
+
+    # Define valence values for each class
+    valence_map = {'negative': -0.8, 'neutral': 0.0, 'positive': 0.8}
+
+    values = []
+    weights = []
+    for valence_class, avg_waiting in grp.items():
+        valence_val = valence_map.get(valence_class, 0.0)
+        weight = 1.0 + beta * (-valence_val)
+        if weight <= 0:
+            weight = 1e-6
+        values.append(avg_waiting)
+        weights.append(weight)
+
+    if not values:
+        return 0.0
+
+    values = np.array(values)
+    weights = np.array(weights)
+
+    if np.all(values == 0):
+        return 1.0
+
+    numerator = (np.sum(weights * values)) ** 2
+    denominator = len(values) * np.sum((weights ** 2) * (values ** 2))
+
+    if denominator == 0:
+        return 1.0
+
+    return float(numerator / denominator)
+
+
+def _compute_fairness_for_scheduler(df: pd.DataFrame, scheduler_name: str, beta: float = 0.8) -> float:
+    """
+    Compute appropriate fairness metric based on scheduler type.
+
+    - FCFS, SSJF-Emotion: Jain Fairness Index (by emotion_class)
+    - SSJF-Valence, SSJF-Combined: Weighted Jain Fairness Index (by valence_class)
+    """
+    # Check if scheduler uses valence-based fairness
+    valence_based_schedulers = ['SSJF-Valence', 'SSJF-Combined']
+
+    # Extract scheduler type from name (e.g., "SSJF-Valence_50jobs_load1.20_fixed_jobs" -> "SSJF-Valence")
+    scheduler_type = None
+    for sched in valence_based_schedulers:
+        if sched in scheduler_name:
+            scheduler_type = sched
+            break
+
+    if scheduler_type in valence_based_schedulers:
+        return _compute_weighted_jain_fairness_from_df(df, beta=beta)
+    else:
+        return _compute_jain_fairness_from_df(df)
 
 
 def plot_percentile_throughput(results: Dict[str, Dict],
@@ -249,7 +326,8 @@ def scan_llm_runs_and_generate_plots(runs_dir: str = 'results/llm_runs', output_
         key = os.path.splitext(os.path.basename(csv_path))[0]
         metrics = _compute_scheduler_metrics_from_df(df)
         scheduler_results[key] = metrics
-        fairness_results[key] = _compute_jain_fairness_from_df(df)
+        # Use appropriate fairness metric based on scheduler type
+        fairness_results[key] = _compute_fairness_for_scheduler(df, scheduler_name=key)
 
     # Generate plots
     plot_scheduler_comparison_barplot(

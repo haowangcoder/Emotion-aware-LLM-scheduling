@@ -71,7 +71,7 @@ llm:
     force_regenerate: false      # Force regenerate even if cached (ignores cache)
 
     # Job Configuration Cache
-    use_saved_job_config: true
+    use_saved_job_config: false
     job_config_file: 'job_configs.json'  # Job config file name
     force_new_job_config: false
 

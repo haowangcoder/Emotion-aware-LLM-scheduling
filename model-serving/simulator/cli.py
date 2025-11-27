@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--scheduler",
         type=str,
         default=None,
-        choices=["FCFS", "SSJF-Emotion", "SSJF-Valence"],
+        choices=["FCFS", "SSJF-Emotion", "SSJF-Valence", "SSJF-Combined"],
         help="Scheduling algorithm (overrides config.scheduler.algorithm)",
     )
     parser.add_argument(

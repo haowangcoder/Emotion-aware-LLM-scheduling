@@ -7,6 +7,7 @@ from core.ssjf_emotion import (
     SSJFEmotionScheduler,
     SSJFEmotionPriorityScheduler,
     SSJFValenceScheduler,
+    SSJFCombinedScheduler,
 )
 from core.scheduler_base import FCFSScheduler
 import random
@@ -162,5 +163,112 @@ def test_ssjf_emotion():
     print("\n" + "=" * 70)
 
 
+def test_ssjf_combined():
+    """Test SSJF Combined scheduler (W/L ratio based on valence and arousal)."""
+    print("\n" + "=" * 70)
+    print("SSJF Combined Scheduler Test (W/L Priority)")
+    print("=" * 70)
+
+    # Test 1: Basic W/L scheduling
+    print("\n1. Basic W/L Scheduling (W = 1 + 0.8*(-v), L = L_0*(1 + 0.8*a))")
+    scheduler = SSJFCombinedScheduler(beta=0.8, alpha=0.8, base_service_time=100.0)
+
+    # Create test jobs with different valence/arousal combinations
+    # Job 0: negative valence (-0.8), low arousal (-0.5) -> high W, low L -> HIGH priority
+    # Job 1: positive valence (0.8), high arousal (0.8) -> low W, high L -> LOW priority
+    # Job 2: neutral valence (0), medium arousal (0) -> medium W, medium L
+    jobs = [
+        Job(0, execution_duration=60.0, arrival_time=0.0,
+            valence=-0.8, valence_class='negative', arousal=-0.5, emotion_class='low'),
+        Job(1, execution_duration=180.0, arrival_time=0.0,
+            valence=0.8, valence_class='positive', arousal=0.8, emotion_class='high'),
+        Job(2, execution_duration=100.0, arrival_time=0.0,
+            valence=0.0, valence_class='neutral', arousal=0.0, emotion_class='medium'),
+    ]
+
+    # Calculate and display expected priorities
+    print(f"\n   {'Job':<5} {'Valence':<10} {'Arousal':<10} {'W':<10} {'L':<10} {'W/L':<12}")
+    print(f"   {'-'*57}")
+    for job in jobs:
+        w = 1 + 0.8 * (-job.valence)
+        l = 100 * (1 + 0.8 * job.arousal)
+        wl = w / l
+        print(f"   {job.job_id:<5} {job.valence:<10.2f} {job.arousal:<10.2f} "
+              f"{w:<10.2f} {l:<10.2f} {wl:<12.6f}")
+
+    # Test scheduling order
+    queue = jobs.copy()
+    print(f"\n   Expected order: 0 (highest W/L), 2, 1 (lowest W/L)")
+    print(f"   Actual scheduling order: ", end="")
+    scheduled_order = []
+    while queue:
+        job = scheduler.schedule(queue, current_time=0)
+        print(f"{job.job_id} ", end="")
+        scheduled_order.append(job.job_id)
+        scheduler.on_job_scheduled(job, current_time=len(scheduled_order))
+        queue.remove(job)
+    print()
+
+    # Verify order
+    assert scheduled_order[0] == 0, "Job 0 (negative valence, low arousal) should be first"
+    assert scheduled_order[-1] == 1, "Job 1 (positive valence, high arousal) should be last"
+    print("   PASSED: Scheduling order is correct")
+
+    # Test 2: Starvation prevention
+    print("\n2. Starvation Prevention Test")
+    scheduler_safe = SSJFCombinedScheduler(
+        beta=0.8, alpha=0.8, base_service_time=100.0,
+        starvation_threshold=50.0
+    )
+    queue = [
+        Job(0, execution_duration=60.0, arrival_time=0.0,
+            valence=-0.8, valence_class='negative', arousal=-0.5, emotion_class='low'),
+        Job(1, execution_duration=180.0, arrival_time=0.0,
+            valence=0.8, valence_class='positive', arousal=0.8, emotion_class='high'),
+    ]
+
+    # At time 60, all jobs have waited > 50s threshold
+    selected = scheduler_safe.schedule(queue, current_time=60.0)
+    print(f"   Current time: 60.0, Starvation threshold: 50.0")
+    print(f"   Selected job (first starving job): Job {selected.job_id}")
+
+    # Test 3: Statistics tracking
+    print("\n3. Statistics Tracking")
+    scheduler_stats = SSJFCombinedScheduler(beta=0.8, alpha=0.8, base_service_time=100.0)
+    queue = [
+        Job(0, execution_duration=60.0, arrival_time=0.0,
+            valence=-0.8, valence_class='negative', arousal=-0.5, emotion_class='low'),
+        Job(1, execution_duration=180.0, arrival_time=0.0,
+            valence=0.8, valence_class='positive', arousal=0.8, emotion_class='high'),
+        Job(2, execution_duration=100.0, arrival_time=0.0,
+            valence=0.0, valence_class='neutral', arousal=0.0, emotion_class='medium'),
+    ]
+    current_time = 0
+    while queue:
+        job = scheduler_stats.schedule(queue, current_time=current_time)
+        scheduler_stats.on_job_scheduled(job, current_time=current_time)
+        current_time += job.execution_duration
+        queue.remove(job)
+
+    stats = scheduler_stats.get_statistics()
+    print(f"   Valence class stats: {stats.get('valence_class_stats', {})}")
+    print(f"   Emotion class stats: {stats.get('emotion_class_stats', {})}")
+
+    # Test 4: Edge case - jobs without valence/arousal
+    print("\n4. Edge Case: Jobs without valence/arousal")
+    scheduler_edge = SSJFCombinedScheduler(beta=0.8, alpha=0.8, base_service_time=100.0)
+    queue = [
+        Job(0, execution_duration=100.0, arrival_time=0.0),  # No valence/arousal
+        Job(1, execution_duration=100.0, arrival_time=1.0,
+            valence=-0.8, valence_class='negative', arousal=-0.5, emotion_class='low'),
+    ]
+    selected = scheduler_edge.schedule(queue, current_time=0)
+    print(f"   Job without valence/arousal uses default W=1.0, L=L_0")
+    print(f"   Selected job: {selected.job_id} (job 1 should be selected due to higher W/L)")
+
+    print("\n" + "=" * 70)
+
+
 if __name__ == '__main__':
     test_ssjf_emotion()
+    test_ssjf_combined()

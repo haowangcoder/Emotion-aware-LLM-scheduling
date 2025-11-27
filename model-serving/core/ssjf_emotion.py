@@ -277,3 +277,182 @@ class SSJFValenceScheduler(SchedulerBase):
 
         selected_job = max(waiting_queue, key=weight_key)
         return selected_job
+
+
+class SSJFCombinedScheduler(SchedulerBase):
+    """
+    Combined W/L scheduler that uses both valence (for Weight) and arousal (for Length).
+
+    Priority is computed as W/L where:
+    - W (Weight) = 1 + beta * (-valence), valence in {-0.8, 0, 0.8}
+    - L (Service Time) = L_0 * (1 + alpha * arousal), arousal in [-1, 1]
+
+    Higher W/L ratio = higher priority (scheduled first).
+    - Negative valence (sad users) -> higher W -> higher priority
+    - Lower arousal (shorter expected service) -> lower L -> higher priority
+    """
+
+    def __init__(
+        self,
+        beta: float = 0.8,
+        alpha: float = 0.8,
+        base_service_time: float = 2.0,
+        starvation_threshold: float = float("inf"),
+        starvation_coefficient: float = 3.0,
+    ):
+        """
+        Initialize SSJF Combined scheduler.
+
+        Args:
+            beta: Coefficient for valence weight (W = 1 + beta * (-valence))
+            alpha: Coefficient for arousal service time (L = L_0 * (1 + alpha * arousal))
+            base_service_time: L_0 base service time
+            starvation_threshold: Absolute time threshold for starvation prevention
+            starvation_coefficient: Relative threshold (multiple of execution duration)
+        """
+        super().__init__(name="SSJF-Combined")
+        self.beta = beta
+        self.alpha = alpha
+        self.base_service_time = base_service_time
+        self.starvation_threshold = starvation_threshold
+        self.starvation_coefficient = starvation_coefficient
+
+        # Track statistics by valence and emotion class
+        self.valence_class_stats = defaultdict(lambda: {
+            'scheduled': 0,
+            'total_waiting_time': 0
+        })
+        self.emotion_class_stats = defaultdict(lambda: {
+            'scheduled': 0,
+            'total_waiting_time': 0
+        })
+
+    def _compute_weight(self, job: Job) -> float:
+        """Compute W = 1 + beta * (-valence)."""
+        valence = getattr(job, 'valence', None)
+        if valence is None:
+            return 1.0  # Default weight if no valence
+        return 1.0 + self.beta * (-valence)
+
+    def _compute_service_time(self, job: Job) -> float:
+        """Compute L = L_0 * (1 + alpha * arousal)."""
+        arousal = getattr(job, 'arousal', None)
+        if arousal is None:
+            return self.base_service_time  # Default if no arousal
+        return self.base_service_time * (1.0 + self.alpha * arousal)
+
+    def _compute_priority(self, job: Job) -> float:
+        """Compute priority = W / L. Higher is better."""
+        w = self._compute_weight(job)
+        l = self._compute_service_time(job)
+        if l <= 0:
+            l = 0.001  # Avoid division by zero
+        return w / l
+
+    def schedule(self, waiting_queue: List[Job], current_time: float = 0) -> Optional[Job]:
+        """
+        Select job with highest W/L priority.
+
+        Implements starvation prevention:
+        1. Absolute threshold: if waiting_time > starvation_threshold
+        2. Relative threshold: if waiting_time > starvation_coefficient * execution_duration
+
+        Args:
+            waiting_queue: List of jobs waiting to be executed
+            current_time: Current time
+
+        Returns:
+            Job with highest W/L priority, or None if queue is empty
+        """
+        if not waiting_queue:
+            return None
+
+        # Check for starving jobs (absolute threshold)
+        if self.starvation_threshold < float('inf'):
+            for job in waiting_queue:
+                waiting_time = current_time - job.arrival_time
+                if waiting_time >= self.starvation_threshold:
+                    return job
+
+        # Check for starving jobs (relative threshold)
+        for job in waiting_queue:
+            waiting_time = current_time - job.arrival_time
+            threshold = self.starvation_coefficient * job.execution_duration
+            if waiting_time >= threshold:
+                return job
+
+        # Select job with highest priority (W/L)
+        # Ties broken by earliest arrival_time
+        def priority_key(job: Job):
+            priority = self._compute_priority(job)
+            arrival = getattr(job, 'arrival_time', 0) or 0
+            return (priority, -arrival)  # Higher priority first, earlier arrival first
+
+        selected_job = max(waiting_queue, key=priority_key)
+        return selected_job
+
+    def on_job_scheduled(self, job: Job, current_time: float):
+        """Track statistics when job is scheduled."""
+        super().on_job_scheduled(job, current_time)
+
+        waiting_time = current_time - job.arrival_time
+
+        # Track per-valence-class statistics
+        valence_class = getattr(job, 'valence_class', None)
+        if valence_class:
+            stats = self.valence_class_stats[valence_class]
+            stats['scheduled'] += 1
+            stats['total_waiting_time'] += waiting_time
+
+        # Track per-emotion-class statistics
+        emotion_class = getattr(job, 'emotion_class', None)
+        if emotion_class:
+            stats = self.emotion_class_stats[emotion_class]
+            stats['scheduled'] += 1
+            stats['total_waiting_time'] += waiting_time
+
+    def get_statistics(self) -> dict:
+        """Get comprehensive scheduler statistics."""
+        base_stats = super().get_statistics()
+
+        # Add per-valence-class statistics
+        valence_stats = {}
+        for valence_class, stats in self.valence_class_stats.items():
+            avg_waiting = (stats['total_waiting_time'] / stats['scheduled']
+                           if stats['scheduled'] > 0 else 0)
+            valence_stats[valence_class] = {
+                'scheduled': stats['scheduled'],
+                'avg_waiting_time': avg_waiting
+            }
+
+        # Add per-emotion-class statistics
+        emotion_stats = {}
+        for emotion_class, stats in self.emotion_class_stats.items():
+            avg_waiting = (stats['total_waiting_time'] / stats['scheduled']
+                           if stats['scheduled'] > 0 else 0)
+            emotion_stats[emotion_class] = {
+                'scheduled': stats['scheduled'],
+                'avg_waiting_time': avg_waiting
+            }
+
+        base_stats['valence_class_stats'] = valence_stats
+        base_stats['emotion_class_stats'] = emotion_stats
+        return base_stats
+
+    def get_valence_class_fairness(self) -> Dict[str, float]:
+        """Calculate average waiting time for each valence class."""
+        fairness_metrics = {}
+        for valence_class, stats in self.valence_class_stats.items():
+            avg_waiting = (stats['total_waiting_time'] / stats['scheduled']
+                           if stats['scheduled'] > 0 else 0)
+            fairness_metrics[valence_class] = avg_waiting
+        return fairness_metrics
+
+    def get_emotion_class_fairness(self) -> Dict[str, float]:
+        """Calculate average waiting time for each emotion class."""
+        fairness_metrics = {}
+        for emotion_class, stats in self.emotion_class_stats.items():
+            avg_waiting = (stats['total_waiting_time'] / stats['scheduled']
+                           if stats['scheduled'] > 0 else 0)
+            fairness_metrics[emotion_class] = avg_waiting
+        return fairness_metrics
