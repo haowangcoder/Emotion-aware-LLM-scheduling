@@ -24,11 +24,11 @@ rm -rf results/llm_runs_time*/cache/
 # ============================================================================
 OUTPUT_DIR="results/llm_runs"
 MODE="fixed_jobs"
-NUM_JOBS=50
+NUM_JOBS=54
 RANDOM_SEED=42
 
 # Schedulers to compare
-SCHEDULERS=("FCFS" "SSJF-Emotion")
+SCHEDULERS=("FCFS" "SSJF-Emotion" "SSJF-Valence" "SSJF-Combined")
 
 # Parameter sweeps
 SYSTEM_LOADS=(1.2)

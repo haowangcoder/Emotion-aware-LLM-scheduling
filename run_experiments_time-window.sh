@@ -25,12 +25,12 @@ rm -rf results/llm_runs_time*/cache/
 # ============================================================================
 OUTPUT_DIR="results/llm_runs"
 MODE="time_window"
-SIMULATION_DURATION=80  # 5 minutes (300 seconds)
-NUM_JOBS=50             # Trace size (actual will be 200 for sufficient coverage)
+SIMULATION_DURATION=93  # 5 minutes (300 seconds)
+NUM_JOBS=54             # Trace size (actual will be 200 for sufficient coverage)
 RANDOM_SEED=42
 
 # Schedulers to compare
-SCHEDULERS=("FCFS" "SSJF-Emotion")
+SCHEDULERS=("FCFS" "SSJF-Emotion" "SSJF-Valence" "SSJF-Combined")
 
 # Parameter sweeps
 SYSTEM_LOADS=(1.2)
