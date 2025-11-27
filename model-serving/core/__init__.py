@@ -13,8 +13,11 @@ from .emotion import (
     EmotionConfig,
     EMOTION_AROUSAL_MAP,
     EMOTION_VALENCE_MAP,
+    EMOTION_CATEGORY_MAP,
+    EMOTION_CATEGORIES,
     sample_emotion,
     sample_emotions_batch,
+    sample_emotions_batch_stratified_9class,
     get_emotion_statistics
 )
 from .scheduler_base import SchedulerBase, FCFSScheduler, SJFScheduler
@@ -25,8 +28,11 @@ __all__ = [
     'EmotionConfig',
     'EMOTION_AROUSAL_MAP',
     'EMOTION_VALENCE_MAP',
+    'EMOTION_CATEGORY_MAP',
+    'EMOTION_CATEGORIES',
     'sample_emotion',
     'sample_emotions_batch',
+    'sample_emotions_batch_stratified_9class',
     'get_emotion_statistics',
     'SchedulerBase',
     'FCFSScheduler',

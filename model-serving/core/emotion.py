@@ -84,7 +84,7 @@ EMOTION_VALENCE_MAP = {
     'sentimental': 0.0,
     'nostalgic': 0.0,
     'prepared': 0.0,
-    'impressed':0.0,
+    'impressed': 0.0,
     'caring': 0.0,
     'surprised': 0.0,
 
@@ -107,6 +107,22 @@ EMOTION_VALENCE_MAP = {
     'devastated': -0.8,
 }
 
+# 9-class emotion category map: arousal (high/medium/low) × valence (positive/neutral/negative)
+EMOTION_CATEGORY_MAP = {
+    'high_positive': ['excited', 'joyful', 'anticipating', 'proud'],
+    'high_neutral': ['impressed', 'surprised'],
+    'high_negative': ['terrified', 'afraid', 'anxious', 'angry', 'furious', 'annoyed', 'disgusted'],
+    'medium_positive': ['hopeful', 'trusting', 'faithful', 'grateful', 'confident'],
+    'medium_neutral': ['caring'],
+    'medium_negative': ['jealous', 'embarrassed'],
+    'low_positive': ['content'],
+    'low_neutral': ['sentimental', 'nostalgic', 'prepared'],
+    'low_negative': ['apprehensive', 'guilty', 'ashamed', 'sad', 'lonely', 'disappointed', 'devastated'],
+}
+
+# All 9 category names
+EMOTION_CATEGORIES = list(EMOTION_CATEGORY_MAP.keys())
+
 # Default emotion probability distribution (uniform for simplicity)
 # Can be customized based on actual EmpatheticDialogues dataset statistics
 DEFAULT_EMOTION_PROBS = {emotion: 1.0/len(EMOTION_AROUSAL_MAP)
@@ -119,6 +135,7 @@ class EmotionConfig:
     def __init__(self,
                  emotion_arousal_map: Dict[str, float] = None,
                  emotion_valence_map: Dict[str, float] = None,
+                 emotion_category_map: Dict[str, List[str]] = None,
                  emotion_probs: Dict[str, float] = None,
                  arousal_noise_std: float = 0.0):
         """
@@ -127,14 +144,22 @@ class EmotionConfig:
         Args:
             emotion_arousal_map: Dictionary mapping emotion labels to arousal values
             emotion_valence_map: Dictionary mapping emotion labels to valence values
+            emotion_category_map: Dictionary mapping 9 categories to emotion lists
             emotion_probs: Dictionary mapping emotion labels to sampling probabilities
             arousal_noise_std: Standard deviation of Gaussian noise added to arousal
                               (0.0 = no noise, 0.1 = small variation)
         """
         self.emotion_arousal_map = emotion_arousal_map or EMOTION_AROUSAL_MAP
         self.emotion_valence_map = emotion_valence_map or EMOTION_VALENCE_MAP
+        self.emotion_category_map = emotion_category_map or EMOTION_CATEGORY_MAP
         self.emotion_probs = emotion_probs or DEFAULT_EMOTION_PROBS
         self.arousal_noise_std = arousal_noise_std
+
+        # Build reverse mapping: emotion -> category
+        self._emotion_to_category = {}
+        for category, emotions in self.emotion_category_map.items():
+            for emotion in emotions:
+                self._emotion_to_category[emotion] = category
 
         # Validate probabilities sum to 1.0 (with tolerance)
         prob_sum = sum(self.emotion_probs.values())
@@ -223,6 +248,39 @@ class EmotionConfig:
         if valence < 0:
             return 'negative'
         return 'neutral'
+
+    def get_category(self, emotion: str) -> str:
+        """
+        Get the 9-class category for a given emotion.
+
+        Args:
+            emotion: Emotion label
+
+        Returns:
+            Category name (e.g., 'high_positive', 'medium_neutral', 'low_negative')
+        """
+        if emotion not in self._emotion_to_category:
+            raise ValueError(f"Unknown emotion: {emotion}")
+        return self._emotion_to_category[emotion]
+
+    def classify_emotion(self, arousal: float, valence: float) -> str:
+        """
+        Classify arousal and valence values into a 9-class category.
+
+        Args:
+            arousal: Arousal value
+            valence: Valence value
+
+        Returns:
+            Category name (e.g., 'high_positive', 'medium_neutral', 'low_negative')
+        """
+        arousal_class = self.classify_arousal(arousal)
+        valence_class = self.classify_valence(valence)
+        return f"{arousal_class}_{valence_class}"
+
+    def get_categories(self) -> List[str]:
+        """Return list of all 9 category names"""
+        return list(self.emotion_category_map.keys())
 
 
 def sample_emotion(config: EmotionConfig = None) -> Tuple[str, float]:
@@ -334,8 +392,78 @@ def sample_emotions_batch_stratified(
     
     # Shuffle to randomize order
     np.random.shuffle(emotions_arousal)
-    
+
     return emotions_arousal
+
+
+def sample_emotions_batch_stratified_9class(
+    num_jobs: int,
+    emotion_config: EmotionConfig,
+    class_distribution: Dict[str, float] = None
+) -> List[Tuple[str, float, float]]:
+    """
+    Batch sample emotions with stratified sampling by 9-class category.
+
+    Uses 3 arousal levels (high/medium/low) × 3 valence levels (positive/neutral/negative)
+    to create 9 balanced categories for fair comparison.
+
+    Args:
+        num_jobs: Number of jobs to generate
+        emotion_config: EmotionConfig object
+        class_distribution: Target distribution for each of the 9 classes
+                          e.g., {'high_positive': 1/9, 'high_neutral': 1/9, ...}
+                          If None, uses uniform distribution (1/9 each)
+
+    Returns:
+        List of (emotion_label, arousal, valence) tuples
+    """
+    categories = emotion_config.get_categories()
+
+    if class_distribution is None:
+        # Default: uniform distribution across 9 classes
+        class_distribution = {cat: 1/9 for cat in categories}
+
+    # Calculate count for each class
+    class_counts = {}
+    remaining = num_jobs
+
+    # Allocate jobs to first 8 categories
+    for cat in categories[:-1]:
+        class_counts[cat] = int(num_jobs * class_distribution.get(cat, 1/9))
+        remaining -= class_counts[cat]
+
+    # Allocate remaining to last category (ensures total is exactly num_jobs)
+    class_counts[categories[-1]] = remaining
+
+    # Sample from each category
+    emotions_arousal_valence = []
+
+    for category, count in class_counts.items():
+        available_emotions = emotion_config.emotion_category_map.get(category, [])
+
+        if not available_emotions:
+            # Fallback: if no emotions in this category, skip
+            continue
+
+        # Sample 'count' emotions from this category
+        for _ in range(count):
+            emotion = available_emotions[np.random.randint(len(available_emotions))]
+            base_arousal = emotion_config.emotion_arousal_map[emotion]
+            valence = emotion_config.emotion_valence_map[emotion]
+
+            # Add noise if configured
+            arousal = base_arousal
+            if emotion_config.arousal_noise_std > 0:
+                noise = np.random.normal(0, emotion_config.arousal_noise_std)
+                arousal = arousal + noise
+
+            emotions_arousal_valence.append((emotion, arousal, valence))
+
+    # Shuffle to randomize order
+    np.random.shuffle(emotions_arousal_valence)
+
+    return emotions_arousal_valence
+
 
 def get_emotion_statistics(config: EmotionConfig = None) -> Dict:
     """
