@@ -166,6 +166,9 @@ def compute_fixed_jobs_metrics(completed_jobs: List[Job]) -> dict:
             "p50_jct": 0.0,
             "p95_jct": 0.0,
             "p99_jct": 0.0,
+            "estimated_arrival_rate": 0.0,
+            "avg_actual_execution_time": None,
+            "effective_load": None,
         }
 
     total_jobs = len(completed_jobs)
@@ -201,6 +204,25 @@ def compute_fixed_jobs_metrics(completed_jobs: List[Job]) -> dict:
     # Throughput
     throughput = total_jobs / total_time if total_time > 0 else 0.0
 
+    # Calculate effective load (based on actual measured execution times)
+    # effective_load = arrival_rate * E[S_actual]
+    # Estimate arrival rate from arrival time span
+    arrival_times = [j.arrival_time for j in completed_jobs if j.arrival_time is not None]
+    if len(arrival_times) >= 2:
+        arrival_span = max(arrival_times) - min(arrival_times)
+        estimated_arrival_rate = (len(arrival_times) - 1) / arrival_span if arrival_span > 0 else 0
+    else:
+        estimated_arrival_rate = 0
+
+    # Get average actual execution time (measured from LLM inference)
+    actual_exec_times = [
+        j.actual_execution_duration
+        for j in completed_jobs
+        if hasattr(j, 'actual_execution_duration') and j.actual_execution_duration is not None
+    ]
+    avg_actual_exec = np.mean(actual_exec_times) if actual_exec_times else None
+    effective_load = estimated_arrival_rate * avg_actual_exec if avg_actual_exec else None
+
     metrics = {
         "total_jobs": total_jobs,
         "total_time": total_time,
@@ -213,6 +235,10 @@ def compute_fixed_jobs_metrics(completed_jobs: List[Job]) -> dict:
         "p50_jct": float(p50_jct),
         "p95_jct": float(p95_jct),
         "p99_jct": float(p99_jct),
+        # Load metrics for clarification
+        "estimated_arrival_rate": float(estimated_arrival_rate),
+        "avg_actual_execution_time": float(avg_actual_exec) if avg_actual_exec else None,
+        "effective_load": float(effective_load) if effective_load else None,
     }
 
     return metrics
@@ -399,35 +425,54 @@ def compute_time_window_metrics(completed_jobs: List[Job], simulation_duration: 
             "p50_jct": 0.0,
             "p95_jct": 0.0,
             "p99_jct": 0.0,
+            "estimated_arrival_rate": 0.0,
+            "avg_actual_execution_time": None,
+            "effective_load": None,
         }
-    
+
     total_jobs = len(completed_jobs)
-    
+
     # Waiting times
     waiting_times = [j.waiting_duration for j in completed_jobs if j.waiting_duration is not None]
-    
+
     # JCT
     jcts = []
     for j in completed_jobs:
         if j.completion_time is not None and j.arrival_time is not None:
             jct = j.completion_time - j.arrival_time
             jcts.append(jct)
-    
+
     # Statistics
     avg_waiting_time = np.mean(waiting_times) if waiting_times else 0.0
     avg_jct = np.mean(jcts) if jcts else 0.0
-    
+
     p50_waiting = np.percentile(waiting_times, 50) if waiting_times else 0.0
     p95_waiting = np.percentile(waiting_times, 95) if waiting_times else 0.0
     p99_waiting = np.percentile(waiting_times, 99) if waiting_times else 0.0
-    
+
     p50_jct = np.percentile(jcts, 50) if jcts else 0.0
     p95_jct = np.percentile(jcts, 95) if jcts else 0.0
     p99_jct = np.percentile(jcts, 99) if jcts else 0.0
-    
+
     # Throughput (jobs per second)
     throughput = total_jobs / simulation_duration if simulation_duration > 0 else 0.0
-    
+
+    # Calculate effective load (based on actual measured execution times)
+    arrival_times = [j.arrival_time for j in completed_jobs if j.arrival_time is not None]
+    if len(arrival_times) >= 2:
+        arrival_span = max(arrival_times) - min(arrival_times)
+        estimated_arrival_rate = (len(arrival_times) - 1) / arrival_span if arrival_span > 0 else 0
+    else:
+        estimated_arrival_rate = 0
+
+    actual_exec_times = [
+        j.actual_execution_duration
+        for j in completed_jobs
+        if hasattr(j, 'actual_execution_duration') and j.actual_execution_duration is not None
+    ]
+    avg_actual_exec = np.mean(actual_exec_times) if actual_exec_times else None
+    effective_load = estimated_arrival_rate * avg_actual_exec if avg_actual_exec else None
+
     return {
         "total_jobs": total_jobs,
         "total_time": simulation_duration,
@@ -440,6 +485,9 @@ def compute_time_window_metrics(completed_jobs: List[Job], simulation_duration: 
         "p50_jct": float(p50_jct),
         "p95_jct": float(p95_jct),
         "p99_jct": float(p99_jct),
+        "estimated_arrival_rate": float(estimated_arrival_rate),
+        "avg_actual_execution_time": float(avg_actual_exec) if avg_actual_exec else None,
+        "effective_load": float(effective_load) if effective_load else None,
     }
 
 

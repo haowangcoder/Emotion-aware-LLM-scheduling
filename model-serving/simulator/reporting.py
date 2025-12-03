@@ -95,11 +95,13 @@ def print_fairness_analysis(completed_jobs: List[Job], valence_beta: float = Non
     print(f"  {'-'*60}")
     for emotion_class, metrics in per_class.items():
         if emotion_class != "overall":
+            # Use new key name (avg_predicted_service_time), fallback to old key for backwards compatibility
+            avg_service = metrics.get('avg_predicted_service_time', metrics.get('avg_execution_time', 0))
             print(
                 f"  {emotion_class:<10} {metrics['count']:<8} "
                 f"{metrics['avg_waiting_time']:<12.3f} "
                 f"{metrics['p99_waiting_time']:<12.3f} "
-                f"{metrics['avg_execution_time']:<12.3f}"
+                f"{avg_service:<12.3f}"
             )
 
     # Optional Phase II: valence-weighted fairness

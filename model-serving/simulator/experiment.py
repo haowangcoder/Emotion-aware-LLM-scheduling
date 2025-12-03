@@ -67,7 +67,7 @@ def run_emotion_aware_experiment(args) -> None:
         service_config = ServiceTimeConfig(
             base_service_time=config.workload.service_time.base_service_time,
             alpha=alpha,
-            rho=config.workload.service_time.rho,
+            emotion_correlation=config.workload.service_time.emotion_correlation,
             min_service_time=config.workload.service_time.min_service_time,
         )
 

@@ -3,13 +3,17 @@ Service Time Mapping Module for Emotion-aware LLM Scheduling
 
 This module maps emotion arousal values to task service times (execution duration).
 The core formula is:
-    S_i = L_0 * (1 + α * a_i)
+    S_i = L_0 * (1 + α * emotion_correlation * a_i)
 
 Where:
 - S_i: Service time for task i
 - L_0: Base service time (baseline duration)
 - α (alpha): Sensitivity coefficient controlling arousal impact
+- emotion_correlation: Correlation strength between emotion and service time [0,1]
 - a_i: Arousal value for task i (typically in [-1, 1])
+
+Note: emotion_correlation was previously named 'rho', but renamed to avoid confusion
+with system_load (ρ) which represents system utilization in queueing theory.
 
 This implements the "Arousal-Token Length Mapping" from the design specification,
 allowing high-arousal emotions to generate longer responses and low-arousal emotions
@@ -26,7 +30,7 @@ class ServiceTimeConfig:
         self,
         base_service_time: float = 2.0,
         alpha: float = 0.5,
-        rho: float = 1.0,
+        emotion_correlation: float = 1.0,
         min_service_time: float = 0.1,
     ):
         """
@@ -35,12 +39,13 @@ class ServiceTimeConfig:
         Args:
             base_service_time (L_0): Base service time when arousal is 0.
             alpha (α): Linear coefficient for arousal impact.
-            rho (ρ): Correlation strength (0 = no correlation, 1 = full correlation).
+            emotion_correlation: Correlation strength (0 = no correlation, 1 = full correlation).
+                Previously named 'rho' - renamed to avoid confusion with system_load (ρ).
             min_service_time: Minimum allowed service time (safety bound).
         """
         self.base_service_time = base_service_time
         self.alpha = alpha
-        self.rho = rho
+        self.emotion_correlation = emotion_correlation
         self.min_service_time = min_service_time
 
         # Validate parameters
@@ -48,17 +53,17 @@ class ServiceTimeConfig:
             raise ValueError(f"base_service_time must be positive, got {base_service_time}")
         if min_service_time <= 0:
             raise ValueError(f"min_service_time must be positive, got {min_service_time}")
-        if not 0 <= rho <= 1:
-            raise ValueError(f"rho must be in [0, 1], got {rho}")
+        if not 0 <= emotion_correlation <= 1:
+            raise ValueError(f"emotion_correlation must be in [0, 1], got {emotion_correlation}")
 
     def __repr__(self):
         return (f"ServiceTimeConfig(L0={self.base_service_time}, α={self.alpha}, "
-                f"ρ={self.rho})")
+                f"emotion_correlation={self.emotion_correlation})")
 
 
 def map_service_time_linear(arousal: float, config: ServiceTimeConfig) -> float:
     """
-    Linear mapping: S_i = L_0 * (1 + α * ρ * a_i)
+    Linear mapping: S_i = L_0 * (1 + α * emotion_correlation * a_i)
 
     This is the primary mapping function specified in the design.
 
@@ -69,8 +74,8 @@ def map_service_time_linear(arousal: float, config: ServiceTimeConfig) -> float:
     Returns:
         Service time (guaranteed to be >= min_service_time)
     """
-    # Apply correlation strength (rho)
-    effective_arousal = arousal * config.rho
+    # Apply correlation strength
+    effective_arousal = arousal * config.emotion_correlation
 
     # Linear formula
     service_time = config.base_service_time * (1 + config.alpha * effective_arousal)
@@ -83,7 +88,8 @@ def map_service_time_linear(arousal: float, config: ServiceTimeConfig) -> float:
 
 def map_service_time(arousal: float, config: ServiceTimeConfig = None) -> float:
     """
-    Map arousal value to service time using linear mapping: S_i = L_0 * (1 + α * ρ * a_i)
+    Map arousal value to service time using linear mapping:
+    S_i = L_0 * (1 + α * emotion_correlation * a_i)
 
     Args:
         arousal: Arousal value (typically in [-1, 1])

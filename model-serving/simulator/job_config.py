@@ -92,7 +92,7 @@ def save_job_config_if_needed(
             "random_seed": config.experiment.random_seed,
             "base_service_time": config.workload.service_time.base_service_time,
             "alpha": alpha,
-            "rho": config.workload.service_time.rho,
+            "emotion_correlation": config.workload.service_time.emotion_correlation,
             "enable_emotion_aware": config.workload.emotion.enable_emotion_aware,
             "model_name": config.llm.model.name,
         }

@@ -193,13 +193,23 @@ def calculate_per_class_metrics(job_list: List[Job], completed_only: bool = True
                 turnaround = job.completion_time - job.arrival_time
                 turnaround_times.append(turnaround)
 
+        # Collect measured execution times (actual LLM inference times)
+        measured_exec_times = [
+            j.actual_execution_duration
+            for j in class_jobs
+            if hasattr(j, 'actual_execution_duration') and j.actual_execution_duration is not None
+        ]
+
         metrics[emotion_class] = {
             'count': len(class_jobs),
             'avg_waiting_time': np.mean(waiting_times) if waiting_times else 0,
             'std_waiting_time': np.std(waiting_times) if waiting_times else 0,
             'avg_turnaround_time': np.mean(turnaround_times) if turnaround_times else 0,
             'std_turnaround_time': np.std(turnaround_times) if turnaround_times else 0,
-            'avg_execution_time': np.mean([j.execution_duration for j in class_jobs]),
+            # Predicted service time based on arousal mapping (used for scheduling decisions)
+            'avg_predicted_service_time': np.mean([j.execution_duration for j in class_jobs]),
+            # Measured execution time from actual LLM inference (if available)
+            'avg_measured_execution_time': np.mean(measured_exec_times) if measured_exec_times else None,
             'p50_waiting_time': np.percentile(waiting_times, 50) if waiting_times else 0,
             'p95_waiting_time': np.percentile(waiting_times, 95) if waiting_times else 0,
             'p99_waiting_time': np.percentile(waiting_times, 99) if waiting_times else 0,
@@ -381,6 +391,46 @@ def calculate_valence_fairness(job_list: List[Job],
     }
 
 
+def calculate_arousal_valence_distribution(job_list: List[Job]) -> Dict:
+    """
+    Calculate the joint distribution of arousal and valence classes.
+
+    Returns a 3x3 matrix counting jobs in each (arousal_class, valence_class) combination.
+    This helps validate assumptions about correlation between arousal and valence
+    (e.g., "high arousal is usually negative").
+
+    Args:
+        job_list: List of Job objects with emotion_class and valence_class attributes
+
+    Returns:
+        Dictionary with counts for each combination:
+        {
+            'high_positive': count, 'high_neutral': count, 'high_negative': count,
+            'medium_positive': count, 'medium_neutral': count, 'medium_negative': count,
+            'low_positive': count, 'low_neutral': count, 'low_negative': count,
+            'total': total_count
+        }
+    """
+    distribution = {
+        'high_positive': 0, 'high_neutral': 0, 'high_negative': 0,
+        'medium_positive': 0, 'medium_neutral': 0, 'medium_negative': 0,
+        'low_positive': 0, 'low_neutral': 0, 'low_negative': 0,
+    }
+
+    for job in job_list:
+        arousal_class = getattr(job, 'emotion_class', None)
+        valence_class = getattr(job, 'valence_class', None)
+
+        if arousal_class and valence_class:
+            key = f"{arousal_class}_{valence_class}"
+            if key in distribution:
+                distribution[key] += 1
+
+    distribution['total'] = sum(v for k, v in distribution.items() if k != 'total')
+
+    return distribution
+
+
 def analyze_fairness_comprehensive(job_list: List[Job]) -> Dict:
     """
     Comprehensive fairness analysis across multiple metrics
@@ -405,6 +455,9 @@ def analyze_fairness_comprehensive(job_list: List[Job]) -> Dict:
 
     # Per-class detailed metrics
     analysis['per_class_metrics'] = calculate_per_class_metrics(job_list)
+
+    # Arousal-Valence joint distribution (validates correlation assumptions)
+    analysis['arousal_valence_distribution'] = calculate_arousal_valence_distribution(job_list)
 
     return analysis
 

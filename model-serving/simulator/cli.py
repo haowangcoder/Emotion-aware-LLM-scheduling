@@ -63,7 +63,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--rho",
         type=float,
         default=None,
-        help="Correlation strength rho (overrides config.workload.service_time.rho)",
+        help="Emotion correlation strength [0,1] (overrides config.workload.service_time.emotion_correlation). Legacy alias: --rho",
+    )
+    parser.add_argument(
+        "--emotion_correlation",
+        type=float,
+        default=None,
+        help="Emotion correlation strength [0,1] (overrides config.workload.service_time.emotion_correlation)",
     )
 
     # Job generation

@@ -15,7 +15,8 @@ workload:
     alpha: 0.8                   # α: Sensitivity coefficient for arousal impact
                                  # NOTE: Same alpha used for both service time prediction
                                  # and LLM response length generation (synchronized)
-    rho: 1.0                     # ρ: Correlation strength between emotion and service time
+    emotion_correlation: 1.0     # Correlation strength between emotion and service time [0,1]
+                                 # (Previously 'rho' - renamed to avoid confusion with system_load)
     min_service_time: 0.1        # Minimum allowed service time (safety bound)
     mapping_function: 'linear'   # 'linear'
 

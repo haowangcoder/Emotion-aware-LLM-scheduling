@@ -21,7 +21,7 @@ class ServiceTimeConfig:
     """Service time mapping configuration."""
     base_service_time: float = 2.0
     alpha: float = 0.5
-    rho: float = 1.0
+    emotion_correlation: float = 1.0  # Previously 'rho' - renamed to avoid confusion with system_load
     min_service_time: float = 0.1
     mapping_function: str = 'linear'
 
@@ -254,7 +254,7 @@ class ConfigLoader:
             # New-style env vars below will override these if both are set.
             ('ALPHA_ENV', lambda c, v: setattr(c.workload.service_time, 'alpha', float(v))),
             ('BASE_SERVICE_TIME_ENV', lambda c, v: setattr(c.workload.service_time, 'base_service_time', float(v))),
-            ('RHO_ENV', lambda c, v: setattr(c.workload.service_time, 'rho', float(v))),
+            ('RHO_ENV', lambda c, v: setattr(c.workload.service_time, 'emotion_correlation', float(v))),  # Legacy env var
             ('LLM_MODEL_NAME_ENV', lambda c, v: setattr(c.llm.model, 'name', v)),
             ('LLM_DEVICE_MAP_ENV', lambda c, v: setattr(c.llm.model, 'device_map', v)),
             ('EMOTION_DATASET_PATH_ENV', lambda c, v: setattr(c.dataset, 'emotion_dataset_path', v)),
@@ -262,7 +262,7 @@ class ConfigLoader:
             # Workload
             ('WORKLOAD_SERVICE_TIME_BASE_SERVICE_TIME', lambda c, v: setattr(c.workload.service_time, 'base_service_time', float(v))),
             ('WORKLOAD_SERVICE_TIME_ALPHA', lambda c, v: setattr(c.workload.service_time, 'alpha', float(v))),
-            ('WORKLOAD_SERVICE_TIME_RHO', lambda c, v: setattr(c.workload.service_time, 'rho', float(v))),
+            ('WORKLOAD_SERVICE_TIME_EMOTION_CORRELATION', lambda c, v: setattr(c.workload.service_time, 'emotion_correlation', float(v))),
             ('WORKLOAD_SERVICE_TIME_MIN_SERVICE_TIME', lambda c, v: setattr(c.workload.service_time, 'min_service_time', float(v))),
             ('WORKLOAD_SERVICE_TIME_MAPPING_FUNCTION', lambda c, v: setattr(c.workload.service_time, 'mapping_function', v)),
             ('WORKLOAD_ARRIVAL_BASE_ARRIVAL_RATE', lambda c, v: setattr(c.workload.arrival, 'base_arrival_rate', float(v))),
@@ -337,7 +337,8 @@ class ConfigLoader:
             'system_load': lambda c, v: setattr(c.scheduler, 'system_load', v),
             'base_service_time': lambda c, v: setattr(c.workload.service_time, 'base_service_time', v),
             'alpha': lambda c, v: setattr(c.workload.service_time, 'alpha', v),
-            'rho': lambda c, v: setattr(c.workload.service_time, 'rho', v),
+            'rho': lambda c, v: setattr(c.workload.service_time, 'emotion_correlation', v),  # Legacy CLI arg
+            'emotion_correlation': lambda c, v: setattr(c.workload.service_time, 'emotion_correlation', v),
             'enable_emotion': lambda c, v: setattr(c.workload.emotion, 'enable_emotion_aware', v),
             'arousal_noise': lambda c, v: setattr(c.workload.emotion, 'arousal_noise_std', v),
             'random_seed': lambda c, v: setattr(c.experiment, 'random_seed', v),

@@ -225,23 +225,23 @@ def test_alpha_parameter_sensitivity():
         assert abs(st - expected) < 0.001, f"Expected {expected}, got {st}"
 
 
-def test_rho_parameter_sensitivity():
-    """Test impact of rho (correlation strength)"""
+def test_emotion_correlation_parameter_sensitivity():
+    """Test impact of emotion_correlation (correlation strength)"""
     print("\n" + "=" * 70)
-    print("Test 5: Rho Parameter Sensitivity (arousal = 1.0, alpha = 0.5)")
+    print("Test 5: Emotion Correlation Parameter Sensitivity (arousal = 1.0, alpha = 0.5)")
     print("=" * 70)
 
-    rho_values = [0.0, 0.25, 0.5, 0.75, 1.0]
-    print(f"{'Rho (ρ)':<12} {'Service Time':<15} {'Effective arousal':<20}")
+    correlation_values = [0.0, 0.25, 0.5, 0.75, 1.0]
+    print(f"{'Correlation':<12} {'Service Time':<15} {'Effective arousal':<20}")
     print(f"{'-'*47}")
 
-    for rho in rho_values:
-        config_rho = ServiceTimeConfig(base_service_time=2.0, alpha=0.5, rho=rho)
-        st = map_service_time(1.0, config_rho)
-        effective = 1.0 * rho
-        print(f"{rho:<12.2f} {st:<15.3f} {effective:<20.3f}")
+    for corr in correlation_values:
+        config = ServiceTimeConfig(base_service_time=2.0, alpha=0.5, emotion_correlation=corr)
+        st = map_service_time(1.0, config)
+        effective = 1.0 * corr
+        print(f"{corr:<12.2f} {st:<15.3f} {effective:<20.3f}")
 
-        # Assertion: rho scales the arousal effect
+        # Assertion: emotion_correlation scales the arousal effect
         expected = 2.0 * (1 + 0.5 * effective)
         assert abs(st - expected) < 0.001, f"Expected {expected}, got {st}"
 
@@ -260,7 +260,7 @@ if __name__ == '__main__':
     test_config_validation()
     test_realistic_arousal_distribution()
     test_alpha_parameter_sensitivity()
-    test_rho_parameter_sensitivity()
+    test_emotion_correlation_parameter_sensitivity()
 
     print("\n" + "=" * 70)
     print("ALL TESTS PASSED!")
