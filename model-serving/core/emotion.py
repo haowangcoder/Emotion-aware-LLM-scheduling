@@ -344,21 +344,38 @@ def sample_emotions_batch_stratified(
     Returns:
         List of (emotion_label, arousal) tuples
     """
-    if class_distribution is None:
+    classes = ['high', 'medium', 'low']
+
+    if class_distribution is None or class_distribution == 'uniform':
         # Default: uniform distribution
         class_distribution = {'high': 1/3, 'medium': 1/3, 'low': 1/3}
-    
-    # Calculate count for each class
+    else:
+        # Auto-fill missing classes: distribute remaining proportion equally
+        specified_total = sum(class_distribution.get(cls, 0) for cls in classes)
+        unspecified_classes = [cls for cls in classes if cls not in class_distribution]
+        if unspecified_classes and specified_total < 1:
+            remaining_proportion = (1 - specified_total) / len(unspecified_classes)
+            class_distribution = {cls: class_distribution.get(cls, remaining_proportion) for cls in classes}
+
+    # Calculate count for each class using Largest Remainder Method
     class_counts = {}
-    remaining = num_jobs
-    
-    # Allocate jobs to high and medium first
-    for cls in ['high', 'medium']:
-        class_counts[cls] = int(num_jobs * class_distribution[cls])
-        remaining -= class_counts[cls]
-    
-    # Allocate remaining to low (ensures total is exactly num_jobs)
-    class_counts['low'] = remaining
+    remainders = {}
+
+    # Step 1: Calculate expected values and allocate floor
+    total_allocated = 0
+    for cls in classes:
+        expected = num_jobs * class_distribution.get(cls, 0)
+        floor_val = int(expected)
+        class_counts[cls] = floor_val
+        remainders[cls] = expected - floor_val
+        total_allocated += floor_val
+
+    # Step 2: Distribute remaining slots to classes with largest remainders
+    remaining = num_jobs - total_allocated
+    if remaining > 0:
+        sorted_classes = sorted(remainders.keys(), key=lambda x: remainders[x], reverse=True)
+        for i in range(remaining):
+            class_counts[sorted_classes[i]] += 1
     
     # Group emotions by arousal class
     emotions_by_class = {'high': [], 'medium': [], 'low': []}
@@ -419,21 +436,37 @@ def sample_emotions_batch_stratified_9class(
     """
     categories = emotion_config.get_categories()
 
-    if class_distribution is None:
+    if class_distribution is None or class_distribution == 'uniform':
         # Default: uniform distribution across 9 classes
         class_distribution = {cat: 1/9 for cat in categories}
+    else:
+        # Auto-fill missing categories: distribute remaining proportion equally
+        specified_total = sum(class_distribution.get(cat, 0) for cat in categories)
+        unspecified_cats = [cat for cat in categories if cat not in class_distribution]
+        if unspecified_cats and specified_total < 1:
+            remaining_proportion = (1 - specified_total) / len(unspecified_cats)
+            class_distribution = {cat: class_distribution.get(cat, remaining_proportion) for cat in categories}
 
-    # Calculate count for each class
+    # Calculate count for each class using Largest Remainder Method
+    # This ensures fair distribution with at most 1 difference between categories
     class_counts = {}
-    remaining = num_jobs
+    remainders = {}
 
-    # Allocate jobs to first 8 categories
-    for cat in categories[:-1]:
-        class_counts[cat] = int(num_jobs * class_distribution.get(cat, 1/9))
-        remaining -= class_counts[cat]
+    # Step 1: Calculate expected values and allocate floor
+    total_allocated = 0
+    for cat in categories:
+        expected = num_jobs * class_distribution.get(cat, 0)
+        floor_val = int(expected)
+        class_counts[cat] = floor_val
+        remainders[cat] = expected - floor_val
+        total_allocated += floor_val
 
-    # Allocate remaining to last category (ensures total is exactly num_jobs)
-    class_counts[categories[-1]] = remaining
+    # Step 2: Distribute remaining slots to categories with largest remainders
+    remaining = num_jobs - total_allocated
+    if remaining > 0:
+        sorted_cats = sorted(remainders.keys(), key=lambda x: remainders[x], reverse=True)
+        for i in range(remaining):
+            class_counts[sorted_cats[i]] += 1
 
     # Sample from each category
     emotions_arousal_valence = []

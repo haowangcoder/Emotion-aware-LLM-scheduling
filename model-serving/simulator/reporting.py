@@ -166,7 +166,7 @@ def save_results(
     metadata["num_jobs"] = run_metrics["total_jobs"]
     metadata["arrival_rate"] = arrival_rate
     metadata["run_metrics"] = run_metrics
-    if config.scheduler.algorithm == "SSJF-Valence":
+    if config.scheduler.algorithm in ("SSJF-Valence", "SSJF-Combined"):
         metadata["valence_beta"] = config.scheduler.valence_priority.beta
 
     # Add percentile throughput to metrics

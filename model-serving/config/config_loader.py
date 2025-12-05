@@ -38,11 +38,7 @@ class EmotionConfig:
     arousal_noise_std: float = 0.0
     enable_emotion_aware: bool = True
     use_stratified_sampling: bool = True
-    class_distribution: dict = field(default_factory=lambda: {
-        'high': 0.33,
-        'medium': 0.34,
-        'low': 0.33
-    })
+    class_distribution: str = 'uniform'  # 'uniform' or dict with 9-class distribution
 
 
 @dataclass
