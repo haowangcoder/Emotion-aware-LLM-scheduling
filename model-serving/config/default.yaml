@@ -11,7 +11,7 @@ workload:
   # Service Time Mapping Parameters
   # Formula: S_i = base_service_time * (1 + alpha * arousal_i)
   service_time:
-    base_service_time: 2.0      # L_0: Base service time when arousal = 0 (seconds)
+    base_service_time: 1.1      # L_0: Base service time when arousal = 0 (seconds)
     alpha: 0.8                   # α: Sensitivity coefficient for arousal impact
                                  # NOTE: Same alpha used for both service time prediction
                                  # and LLM response length generation (synchronized)
@@ -62,7 +62,7 @@ llm:
     # Formula: L_i = base_response_length * (1 + alpha * arousal_i)
     emotion_length_control:
       enabled: true              # Enable emotion-based response length control
-      base_response_length: 100  # L_0: Base response length in tokens
+      base_response_length: 64  # L_0: Base response length in tokens
       # Note: Uses same alpha (0.5) from workload.service_time.alpha
 
   # Response Caching

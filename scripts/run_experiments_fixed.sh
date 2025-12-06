@@ -22,7 +22,7 @@ RANDOM_SEED=42
 SCHEDULERS=("FCFS" "SSJF-Emotion" "SSJF-Valence" "SSJF-Combined")
 
 # Parameter sweeps
-SYSTEM_LOADS=(1.2)
+SYSTEM_LOADS=(0.9)
 # ALPHAS=(1.5)
 # SYSTEM_LOADS=(0.8 1.0 1.2 1.5)  # Uncomment for load sweep
 

@@ -2,15 +2,15 @@
   "metadata": {
     "experiment_mode": "fixed_jobs",
     "num_jobs": 54,
-    "arrival_rate": 0.45,
+    "arrival_rate": 0.8181818181818181,
     "system_load": 0.9,
     "random_seed": 42,
-    "base_service_time": 2.0,
+    "base_service_time": 1.1,
     "alpha": 0.8,
     "emotion_correlation": 1.0,
     "enable_emotion_aware": true,
     "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
-    "created_at": "2025-12-05T23:16:08.223637",
+    "created_at": "2025-12-06T21:37:48.279571",
     "version": "1.0"
   },
   "jobs": [
@@ -21,8 +21,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 114,
-      "arrival_time": 1.0428179777263535,
-      "service_time": 0.7199999999999998
+      "arrival_time": 0.5735498877494944,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 1,
@@ -31,8 +31,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 25,
-      "arrival_time": 7.731976713098623,
-      "service_time": 0.7199999999999998
+      "arrival_time": 4.252587192204243,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 2,
@@ -41,8 +41,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 281,
-      "arrival_time": 10.658078254310734,
-      "service_time": 0.7199999999999998
+      "arrival_time": 5.861943039870903,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 3,
@@ -51,8 +51,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 250,
-      "arrival_time": 12.686839484923963,
-      "service_time": 0.7199999999999998
+      "arrival_time": 6.977761716708179,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 4,
@@ -61,8 +61,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 228,
-      "arrival_time": 13.063783641506955,
-      "service_time": 3.2800000000000002
+      "arrival_time": 7.185081002828825,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 5,
@@ -71,8 +71,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 142,
-      "arrival_time": 13.440664290206078,
-      "service_time": 2.0
+      "arrival_time": 7.392365359613342,
+      "service_time": 1.1
     },
     {
       "job_id": 6,
@@ -81,8 +81,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 104,
-      "arrival_time": 13.573639331558702,
-      "service_time": 3.2800000000000002
+      "arrival_time": 7.4655016323572845,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 7,
@@ -91,8 +91,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 558,
-      "arrival_time": 18.043041252625237,
-      "service_time": 0.7199999999999998
+      "arrival_time": 9.923672688943878,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 8,
@@ -101,8 +101,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 89,
-      "arrival_time": 20.0854460384636,
-      "service_time": 3.2800000000000002
+      "arrival_time": 11.046995321154979,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 9,
@@ -111,8 +111,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 604,
-      "arrival_time": 22.821557286696024,
-      "service_time": 0.7199999999999998
+      "arrival_time": 12.551856507682812,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 10,
@@ -121,8 +121,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 432,
-      "arrival_time": 22.867777971138555,
-      "service_time": 2.0
+      "arrival_time": 12.577277884126204,
+      "service_time": 1.1
     },
     {
       "job_id": 11,
@@ -131,8 +131,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 32,
-      "arrival_time": 30.653461249268137,
-      "service_time": 0.7199999999999998
+      "arrival_time": 16.859403687097476,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 12,
@@ -141,8 +141,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 30,
-      "arrival_time": 34.62330467894519,
-      "service_time": 3.2800000000000002
+      "arrival_time": 19.042817573419857,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 13,
@@ -151,8 +151,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 191,
-      "arrival_time": 35.15372162394285,
-      "service_time": 3.2800000000000002
+      "arrival_time": 19.33454689316857,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 14,
@@ -161,8 +161,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 223,
-      "arrival_time": 35.599674932275434,
-      "service_time": 2.0
+      "arrival_time": 19.579821212751494,
+      "service_time": 1.1
     },
     {
       "job_id": 15,
@@ -171,8 +171,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 238,
-      "arrival_time": 36.04992253856934,
-      "service_time": 2.0
+      "arrival_time": 19.82745739621314,
+      "service_time": 1.1
     },
     {
       "job_id": 16,
@@ -181,8 +181,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 517,
-      "arrival_time": 36.8560419373704,
-      "service_time": 2.0
+      "arrival_time": 20.270823065553724,
+      "service_time": 1.1
     },
     {
       "job_id": 17,
@@ -191,8 +191,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 27,
-      "arrival_time": 38.50921489483896,
-      "service_time": 0.7199999999999998
+      "arrival_time": 21.180068192161436,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 18,
@@ -201,8 +201,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 574,
-      "arrival_time": 39.7659639321286,
-      "service_time": 3.2800000000000002
+      "arrival_time": 21.871280162670736,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 19,
@@ -211,8 +211,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 203,
-      "arrival_time": 40.5309039155818,
-      "service_time": 3.2800000000000002
+      "arrival_time": 22.291997153569998,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 20,
@@ -221,8 +221,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 558,
-      "arrival_time": 42.6339503020258,
-      "service_time": 2.0
+      "arrival_time": 23.448672666114195,
+      "service_time": 1.1
     },
     {
       "job_id": 21,
@@ -231,8 +231,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 429,
-      "arrival_time": 42.96780481030878,
-      "service_time": 2.0
+      "arrival_time": 23.632292645669832,
+      "service_time": 1.1
     },
     {
       "job_id": 22,
@@ -241,8 +241,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 225,
-      "arrival_time": 43.73561705920301,
-      "service_time": 3.2800000000000002
+      "arrival_time": 24.054589382561655,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 23,
@@ -251,8 +251,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 919,
-      "arrival_time": 44.74956643302711,
-      "service_time": 3.2800000000000002
+      "arrival_time": 24.612261538164912,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 24,
@@ -261,8 +261,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 603,
-      "arrival_time": 46.10275462827106,
-      "service_time": 2.0
+      "arrival_time": 25.35651504554908,
+      "service_time": 1.1
     },
     {
       "job_id": 25,
@@ -271,8 +271,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 284,
-      "arrival_time": 49.52039020833975,
-      "service_time": 3.2800000000000002
+      "arrival_time": 27.236214614586864,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 26,
@@ -281,8 +281,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 6,
-      "arrival_time": 50.01535879084795,
-      "service_time": 0.7199999999999998
+      "arrival_time": 27.508447334966373,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 27,
@@ -291,8 +291,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 163,
-      "arrival_time": 51.6198680242549,
-      "service_time": 0.7199999999999998
+      "arrival_time": 28.390927413340197,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 28,
@@ -301,8 +301,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 714,
-      "arrival_time": 53.61432296049881,
-      "service_time": 0.7199999999999998
+      "arrival_time": 29.487877628274347,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 29,
@@ -311,8 +311,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 432,
-      "arrival_time": 53.72002040440194,
-      "service_time": 2.0
+      "arrival_time": 29.54601122242107,
+      "service_time": 1.1
     },
     {
       "job_id": 30,
@@ -321,8 +321,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 348,
-      "arrival_time": 55.79853822806774,
-      "service_time": 0.7199999999999998
+      "arrival_time": 30.68919602543726,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 31,
@@ -331,8 +331,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 284,
-      "arrival_time": 56.21400767690645,
-      "service_time": 2.0
+      "arrival_time": 30.917704222298546,
+      "service_time": 1.1
     },
     {
       "job_id": 32,
@@ -341,8 +341,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 159,
-      "arrival_time": 56.363483078860455,
-      "service_time": 3.2800000000000002
+      "arrival_time": 30.99991569337325,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 33,
@@ -351,8 +351,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 220,
-      "arrival_time": 62.97167817554252,
-      "service_time": 0.7199999999999998
+      "arrival_time": 34.63442299654839,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 34,
@@ -361,8 +361,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 344,
-      "arrival_time": 70.46196782545624,
-      "service_time": 3.2800000000000002
+      "arrival_time": 38.75408230400093,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 35,
@@ -371,8 +371,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 104,
-      "arrival_time": 74.13381576504041,
-      "service_time": 3.2800000000000002
+      "arrival_time": 40.77359867077222,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 36,
@@ -381,8 +381,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 94,
-      "arrival_time": 74.94112212052654,
-      "service_time": 0.7199999999999998
+      "arrival_time": 41.21761716628959,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 37,
@@ -391,8 +391,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 389,
-      "arrival_time": 75.16951615386544,
-      "service_time": 3.2800000000000002
+      "arrival_time": 41.34323388462599,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 38,
@@ -401,8 +401,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 99,
-      "arrival_time": 77.73118451630691,
-      "service_time": 0.7199999999999998
+      "arrival_time": 42.752151483968795,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 39,
@@ -411,8 +411,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 367,
-      "arrival_time": 79.0202752776078,
-      "service_time": 2.0
+      "arrival_time": 43.46115140268428,
+      "service_time": 1.1
     },
     {
       "job_id": 40,
@@ -421,8 +421,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 352,
-      "arrival_time": 79.30950246417324,
-      "service_time": 2.0
+      "arrival_time": 43.62022635529527,
+      "service_time": 1.1
     },
     {
       "job_id": 41,
@@ -431,8 +431,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 618,
-      "arrival_time": 80.82849630447134,
-      "service_time": 0.7199999999999998
+      "arrival_time": 44.455672967459236,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 42,
@@ -441,8 +441,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 270,
-      "arrival_time": 80.9062601299013,
-      "service_time": 2.0
+      "arrival_time": 44.49844307144571,
+      "service_time": 1.1
     },
     {
       "job_id": 43,
@@ -451,8 +451,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 44,
-      "arrival_time": 86.24053321299691,
-      "service_time": 0.7199999999999998
+      "arrival_time": 47.432293267148296,
+      "service_time": 0.3959999999999999
     },
     {
       "job_id": 44,
@@ -461,8 +461,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 470,
-      "arrival_time": 86.90599493930955,
-      "service_time": 2.0
+      "arrival_time": 47.79829721662025,
+      "service_time": 1.1
     },
     {
       "job_id": 45,
@@ -471,8 +471,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 549,
-      "arrival_time": 89.3198967138984,
-      "service_time": 2.0
+      "arrival_time": 49.125943192644115,
+      "service_time": 1.1
     },
     {
       "job_id": 46,
@@ -481,8 +481,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 127,
-      "arrival_time": 90.15000022869312,
-      "service_time": 2.0
+      "arrival_time": 49.58250012578121,
+      "service_time": 1.1
     },
     {
       "job_id": 47,
@@ -491,8 +491,8 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 387,
-      "arrival_time": 91.78135777515807,
-      "service_time": 2.0
+      "arrival_time": 50.47974677633693,
+      "service_time": 1.1
     },
     {
       "job_id": 48,
@@ -501,8 +501,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 80,
-      "arrival_time": 93.53963288178429,
-      "service_time": 3.2800000000000002
+      "arrival_time": 51.44679808498135,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 49,
@@ -511,8 +511,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 1130,
-      "arrival_time": 93.99382976957963,
-      "service_time": 3.2800000000000002
+      "arrival_time": 51.69660637326879,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 50,
@@ -521,8 +521,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 300,
-      "arrival_time": 101.75562339788236,
-      "service_time": 3.2800000000000002
+      "arrival_time": 55.965592868835294,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 51,
@@ -531,8 +531,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 643,
-      "arrival_time": 105.07172423596711,
-      "service_time": 3.2800000000000002
+      "arrival_time": 57.78944832978191,
+      "service_time": 1.8040000000000003
     },
     {
       "job_id": 52,
@@ -541,8 +541,8 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 370,
-      "arrival_time": 111.3052673899484,
-      "service_time": 2.0
+      "arrival_time": 61.21789706447162,
+      "service_time": 1.1
     },
     {
       "job_id": 53,
@@ -551,8 +551,8 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 591,
-      "arrival_time": 116.31004960669105,
-      "service_time": 0.7199999999999998
+      "arrival_time": 63.970527283680084,
+      "service_time": 0.3959999999999999
     }
   ]
 }
