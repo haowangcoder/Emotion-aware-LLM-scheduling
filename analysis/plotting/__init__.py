@@ -14,7 +14,12 @@ Usage:
 """
 
 from .constants import COLORS, MARKERS, SCHEDULER_ORDER, AROUSAL_ORDER, VALENCE_ORDER
-from .data_loader import load_aggregated_results, load_job_csvs, load_single_summaries
+from .data_loader import (
+    load_aggregated_results,
+    load_job_csvs,
+    load_single_summaries,
+    load_starvation_sweep_results
+)
 from .utils import setup_publication_style, save_figure
 from .main import (
     generate_forest_plots,
@@ -23,6 +28,7 @@ from .main import (
     generate_group_analysis_plots,
     generate_calibration_plots,
     generate_all_publication_plots,
+    generate_starvation_sweep_plots,
 )
 
 __all__ = [
@@ -36,6 +42,7 @@ __all__ = [
     'load_aggregated_results',
     'load_job_csvs',
     'load_single_summaries',
+    'load_starvation_sweep_results',
     # Utils
     'setup_publication_style',
     'save_figure',
@@ -46,4 +53,5 @@ __all__ = [
     'generate_group_analysis_plots',
     'generate_calibration_plots',
     'generate_all_publication_plots',
+    'generate_starvation_sweep_plots',
 ]

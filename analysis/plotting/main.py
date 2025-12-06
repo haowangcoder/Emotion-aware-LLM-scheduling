@@ -26,6 +26,8 @@ from .plots import (  # noqa: F401 - subpackage exports
     # Pareto
     generate_pareto_plots,
     plot_pareto_tradeoff,
+    plot_starvation_pareto,
+    generate_starvation_sweep_plots,
     # Slopegraph
     generate_group_analysis_plots,
     plot_slopegraph_arousal,
@@ -38,7 +40,12 @@ from .plots import (  # noqa: F401 - subpackage exports
     plot_error_distribution,
 )
 from .utils import setup_publication_style
-from .data_loader import load_aggregated_results, load_job_csvs, load_single_summaries
+from .data_loader import (
+    load_aggregated_results,
+    load_job_csvs,
+    load_single_summaries,
+    load_starvation_sweep_results
+)
 
 
 def generate_all_publication_plots(aggregated_path: str, runs_dir: str,
@@ -115,6 +122,8 @@ __all__ = [
     # Pareto
     'generate_pareto_plots',
     'plot_pareto_tradeoff',
+    'plot_starvation_pareto',
+    'generate_starvation_sweep_plots',
     # Slopegraph
     'generate_group_analysis_plots',
     'plot_slopegraph_arousal',

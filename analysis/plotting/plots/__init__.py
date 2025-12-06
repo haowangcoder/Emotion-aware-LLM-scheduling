@@ -11,7 +11,12 @@ Contains specialized modules for each plot category:
 
 from .forest import generate_forest_plots, plot_forest_metric, plot_forest_delta_vs_baseline
 from .distribution import generate_distribution_plots, plot_ecdf, plot_ccdf_log
-from .pareto import generate_pareto_plots, plot_pareto_tradeoff
+from .pareto import (
+    generate_pareto_plots,
+    plot_pareto_tradeoff,
+    plot_starvation_pareto,
+    generate_starvation_sweep_plots
+)
 from .slopegraph import (
     generate_group_analysis_plots,
     plot_slopegraph_arousal,
@@ -37,6 +42,8 @@ __all__ = [
     # Pareto
     'generate_pareto_plots',
     'plot_pareto_tradeoff',
+    'plot_starvation_pareto',
+    'generate_starvation_sweep_plots',
     # Slopegraph
     'generate_group_analysis_plots',
     'plot_slopegraph_arousal',

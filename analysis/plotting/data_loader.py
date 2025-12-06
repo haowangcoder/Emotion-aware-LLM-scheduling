@@ -77,3 +77,89 @@ def load_single_summaries(runs_dir: str) -> Dict[str, dict]:
                 break
 
     return summaries
+
+
+def load_starvation_sweep_results(sweep_dir: str) -> dict:
+    """
+    Load starvation coefficient sweep results.
+
+    Expected directory structure:
+        sweep_dir/
+        ├── baseline/           # FCFS baseline
+        │   └── FCFS_*_summary.json
+        ├── coeff_2/
+        │   ├── SSJF-Emotion_*_summary.json
+        │   └── SSJF-Combined_*_summary.json
+        ├── coeff_5/
+        └── ...
+
+    Args:
+        sweep_dir: Root directory of starvation sweep results
+
+    Returns:
+        Dict with structure:
+        {
+            'baseline': {'p99': float, 'jain': float, 'avg_wait': float},
+            'schedulers': {
+                'SSJF-Emotion': {
+                    2: {'p99': float, 'jain': float, 'avg_wait': float},
+                    5: {...},
+                    ...
+                },
+                ...
+            },
+            'coefficients': [2, 5, 10, 20]
+        }
+    """
+    sweep_dir = Path(sweep_dir)
+    result = {
+        'baseline': None,
+        'schedulers': {},
+        'coefficients': []
+    }
+
+    # Load baseline (FCFS)
+    baseline_dir = sweep_dir / 'baseline'
+    if baseline_dir.exists():
+        for json_path in baseline_dir.glob('*_summary.json'):
+            if json_path.stem.startswith('FCFS'):
+                with open(json_path, 'r') as f:
+                    data = json.load(f)
+                result['baseline'] = {
+                    'p99': data['overall_metrics']['p99_waiting_time'],
+                    'jain': data['fairness_analysis']['waiting_time_fairness']['jain_index'],
+                    'avg_wait': data['overall_metrics']['avg_waiting_time']
+                }
+                break
+
+    # Load coefficient sweep results
+    coeff_dirs = sorted(sweep_dir.glob('coeff_*'))
+    for coeff_dir in coeff_dirs:
+        # Extract coefficient value from directory name
+        coeff_str = coeff_dir.name.replace('coeff_', '')
+        try:
+            coeff = int(coeff_str)
+        except ValueError:
+            continue
+
+        result['coefficients'].append(coeff)
+
+        # Load each scheduler's results for this coefficient
+        for json_path in coeff_dir.glob('*_summary.json'):
+            name = json_path.stem
+            for sched in SCHEDULER_ORDER:
+                if name.startswith(sched) and sched != 'FCFS':
+                    with open(json_path, 'r') as f:
+                        data = json.load(f)
+
+                    if sched not in result['schedulers']:
+                        result['schedulers'][sched] = {}
+
+                    result['schedulers'][sched][coeff] = {
+                        'p99': data['overall_metrics']['p99_waiting_time'],
+                        'jain': data['fairness_analysis']['waiting_time_fairness']['jain_index'],
+                        'avg_wait': data['overall_metrics']['avg_waiting_time']
+                    }
+                    break
+
+    return result

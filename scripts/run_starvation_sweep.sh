@@ -17,7 +17,7 @@ set -e  # Exit on error
 BASE_OUTPUT_DIR="results/starvation_sweep"
 MODE="fixed_jobs"
 NUM_JOBS=54
-SYSTEM_LOAD=1.2
+SYSTEM_LOAD=0.9
 RANDOM_SEED=42
 
 # Schedulers that use starvation prevention
@@ -106,59 +106,56 @@ echo "========================================================================"
 echo "  Generating Starvation Trade-off Analysis"
 echo "========================================================================"
 
-# Create a Python script to analyze and plot the trade-offs
-python3 << 'EOF'
-import json
-import os
-from pathlib import Path
+# Generate Pareto tradeoff plot using the plotting module
+uv run python -c "
+import sys
+sys.path.insert(0, 'analysis')
+from plotting import load_starvation_sweep_results, generate_starvation_sweep_plots
+from plotting.utils import setup_publication_style
 
-base_dir = Path("results/starvation_sweep")
-coefficients = [2, 5, 10, 20]
-schedulers = ["SSJF-Emotion", "SSJF-Combined"]
+setup_publication_style(dpi=300)
 
-print("\n" + "=" * 80)
-print("Starvation Coefficient Trade-off Analysis")
-print("=" * 80)
+sweep_data = load_starvation_sweep_results('results/starvation_sweep')
 
-# Load baseline
-baseline_file = base_dir / "baseline" / "FCFS_54jobs_load1.20_fixed_summary.json"
-if baseline_file.exists():
-    with open(baseline_file) as f:
-        baseline = json.load(f)
-    print(f"\nBaseline (FCFS):")
-    print(f"  Avg Wait: {baseline['overall_metrics']['avg_waiting_time']:.2f}s")
-    print(f"  P99 Wait: {baseline['overall_metrics']['p99_waiting_time']:.2f}s")
-    jain = baseline['fairness_analysis']['waiting_time_fairness']['jain_index']
-    print(f"  Jain Index: {jain:.4f}")
+# Print summary table
+print()
+print('=' * 80)
+print('Starvation Coefficient Trade-off Analysis')
+print('=' * 80)
 
-print("\n" + "-" * 80)
-print(f"{'Scheduler':<15} {'Coeff':<8} {'Avg Wait':<12} {'P99 Wait':<12} {'Jain Index':<12}")
-print("-" * 80)
+if sweep_data['baseline']:
+    b = sweep_data['baseline']
+    print(f\"\\nBaseline (FCFS):\")
+    print(f\"  Avg Wait: {b['avg_wait']:.2f}s\")
+    print(f\"  P99 Wait: {b['p99']:.2f}s\")
+    print(f\"  Jain Index: {b['jain']:.4f}\")
 
-for scheduler in schedulers:
-    for coeff in coefficients:
-        coeff_dir = base_dir / f"coeff_{coeff}"
-        # Construct expected filename
-        summary_file = coeff_dir / f"{scheduler}_54jobs_load1.20_fixed_summary.json"
+print()
+print('-' * 80)
+print(f\"{'Scheduler':<15} {'Coeff':<8} {'Avg Wait':<12} {'P99 Wait':<12} {'Jain Index':<12}\")
+print('-' * 80)
 
-        if summary_file.exists():
-            with open(summary_file) as f:
-                data = json.load(f)
+for sched, coeff_data in sweep_data['schedulers'].items():
+    for coeff in sorted(coeff_data.keys()):
+        d = coeff_data[coeff]
+        print(f\"{sched:<15} {coeff:<8} {d['avg_wait']:<12.2f} {d['p99']:<12.2f} {d['jain']:<12.4f}\")
 
-            avg_wait = data['overall_metrics']['avg_waiting_time']
-            p99_wait = data['overall_metrics']['p99_waiting_time']
-            jain = data['fairness_analysis']['waiting_time_fairness']['jain_index']
+print('-' * 80)
+print()
+print('Analysis:')
+print('- Lower coefficient = more aggressive starvation prevention = higher fairness')
+print('- Higher coefficient = more lenient = better average performance, worse tail latency')
+print('=' * 80)
 
-            print(f"{scheduler:<15} {coeff:<8} {avg_wait:<12.2f} {p99_wait:<12.2f} {jain:<12.4f}")
-        else:
-            print(f"{scheduler:<15} {coeff:<8} {'N/A':<12} {'N/A':<12} {'N/A':<12}")
-
-print("-" * 80)
-print("\nAnalysis:")
-print("- Lower coefficient = more aggressive starvation prevention = higher fairness")
-print("- Higher coefficient = more lenient = better average performance, worse tail latency")
-print("=" * 80)
-EOF
+# Generate Pareto plot
+generate_starvation_sweep_plots(
+    sweep_data,
+    'results/starvation_sweep/plots',
+    formats=['pdf', 'png']
+)
+print()
+print('Pareto plot saved to: results/starvation_sweep/plots/')
+"
 
 # ============================================================================
 # COMPLETION
