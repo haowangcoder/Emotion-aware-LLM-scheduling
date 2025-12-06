@@ -2,15 +2,15 @@
   "metadata": {
     "experiment_mode": "fixed_jobs",
     "num_jobs": 54,
-    "arrival_rate": 0.6,
-    "system_load": 1.2,
+    "arrival_rate": 0.45,
+    "system_load": 0.9,
     "random_seed": 42,
     "base_service_time": 2.0,
     "alpha": 0.8,
     "emotion_correlation": 1.0,
     "enable_emotion_aware": true,
     "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
-    "created_at": "2025-12-05T11:14:39.805553",
+    "created_at": "2025-12-05T23:16:08.223637",
     "version": "1.0"
   },
   "jobs": [
@@ -21,7 +21,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 114,
-      "arrival_time": 0.7821134832947652,
+      "arrival_time": 1.0428179777263535,
       "service_time": 0.7199999999999998
     },
     {
@@ -31,7 +31,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 25,
-      "arrival_time": 5.798982534823967,
+      "arrival_time": 7.731976713098623,
       "service_time": 0.7199999999999998
     },
     {
@@ -41,7 +41,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 281,
-      "arrival_time": 7.99355869073305,
+      "arrival_time": 10.658078254310734,
       "service_time": 0.7199999999999998
     },
     {
@@ -51,7 +51,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 250,
-      "arrival_time": 9.515129613692972,
+      "arrival_time": 12.686839484923963,
       "service_time": 0.7199999999999998
     },
     {
@@ -61,7 +61,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 228,
-      "arrival_time": 9.797837731130215,
+      "arrival_time": 13.063783641506955,
       "service_time": 3.2800000000000002
     },
     {
@@ -71,7 +71,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 142,
-      "arrival_time": 10.080498217654558,
+      "arrival_time": 13.440664290206078,
       "service_time": 2.0
     },
     {
@@ -81,7 +81,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 104,
-      "arrival_time": 10.180229498669025,
+      "arrival_time": 13.573639331558702,
       "service_time": 3.2800000000000002
     },
     {
@@ -91,7 +91,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 558,
-      "arrival_time": 13.532280939468924,
+      "arrival_time": 18.043041252625237,
       "service_time": 0.7199999999999998
     },
     {
@@ -101,7 +101,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 89,
-      "arrival_time": 15.064084528847697,
+      "arrival_time": 20.0854460384636,
       "service_time": 3.2800000000000002
     },
     {
@@ -111,7 +111,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 604,
-      "arrival_time": 17.116167965022015,
+      "arrival_time": 22.821557286696024,
       "service_time": 0.7199999999999998
     },
     {
@@ -121,7 +121,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 432,
-      "arrival_time": 17.150833478353913,
+      "arrival_time": 22.867777971138555,
       "service_time": 2.0
     },
     {
@@ -131,7 +131,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 32,
-      "arrival_time": 22.9900959369511,
+      "arrival_time": 30.653461249268137,
       "service_time": 0.7199999999999998
     },
     {
@@ -141,7 +141,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 30,
-      "arrival_time": 25.967478509208892,
+      "arrival_time": 34.62330467894519,
       "service_time": 3.2800000000000002
     },
     {
@@ -151,7 +151,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 191,
-      "arrival_time": 26.365291217957136,
+      "arrival_time": 35.15372162394285,
       "service_time": 3.2800000000000002
     },
     {
@@ -161,7 +161,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 223,
-      "arrival_time": 26.699756199206576,
+      "arrival_time": 35.599674932275434,
       "service_time": 2.0
     },
     {
@@ -171,7 +171,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 238,
-      "arrival_time": 27.037441903927004,
+      "arrival_time": 36.04992253856934,
       "service_time": 2.0
     },
     {
@@ -181,7 +181,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 517,
-      "arrival_time": 27.642031453027798,
+      "arrival_time": 36.8560419373704,
       "service_time": 2.0
     },
     {
@@ -191,7 +191,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 27,
-      "arrival_time": 28.88191117112922,
+      "arrival_time": 38.50921489483896,
       "service_time": 0.7199999999999998
     },
     {
@@ -201,7 +201,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 574,
-      "arrival_time": 29.82447294909645,
+      "arrival_time": 39.7659639321286,
       "service_time": 3.2800000000000002
     },
     {
@@ -211,7 +211,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 203,
-      "arrival_time": 30.398177936686352,
+      "arrival_time": 40.5309039155818,
       "service_time": 3.2800000000000002
     },
     {
@@ -221,7 +221,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 558,
-      "arrival_time": 31.97546272651935,
+      "arrival_time": 42.6339503020258,
       "service_time": 2.0
     },
     {
@@ -231,7 +231,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 429,
-      "arrival_time": 32.22585360773158,
+      "arrival_time": 42.96780481030878,
       "service_time": 2.0
     },
     {
@@ -241,7 +241,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 225,
-      "arrival_time": 32.80171279440225,
+      "arrival_time": 43.73561705920301,
       "service_time": 3.2800000000000002
     },
     {
@@ -251,7 +251,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 919,
-      "arrival_time": 33.56217482477033,
+      "arrival_time": 44.74956643302711,
       "service_time": 3.2800000000000002
     },
     {
@@ -261,7 +261,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 603,
-      "arrival_time": 34.57706597120329,
+      "arrival_time": 46.10275462827106,
       "service_time": 2.0
     },
     {
@@ -271,7 +271,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 284,
-      "arrival_time": 37.14029265625481,
+      "arrival_time": 49.52039020833975,
       "service_time": 3.2800000000000002
     },
     {
@@ -281,7 +281,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 6,
-      "arrival_time": 37.51151909313596,
+      "arrival_time": 50.01535879084795,
       "service_time": 0.7199999999999998
     },
     {
@@ -291,7 +291,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 163,
-      "arrival_time": 38.71490101819117,
+      "arrival_time": 51.6198680242549,
       "service_time": 0.7199999999999998
     },
     {
@@ -301,7 +301,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 714,
-      "arrival_time": 40.21074222037411,
+      "arrival_time": 53.61432296049881,
       "service_time": 0.7199999999999998
     },
     {
@@ -311,7 +311,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 432,
-      "arrival_time": 40.29001530330146,
+      "arrival_time": 53.72002040440194,
       "service_time": 2.0
     },
     {
@@ -321,7 +321,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 348,
-      "arrival_time": 41.848903671050806,
+      "arrival_time": 55.79853822806774,
       "service_time": 0.7199999999999998
     },
     {
@@ -331,7 +331,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 284,
-      "arrival_time": 42.160505757679836,
+      "arrival_time": 56.21400767690645,
       "service_time": 2.0
     },
     {
@@ -341,7 +341,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 159,
-      "arrival_time": 42.272612309145345,
+      "arrival_time": 56.363483078860455,
       "service_time": 3.2800000000000002
     },
     {
@@ -351,7 +351,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 220,
-      "arrival_time": 47.228758631656895,
+      "arrival_time": 62.97167817554252,
       "service_time": 0.7199999999999998
     },
     {
@@ -361,7 +361,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 344,
-      "arrival_time": 52.84647586909218,
+      "arrival_time": 70.46196782545624,
       "service_time": 3.2800000000000002
     },
     {
@@ -371,7 +371,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 104,
-      "arrival_time": 55.60036182378031,
+      "arrival_time": 74.13381576504041,
       "service_time": 3.2800000000000002
     },
     {
@@ -381,7 +381,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 94,
-      "arrival_time": 56.20584159039491,
+      "arrival_time": 74.94112212052654,
       "service_time": 0.7199999999999998
     },
     {
@@ -391,7 +391,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 389,
-      "arrival_time": 56.37713711539909,
+      "arrival_time": 75.16951615386544,
       "service_time": 3.2800000000000002
     },
     {
@@ -401,7 +401,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 99,
-      "arrival_time": 58.29838838723019,
+      "arrival_time": 77.73118451630691,
       "service_time": 0.7199999999999998
     },
     {
@@ -411,7 +411,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 367,
-      "arrival_time": 59.26520645820585,
+      "arrival_time": 79.0202752776078,
       "service_time": 2.0
     },
     {
@@ -421,7 +421,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 352,
-      "arrival_time": 59.48212684812994,
+      "arrival_time": 79.30950246417324,
       "service_time": 2.0
     },
     {
@@ -431,7 +431,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 618,
-      "arrival_time": 60.62137222835352,
+      "arrival_time": 80.82849630447134,
       "service_time": 0.7199999999999998
     },
     {
@@ -441,7 +441,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 270,
-      "arrival_time": 60.679695097425984,
+      "arrival_time": 80.9062601299013,
       "service_time": 2.0
     },
     {
@@ -451,7 +451,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 44,
-      "arrival_time": 64.68039990974769,
+      "arrival_time": 86.24053321299691,
       "service_time": 0.7199999999999998
     },
     {
@@ -461,7 +461,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 470,
-      "arrival_time": 65.17949620448216,
+      "arrival_time": 86.90599493930955,
       "service_time": 2.0
     },
     {
@@ -471,7 +471,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 549,
-      "arrival_time": 66.9899225354238,
+      "arrival_time": 89.3198967138984,
       "service_time": 2.0
     },
     {
@@ -481,7 +481,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 127,
-      "arrival_time": 67.61250017151984,
+      "arrival_time": 90.15000022869312,
       "service_time": 2.0
     },
     {
@@ -491,7 +491,7 @@
       "valence": -0.8,
       "valence_class": "negative",
       "conversation_index": 387,
-      "arrival_time": 68.83601833136855,
+      "arrival_time": 91.78135777515807,
       "service_time": 2.0
     },
     {
@@ -501,7 +501,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 80,
-      "arrival_time": 70.15472466133821,
+      "arrival_time": 93.53963288178429,
       "service_time": 3.2800000000000002
     },
     {
@@ -511,7 +511,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 1130,
-      "arrival_time": 70.49537232718471,
+      "arrival_time": 93.99382976957963,
       "service_time": 3.2800000000000002
     },
     {
@@ -521,7 +521,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 300,
-      "arrival_time": 76.31671754841176,
+      "arrival_time": 101.75562339788236,
       "service_time": 3.2800000000000002
     },
     {
@@ -531,7 +531,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 643,
-      "arrival_time": 78.80379317697533,
+      "arrival_time": 105.07172423596711,
       "service_time": 3.2800000000000002
     },
     {
@@ -541,7 +541,7 @@
       "valence": 0.0,
       "valence_class": "neutral",
       "conversation_index": 370,
-      "arrival_time": 83.4789505424613,
+      "arrival_time": 111.3052673899484,
       "service_time": 2.0
     },
     {
@@ -551,7 +551,7 @@
       "valence": 0.8,
       "valence_class": "positive",
       "conversation_index": 591,
-      "arrival_time": 87.2325372050183,
+      "arrival_time": 116.31004960669105,
       "service_time": 0.7199999999999998
     }
   ]
