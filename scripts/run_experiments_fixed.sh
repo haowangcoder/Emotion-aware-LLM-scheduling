@@ -12,17 +12,8 @@
 set -e  # Exit on error
 
 # ============================================================================
-# CLEANUP
-# ============================================================================
-echo "Cleaning up cache and previous results..."
-rm -rf results/cache/
-rm -rf results/llm_runs_time*/cache/
-
-
-# ============================================================================
 # CONFIGURATION
 # ============================================================================
-OUTPUT_DIR="results/llm_runs"
 MODE="fixed_jobs"
 NUM_JOBS=54
 RANDOM_SEED=42
@@ -35,9 +26,15 @@ SYSTEM_LOADS=(1.2)
 # ALPHAS=(1.5)
 # SYSTEM_LOADS=(0.8 1.0 1.2 1.5)  # Uncomment for load sweep
 
-# Update OUTPUT_DIR
-OUTPUT_DIR="${OUTPUT_DIR}_job${NUM_JOBS}_load${SYSTEM_LOADS}"
+# Output directory
+OUTPUT_DIR="results/llm_runs_job${NUM_JOBS}_load${SYSTEM_LOADS}"
 echo "OUTPUT_DIR = $OUTPUT_DIR"
+
+# ============================================================================
+# CLEANUP
+# ============================================================================
+echo "Cleaning up cache for ${OUTPUT_DIR}..."
+rm -rf "${OUTPUT_DIR}/cache/"
 
 # ============================================================================
 # EXPERIMENT INFO
@@ -63,11 +60,11 @@ for load in "${SYSTEM_LOADS[@]}"; do
     echo ">>> Running $scheduler ..."
 
     if [[ "$scheduler" == "FCFS" ]]; then
-      # 第一个：强制生成一批新的 trace，并写入 job_configs.json
+      # First: Force the generation of a new batch of traces and write them into job_configs.json.
       sed -i 's/force_new_job_config:.*/force_new_job_config: true/'  model-serving/config/default.yaml
       sed -i 's/use_saved_job_config:.*/use_saved_job_config: false/' model-serving/config/default.yaml
     else
-      # 第二个：严格复用刚刚生成的 trace（绝不再采样）
+      # Second: Strictly reuse the trace just generated (never resample)
       sed -i 's/force_new_job_config:.*/force_new_job_config: false/' model-serving/config/default.yaml
       sed -i 's/use_saved_job_config:.*/use_saved_job_config: true/'  model-serving/config/default.yaml
     fi
