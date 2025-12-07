@@ -358,6 +358,58 @@ def generate_job_trace(
 
 
 
+def shuffle_job_trace_arousal(trace_data, random_seed: int = None):
+    """
+    Shuffle arousal values across jobs while preserving service times.
+
+    This breaks the emotion→length correlation while keeping the same
+    service time distribution. Used to verify that SSJF-Emotion benefits
+    come from the emotion-length relationship, not from data distribution.
+
+    Args:
+        trace_data: Either a list of job dicts, or a dict with 'jobs' key
+                   (as saved by job_configs.json format)
+        random_seed: Random seed for reproducibility
+
+    Returns:
+        Same format as input, with shuffled arousal/emotion assignments
+    """
+    import copy
+
+    if random_seed is not None:
+        np.random.seed(random_seed)
+
+    # Handle both formats: list of jobs or {"metadata": ..., "jobs": [...]}
+    if isinstance(trace_data, dict) and 'jobs' in trace_data:
+        # Format: {"metadata": {...}, "jobs": [...]}
+        shuffled_data = copy.deepcopy(trace_data)
+        jobs = shuffled_data['jobs']
+    else:
+        # Format: list of job dicts
+        shuffled_data = copy.deepcopy(trace_data)
+        jobs = shuffled_data
+
+    # Extract emotion-related fields
+    arousal_values = [job['arousal'] for job in jobs]
+    emotion_labels = [job['emotion'] for job in jobs]
+    valence_values = [job['valence'] for job in jobs]
+    valence_classes = [job.get('valence_class', 'neutral') for job in jobs]
+
+    # Shuffle indices
+    shuffle_indices = np.random.permutation(len(jobs))
+
+    # Reassign shuffled emotion data (but keep service_time unchanged)
+    for i, job in enumerate(jobs):
+        shuffled_idx = shuffle_indices[i]
+        job['arousal'] = arousal_values[shuffled_idx]
+        job['emotion'] = emotion_labels[shuffled_idx]
+        job['valence'] = valence_values[shuffled_idx]
+        job['valence_class'] = valence_classes[shuffled_idx]
+        # NOTE: service_time is NOT changed - this breaks the correlation
+
+    return shuffled_data
+
+
 def create_jobs_from_trace(
     trace: List[Dict],
     emotion_config: EmotionConfig = None,

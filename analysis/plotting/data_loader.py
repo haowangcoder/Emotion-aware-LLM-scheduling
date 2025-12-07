@@ -250,3 +250,63 @@ def load_param_sweep_results(sweep_dir: str) -> dict:
     result['betas'] = sorted(result['betas'])
 
     return result
+
+
+def load_shuffle_experiment_results(experiment_dir: str) -> dict:
+    """
+    Load shuffle experiment results (original vs shuffled).
+
+    Expected directory structure:
+        experiment_dir/
+        ├── original/
+        │   ├── FCFS_*_summary.json
+        │   ├── SSJF-Emotion_*_summary.json
+        │   └── SSJF-Combined_*_summary.json
+        └── shuffled/
+            ├── FCFS_*_summary.json
+            ├── SSJF-Emotion_*_summary.json
+            └── SSJF-Combined_*_summary.json
+
+    Args:
+        experiment_dir: Root directory of shuffle experiment
+
+    Returns:
+        Dict with structure:
+        {
+            'original': {
+                'FCFS': {'p99': float, 'jain': float, 'avg_wait': float},
+                'SSJF-Emotion': {...},
+                ...
+            },
+            'shuffled': {
+                'FCFS': {...},
+                ...
+            }
+        }
+    """
+    experiment_dir = Path(experiment_dir)
+    result = {
+        'original': {},
+        'shuffled': {}
+    }
+
+    for condition in ['original', 'shuffled']:
+        condition_dir = experiment_dir / condition
+        if not condition_dir.exists():
+            continue
+
+        for json_path in condition_dir.glob('*_summary.json'):
+            name = json_path.stem
+            for sched in SCHEDULER_ORDER:
+                if name.startswith(sched):
+                    with open(json_path, 'r') as f:
+                        data = json.load(f)
+
+                    result[condition][sched] = {
+                        'p99': data['overall_metrics']['p99_waiting_time'],
+                        'jain': data['fairness_analysis']['waiting_time_fairness']['jain_index'],
+                        'avg_wait': data['overall_metrics']['avg_waiting_time']
+                    }
+                    break
+
+    return result

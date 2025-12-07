@@ -7,6 +7,8 @@ Contains specialized modules for each plot category:
 - pareto: Fairness-efficiency tradeoff plots
 - slopegraph: Per-group analysis plots
 - calibration: Prediction validation plots
+- heatmap: 2D parameter sweep heatmaps
+- ablation: Ablation study plots (shuffle experiments)
 """
 
 from .forest import generate_forest_plots, plot_forest_metric, plot_forest_delta_vs_baseline
@@ -15,10 +17,7 @@ from .pareto import (
     generate_pareto_plots,
     plot_pareto_tradeoff,
     plot_starvation_pareto,
-    generate_starvation_sweep_plots,
-    plot_param_heatmap,
-    plot_param_dual_line,
-    generate_param_sweep_plots
+    generate_starvation_sweep_plots
 )
 from .slopegraph import (
     generate_group_analysis_plots,
@@ -31,6 +30,16 @@ from .calibration import (
     plot_calibration_scatter,
     plot_calibration_binned,
     plot_error_distribution
+)
+from .heatmap import (
+    plot_param_heatmap,
+    plot_param_dual_line,
+    generate_param_sweep_plots
+)
+from .ablation import (
+    plot_shuffle_comparison,
+    plot_shuffle_delta,
+    generate_shuffle_experiment_plots
 )
 
 __all__ = [
@@ -47,9 +56,6 @@ __all__ = [
     'plot_pareto_tradeoff',
     'plot_starvation_pareto',
     'generate_starvation_sweep_plots',
-    'plot_param_heatmap',
-    'plot_param_dual_line',
-    'generate_param_sweep_plots',
     # Slopegraph
     'generate_group_analysis_plots',
     'plot_slopegraph_arousal',
@@ -60,4 +66,12 @@ __all__ = [
     'plot_calibration_scatter',
     'plot_calibration_binned',
     'plot_error_distribution',
+    # Heatmap
+    'plot_param_heatmap',
+    'plot_param_dual_line',
+    'generate_param_sweep_plots',
+    # Ablation
+    'plot_shuffle_comparison',
+    'plot_shuffle_delta',
+    'generate_shuffle_experiment_plots',
 ]

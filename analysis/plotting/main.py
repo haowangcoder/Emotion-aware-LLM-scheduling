@@ -28,9 +28,6 @@ from .plots import (  # noqa: F401 - subpackage exports
     plot_pareto_tradeoff,
     plot_starvation_pareto,
     generate_starvation_sweep_plots,
-    plot_param_heatmap,
-    plot_param_dual_line,
-    generate_param_sweep_plots,
     # Slopegraph
     generate_group_analysis_plots,
     plot_slopegraph_arousal,
@@ -41,6 +38,14 @@ from .plots import (  # noqa: F401 - subpackage exports
     plot_calibration_scatter,
     plot_calibration_binned,
     plot_error_distribution,
+    # Heatmap
+    plot_param_heatmap,
+    plot_param_dual_line,
+    generate_param_sweep_plots,
+    # Ablation
+    plot_shuffle_comparison,
+    plot_shuffle_delta,
+    generate_shuffle_experiment_plots,
 )
 from .utils import setup_publication_style
 from .data_loader import (
@@ -127,9 +132,6 @@ __all__ = [
     'plot_pareto_tradeoff',
     'plot_starvation_pareto',
     'generate_starvation_sweep_plots',
-    'plot_param_heatmap',
-    'plot_param_dual_line',
-    'generate_param_sweep_plots',
     # Slopegraph
     'generate_group_analysis_plots',
     'plot_slopegraph_arousal',
@@ -140,4 +142,12 @@ __all__ = [
     'plot_calibration_scatter',
     'plot_calibration_binned',
     'plot_error_distribution',
+    # Heatmap
+    'plot_param_heatmap',
+    'plot_param_dual_line',
+    'generate_param_sweep_plots',
+    # Ablation
+    'plot_shuffle_comparison',
+    'plot_shuffle_delta',
+    'generate_shuffle_experiment_plots',
 ]
