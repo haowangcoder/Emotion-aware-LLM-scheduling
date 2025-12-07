@@ -310,3 +310,59 @@ def load_shuffle_experiment_results(experiment_dir: str) -> dict:
                     break
 
     return result
+
+
+def load_robustness_experiment_results(experiment_dir: str) -> dict:
+    """
+    Load workload robustness experiment results (2x2 design).
+
+    Expected directory structure:
+        experiment_dir/
+        ├── uniform_poisson/    # Baseline: uniform distribution + Poisson arrivals
+        │   ├── FCFS_*_summary.json
+        │   ├── SSJF-Emotion_*_summary.json
+        │   └── SSJF-Combined_*_summary.json
+        ├── real_poisson/       # Real distribution + Poisson arrivals
+        ├── uniform_bursty/     # Uniform distribution + Bursty arrivals
+        └── real_bursty/        # Real distribution + Bursty arrivals
+
+    Args:
+        experiment_dir: Root directory of robustness experiment
+
+    Returns:
+        Dict with structure:
+        {
+            'uniform_poisson': {
+                'FCFS': {'p99': float, 'jain': float, 'avg_wait': float},
+                'SSJF-Emotion': {...},
+                ...
+            },
+            'real_poisson': {...},
+            'uniform_bursty': {...},
+            'real_bursty': {...}
+        }
+    """
+    experiment_dir = Path(experiment_dir)
+    conditions = ['uniform_poisson', 'real_poisson', 'uniform_bursty', 'real_bursty']
+    result = {c: {} for c in conditions}
+
+    for condition in conditions:
+        condition_dir = experiment_dir / condition
+        if not condition_dir.exists():
+            continue
+
+        for json_path in condition_dir.glob('*_summary.json'):
+            name = json_path.stem
+            for sched in SCHEDULER_ORDER:
+                if name.startswith(sched):
+                    with open(json_path, 'r') as f:
+                        data = json.load(f)
+
+                    result[condition][sched] = {
+                        'p99': data['overall_metrics']['p99_waiting_time'],
+                        'jain': data['fairness_analysis']['waiting_time_fairness']['jain_index'],
+                        'avg_wait': data['overall_metrics']['avg_waiting_time']
+                    }
+                    break
+
+    return result

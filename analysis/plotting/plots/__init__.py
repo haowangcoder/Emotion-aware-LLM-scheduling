@@ -39,7 +39,11 @@ from .heatmap import (
 from .ablation import (
     plot_shuffle_comparison,
     plot_shuffle_delta,
-    generate_shuffle_experiment_plots
+    generate_shuffle_experiment_plots,
+    plot_robustness_heatmap,
+    plot_robustness_grouped_bar,
+    plot_robustness_delta,
+    generate_robustness_experiment_plots,
 )
 
 __all__ = [
@@ -74,4 +78,9 @@ __all__ = [
     'plot_shuffle_comparison',
     'plot_shuffle_delta',
     'generate_shuffle_experiment_plots',
+    # Robustness
+    'plot_robustness_heatmap',
+    'plot_robustness_grouped_bar',
+    'plot_robustness_delta',
+    'generate_robustness_experiment_plots',
 ]

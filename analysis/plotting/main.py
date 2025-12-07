@@ -46,13 +46,21 @@ from .plots import (  # noqa: F401 - subpackage exports
     plot_shuffle_comparison,
     plot_shuffle_delta,
     generate_shuffle_experiment_plots,
+    # Robustness
+    plot_robustness_heatmap,
+    plot_robustness_grouped_bar,
+    plot_robustness_delta,
+    generate_robustness_experiment_plots,
 )
 from .utils import setup_publication_style
 from .data_loader import (
     load_aggregated_results,
     load_job_csvs,
     load_single_summaries,
-    load_starvation_sweep_results
+    load_starvation_sweep_results,
+    load_param_sweep_results,
+    load_shuffle_experiment_results,
+    load_robustness_experiment_results,
 )
 
 
@@ -150,4 +158,17 @@ __all__ = [
     'plot_shuffle_comparison',
     'plot_shuffle_delta',
     'generate_shuffle_experiment_plots',
+    # Robustness
+    'plot_robustness_heatmap',
+    'plot_robustness_grouped_bar',
+    'plot_robustness_delta',
+    'generate_robustness_experiment_plots',
+    # Data loaders
+    'load_aggregated_results',
+    'load_job_csvs',
+    'load_single_summaries',
+    'load_starvation_sweep_results',
+    'load_param_sweep_results',
+    'load_shuffle_experiment_results',
+    'load_robustness_experiment_results',
 ]

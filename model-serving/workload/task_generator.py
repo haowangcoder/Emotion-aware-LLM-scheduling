@@ -216,6 +216,64 @@ def _generate_arrival_times(
     return arrival_times
 
 
+def _generate_bursty_arrivals(
+        num_jobs: int,
+        base_rate: float,
+        burst_factor: float = 5.0,
+        on_duration_mean: float = 10.0,
+        off_duration_mean: float = 30.0) -> np.ndarray:
+    """
+    Generate bursty arrival times using ON/OFF model.
+
+    In the ON state, arrivals occur at burst_factor * base_rate.
+    In the OFF state, arrivals occur at base_rate / burst_factor.
+    This creates periods of high activity (bursts) followed by quiet periods.
+
+    Args:
+        num_jobs: Number of jobs to generate
+        base_rate: Base arrival rate (λ)
+        burst_factor: Multiplier for arrival rate during ON state (default: 5.0)
+        on_duration_mean: Mean duration of ON (burst) periods in seconds (default: 10.0)
+        off_duration_mean: Mean duration of OFF (quiet) periods in seconds (default: 30.0)
+
+    Returns:
+        Array of arrival times with bursty pattern
+
+    Example:
+        With burst_factor=5, base_rate=1.0:
+        - ON state: rate = 5.0 (high intensity burst)
+        - OFF state: rate = 0.2 (quiet period)
+    """
+    arrival_times = []
+    current_time = 0.0
+    is_on_state = True  # Start with a burst
+    state_end_time = np.random.exponential(on_duration_mean)
+
+    while len(arrival_times) < num_jobs:
+        # Determine current rate based on state
+        if is_on_state:
+            current_rate = base_rate * burst_factor
+        else:
+            current_rate = base_rate / burst_factor
+
+        # Generate next arrival
+        interval = np.random.exponential(1.0 / current_rate)
+        current_time += interval
+
+        # Check if we need to switch states
+        while current_time > state_end_time:
+            # Switch state
+            is_on_state = not is_on_state
+            if is_on_state:
+                state_end_time += np.random.exponential(on_duration_mean)
+            else:
+                state_end_time += np.random.exponential(off_duration_mean)
+
+        arrival_times.append(current_time)
+
+    return np.array(arrival_times[:num_jobs])
+
+
 def get_emotion_aware_statistics(job_list: List[Job]) -> Dict:
     """
     Calculate statistics about emotion-aware job generation
@@ -273,6 +331,10 @@ def generate_job_trace(
     random_seed: int = None,
     use_stratified_sampling: bool = True,  # for stratification
     class_distribution: Dict[str, float] = None,  # e.g., 9-class: {'high_positive': 1/9, ...}
+    arrival_pattern: str = 'poisson',  # 'poisson' or 'bursty'
+    burst_factor: float = 5.0,  # for bursty arrivals
+    on_duration_mean: float = 10.0,  # mean ON period duration
+    off_duration_mean: float = 30.0,  # mean OFF period duration
 ) -> List[Dict]:
     """
     Generate a complete job trace for reproducible experiments across schedulers.
@@ -289,6 +351,10 @@ def generate_job_trace(
         random_seed: Random seed for reproducibility
         use_stratified_sampling: Whether to use stratified sampling by 9-class category
         class_distribution: Target distribution for 9 classes (default: uniform 1/9 each)
+        arrival_pattern: 'poisson' for standard Poisson, 'bursty' for ON/OFF bursty arrivals
+        burst_factor: Rate multiplier during ON state (for bursty arrivals)
+        on_duration_mean: Mean duration of burst periods in seconds
+        off_duration_mean: Mean duration of quiet periods in seconds
 
     Returns:
         List of job configuration dictionaries
@@ -304,8 +370,15 @@ def generate_job_trace(
         import random
         random.seed(random_seed)
 
-    # Generate arrival times
-    arrival_times = _generate_arrival_times(num_jobs, arrival_rate)
+    # Generate arrival times based on pattern
+    if arrival_pattern == 'bursty':
+        arrival_times = _generate_bursty_arrivals(
+            num_jobs, arrival_rate, burst_factor, on_duration_mean, off_duration_mean
+        )
+        print(f"  Using bursty arrivals (factor={burst_factor}, ON={on_duration_mean}s, OFF={off_duration_mean}s)")
+    else:
+        arrival_times = _generate_arrival_times(num_jobs, arrival_rate)
+        print(f"  Using Poisson arrivals (rate={arrival_rate})")
 
     # Generate emotions (9-class stratified or simple random)
     if enable_emotion:
