@@ -18,7 +18,8 @@ from .data_loader import (
     load_aggregated_results,
     load_job_csvs,
     load_single_summaries,
-    load_starvation_sweep_results
+    load_starvation_sweep_results,
+    load_param_sweep_results
 )
 from .utils import setup_publication_style, save_figure
 from .main import (
@@ -29,6 +30,7 @@ from .main import (
     generate_calibration_plots,
     generate_all_publication_plots,
     generate_starvation_sweep_plots,
+    generate_param_sweep_plots,
 )
 
 __all__ = [
@@ -43,6 +45,7 @@ __all__ = [
     'load_job_csvs',
     'load_single_summaries',
     'load_starvation_sweep_results',
+    'load_param_sweep_results',
     # Utils
     'setup_publication_style',
     'save_figure',
@@ -54,4 +57,5 @@ __all__ = [
     'generate_calibration_plots',
     'generate_all_publication_plots',
     'generate_starvation_sweep_plots',
+    'generate_param_sweep_plots',
 ]

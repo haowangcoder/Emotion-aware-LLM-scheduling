@@ -163,3 +163,90 @@ def load_starvation_sweep_results(sweep_dir: str) -> dict:
                     break
 
     return result
+
+
+def load_param_sweep_results(sweep_dir: str) -> dict:
+    """
+    Load α × β parameter sweep results.
+
+    Expected directory structure:
+        sweep_dir/
+        ├── baseline/                    # FCFS baseline
+        │   └── FCFS_*_summary.json
+        ├── alpha_0.0_beta_0.0/
+        │   └── SSJF-Combined_*_summary.json
+        ├── alpha_0.0_beta_0.25/
+        └── ...
+
+    Args:
+        sweep_dir: Root directory of parameter sweep results
+
+    Returns:
+        Dict with structure:
+        {
+            'baseline': {'p99': float, 'jain': float, 'avg_wait': float},
+            'grid': {
+                (alpha, beta): {'p99': float, 'jain': float, 'avg_wait': float},
+                ...
+            },
+            'alphas': [0.0, 0.25, 0.5, 0.75, 1.0],
+            'betas': [0.0, 0.25, 0.5, 0.75, 1.0]
+        }
+    """
+    import re
+
+    sweep_dir = Path(sweep_dir)
+    result = {
+        'baseline': None,
+        'grid': {},
+        'alphas': set(),
+        'betas': set()
+    }
+
+    # Load baseline (FCFS)
+    baseline_dir = sweep_dir / 'baseline'
+    if baseline_dir.exists():
+        for json_path in baseline_dir.glob('*_summary.json'):
+            if json_path.stem.startswith('FCFS'):
+                with open(json_path, 'r') as f:
+                    data = json.load(f)
+                result['baseline'] = {
+                    'p99': data['overall_metrics']['p99_waiting_time'],
+                    'jain': data['fairness_analysis']['waiting_time_fairness']['jain_index'],
+                    'avg_wait': data['overall_metrics']['avg_waiting_time']
+                }
+                break
+
+    # Load parameter sweep results
+    pattern = re.compile(r'alpha_([\d.]+)_beta_([\d.]+)')
+    param_dirs = sorted(sweep_dir.glob('alpha_*_beta_*'))
+
+    for param_dir in param_dirs:
+        match = pattern.match(param_dir.name)
+        if not match:
+            continue
+
+        alpha = float(match.group(1))
+        beta = float(match.group(2))
+
+        result['alphas'].add(alpha)
+        result['betas'].add(beta)
+
+        # Load summary JSON
+        for json_path in param_dir.glob('*_summary.json'):
+            if json_path.stem.startswith('SSJF'):
+                with open(json_path, 'r') as f:
+                    data = json.load(f)
+
+                result['grid'][(alpha, beta)] = {
+                    'p99': data['overall_metrics']['p99_waiting_time'],
+                    'jain': data['fairness_analysis']['waiting_time_fairness']['jain_index'],
+                    'avg_wait': data['overall_metrics']['avg_waiting_time']
+                }
+                break
+
+    # Convert sets to sorted lists
+    result['alphas'] = sorted(result['alphas'])
+    result['betas'] = sorted(result['betas'])
+
+    return result
