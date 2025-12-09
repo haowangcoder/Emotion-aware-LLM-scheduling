@@ -1,0 +1,225 @@
+{
+  "experiment_name": "SSJF-Combined_54jobs_load1.20_fixed",
+  "metadata": {
+    "scheduler": "SSJF-Combined",
+    "num_jobs": 54,
+    "mode": "fixed_jobs",
+    "simulation_duration": null,
+    "system_load": 1.2,
+    "base_service_time": null,
+    "alpha": null,
+    "rho": null,
+    "emotion_correlation": null,
+    "enable_emotion": null,
+    "arousal_noise": null,
+    "random_seed": 42,
+    "starvation_threshold": null,
+    "starvation_coefficient": 5.0,
+    "beta": null,
+    "output_dir": "results/starvation_sweep/coeff_5",
+    "verbose": true,
+    "model_name": null,
+    "dataset_path": null,
+    "use_cache": null,
+    "force_regenerate": null,
+    "device_map": null,
+    "dtype": null,
+    "load_in_8bit": null,
+    "experiment_mode": "fixed_jobs",
+    "arrival_rate": 0.6,
+    "run_metrics": {
+      "total_jobs": 54,
+      "total_time": 92.22580503966543,
+      "throughput": 0.5855194213460659,
+      "avg_waiting_time": 7.440844962791202,
+      "avg_jct": 8.942369269900896,
+      "p50_waiting_time": 4.831847230576578,
+      "p95_waiting_time": 17.61828463482818,
+      "p99_waiting_time": 18.022805023306933,
+      "p50_jct": 6.643257848650249,
+      "p95_jct": 19.6186970197736,
+      "p99_jct": 20.171455021018115,
+      "estimated_arrival_rate": 0.613068134525314,
+      "avg_actual_execution_time": 1.5015243071096915,
+      "effective_load": 0.9205367059041532,
+      "throughput_p25": 0.46574527083074724,
+      "throughput_p50": 0.5455777970021676,
+      "throughput_p75": 0.5787219800070817
+    }
+  },
+  "num_jobs": 54,
+  "total_run_time": 92.22580503966543,
+  "overall_metrics": {
+    "avg_waiting_time": 7.440844962791202,
+    "std_waiting_time": 6.353318466467046,
+    "p50_waiting_time": 4.831847230576578,
+    "p95_waiting_time": 17.61828463482818,
+    "p99_waiting_time": 18.022805023306933,
+    "avg_turnaround_time": 8.942369269900896,
+    "std_turnaround_time": 6.66045038090979,
+    "p99_turnaround_time": 20.171455021018115,
+    "avg_service_time": 2.0,
+    "throughput": 0.5855194213460659
+  },
+  "run_metrics": {
+    "total_jobs": 54,
+    "total_time": 92.22580503966543,
+    "throughput": 0.5855194213460659,
+    "avg_waiting_time": 7.440844962791202,
+    "avg_jct": 8.942369269900896,
+    "p50_waiting_time": 4.831847230576578,
+    "p95_waiting_time": 17.61828463482818,
+    "p99_waiting_time": 18.022805023306933,
+    "p50_jct": 6.643257848650249,
+    "p95_jct": 19.6186970197736,
+    "p99_jct": 20.171455021018115,
+    "estimated_arrival_rate": 0.613068134525314,
+    "avg_actual_execution_time": 1.5015243071096915,
+    "effective_load": 0.9205367059041532,
+    "throughput_p25": 0.46574527083074724,
+    "throughput_p50": 0.5455777970021676,
+    "throughput_p75": 0.5787219800070817
+  },
+  "llm_metrics": {
+    "num_llm_jobs": 54,
+    "avg_actual_execution_time": 1.5015243071096915,
+    "std_actual_execution_time": 0.6130971222359093,
+    "avg_output_token_length": 74.20370370370371,
+    "std_output_token_length": 30.4827696501128,
+    "cache_hit_count": 54,
+    "cache_hit_rate": 1.0,
+    "fallback_used_count": 0,
+    "error_count": 0,
+    "prediction_accuracy": {
+      "avg_absolute_error": 0.5951489822952837,
+      "std_absolute_error": 0.5146547908194504,
+      "avg_relative_error": 0.3711463640963818,
+      "median_relative_error": 0.2938555258861808,
+      "max_absolute_error": 1.7888136196136477
+    }
+  },
+  "per_emotion_class_metrics": {
+    "low": {
+      "count": 18,
+      "avg_waiting_time": 3.497916276630681,
+      "std_waiting_time": 3.723736222200444,
+      "avg_turnaround_time": 4.296496221135313,
+      "std_turnaround_time": 3.669410970591388,
+      "avg_predicted_service_time": 0.7199999999999996,
+      "avg_measured_execution_time": 0.7985799445046319,
+      "p50_waiting_time": 2.841178698170385,
+      "p95_waiting_time": 8.665356860371176,
+      "p99_waiting_time": 13.314032167914648
+    },
+    "high": {
+      "count": 18,
+      "avg_waiting_time": 11.072975808114371,
+      "std_waiting_time": 6.715698933553785,
+      "avg_turnaround_time": 13.157759931747014,
+      "std_turnaround_time": 6.6950836699649185,
+      "avg_predicted_service_time": 3.2800000000000002,
+      "avg_measured_execution_time": 2.0847841236326428,
+      "p50_waiting_time": 12.751847745901898,
+      "p95_waiting_time": 17.810363515003612,
+      "p99_waiting_time": 18.26180172014817
+    },
+    "medium": {
+      "count": 18,
+      "avg_waiting_time": 7.751642803628556,
+      "std_waiting_time": 5.769877519568832,
+      "avg_turnaround_time": 9.372851656820355,
+      "std_turnaround_time": 5.937769421936406,
+      "avg_predicted_service_time": 2.0,
+      "avg_measured_execution_time": 1.6212088531917996,
+      "p50_waiting_time": 7.072588806926946,
+      "p95_waiting_time": 15.294777153898576,
+      "p99_waiting_time": 16.902594120482718
+    },
+    "overall": {
+      "count": 54,
+      "avg_waiting_time": 7.7516428036285525,
+      "avg_turnaround_time": 9.372851656820352
+    }
+  },
+  "fairness_analysis": {
+    "waiting_time_fairness": {
+      "jain_index": 0.8520749068086251,
+      "per_class_values": {
+        "low": 3.497916276630681,
+        "high": 11.072975808114371,
+        "medium": 7.751642803628556
+      },
+      "coefficient_of_variation": 0.41666021911382595,
+      "max_min_ratio": 3.165592007473735,
+      "mean": 7.440844962791203,
+      "std": 3.100304092588591
+    },
+    "turnaround_time_fairness": {
+      "jain_index": 0.8585048233511298,
+      "per_class_values": {
+        "low": 4.296496221135313,
+        "high": 13.157759931747014,
+        "medium": 9.372851656820355
+      },
+      "coefficient_of_variation": 0.40597514733000367,
+      "max_min_ratio": 3.062439544813608,
+      "mean": 8.942369269900894,
+      "std": 3.630379681827313
+    },
+    "per_class_metrics": {
+      "low": {
+        "count": 18,
+        "avg_waiting_time": 3.497916276630681,
+        "std_waiting_time": 3.723736222200444,
+        "avg_turnaround_time": 4.296496221135313,
+        "std_turnaround_time": 3.669410970591388,
+        "avg_predicted_service_time": 0.7199999999999996,
+        "avg_measured_execution_time": 0.7985799445046319,
+        "p50_waiting_time": 2.841178698170385,
+        "p95_waiting_time": 8.665356860371176,
+        "p99_waiting_time": 13.314032167914648
+      },
+      "high": {
+        "count": 18,
+        "avg_waiting_time": 11.072975808114371,
+        "std_waiting_time": 6.715698933553785,
+        "avg_turnaround_time": 13.157759931747014,
+        "std_turnaround_time": 6.6950836699649185,
+        "avg_predicted_service_time": 3.2800000000000002,
+        "avg_measured_execution_time": 2.0847841236326428,
+        "p50_waiting_time": 12.751847745901898,
+        "p95_waiting_time": 17.810363515003612,
+        "p99_waiting_time": 18.26180172014817
+      },
+      "medium": {
+        "count": 18,
+        "avg_waiting_time": 7.751642803628556,
+        "std_waiting_time": 5.769877519568832,
+        "avg_turnaround_time": 9.372851656820355,
+        "std_turnaround_time": 5.937769421936406,
+        "avg_predicted_service_time": 2.0,
+        "avg_measured_execution_time": 1.6212088531917996,
+        "p50_waiting_time": 7.072588806926946,
+        "p95_waiting_time": 15.294777153898576,
+        "p99_waiting_time": 16.902594120482718
+      },
+      "overall": {
+        "count": 54,
+        "avg_waiting_time": 7.7516428036285525,
+        "avg_turnaround_time": 9.372851656820352
+      }
+    },
+    "arousal_valence_distribution": {
+      "high_positive": 6,
+      "high_neutral": 6,
+      "high_negative": 6,
+      "medium_positive": 6,
+      "medium_neutral": 6,
+      "medium_negative": 6,
+      "low_positive": 6,
+      "low_neutral": 6,
+      "low_negative": 6,
+      "total": 54
+    }
+  }
+}

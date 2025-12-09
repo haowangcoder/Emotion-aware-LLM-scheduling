@@ -1,0 +1,914 @@
+job_id,emotion_label,arousal,emotion_class,valence,valence_class,arrival_time,predicted_serving_time,actual_serving_time,start_time,finish_time,waiting_time,turnaround_time,response_text,output_token_length,cached,error_msg,fallback_used,model_name,conversation_context_preview
+0,nostalgic,-0.8,low,0.0,neutral,0.5735498877494944,0.3959999999999999,2.4892961978912354,0.5735498877494942,3.0628460856407296,0.0,2.4892961978912354,That must be such a wonderful surprise! It's amazing how life can bring people back together in unexpected ways.,23,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+1,content,-0.8,low,0.8,positive,4.252587192204243,0.3959999999999999,0.34761714935302734,4.252587192204243,4.60020434155727,0.0,0.34761714935302734,Congratulations on your new home! That must be such an exciting milestone for you.,17,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+2,afraid,0.8,high,-0.8,negative,5.861943039870903,1.8040000000000003,1.5725462436676025,5.861943039870903,7.434489283538506,0.0,1.5725462436676025,"Oh, sweetie, it sounds like you went through a really tough experience as a child. It's completely normal to feel scared or anxious about things that seem uncertain or unknown. And it's even more understandable that you might have felt overwhelmed and depressed by those feelings. Can you tell me more about what happened during that time? What did your parents do to help you feel better?",78,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+3,surprised,0.8,high,0.0,neutral,6.977761716708179,1.8040000000000003,1.6864221096038818,7.434489283538506,9.120911393142388,0.45672756683032656,2.1431496764342084,"Ah, that's wonderful news! It can be such a relief when our expenses turn out to be lower than anticipated. It's great that you're being mindful of your energy usage too, especially during these warmer months. How did you feel when you saw the bill? Was there a sense of accomplishment or just plain relief?
+
+(Note: Please keep the tone warm, friendly, and non-judgmental.)",83,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+4,grateful,0.0,medium,0.8,positive,7.185081002828825,1.1,0.7484457492828369,9.120911393142388,9.869357142425224,1.935830390313563,2.6842761395964,"That's wonderful! It sounds like you had a positive experience meeting someone who inspires you. What was it about him that resonated with you?
+
+(Please respond as the Assistant)",37,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+5,angry,0.8,high,-0.8,negative,7.392365359613342,1.8040000000000003,1.4947872161865234,9.869357142425224,11.364144358611748,2.476991782811883,3.9717789989984063,"Oh no, that sounds incredibly frustrating! It's understandable you're feeling angry about someone leaving their mess for you to deal with. The fact that it was an expensive pizza makes it even more upsetting. Can you tell me more about how this made you feel? What were your initial thoughts when you saw the burnt pizza? I'm here to listen and offer support.",74,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+6,annoyed,0.8,high,-0.8,negative,7.4655016323572845,1.8040000000000003,1.4318702220916748,11.364144358611748,12.796014580703423,3.8986427262544634,5.330512948346138,"Oh no, I'm so sorry to hear that you didn't get the promotion. It can be really tough to deal with rejection, especially when it feels like it came out of nowhere. Can you tell me more about how you're feeling right now? What's going through your mind? I'm here to listen and offer any support I can.",71,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+7,caring,0.0,medium,0.0,neutral,9.923672688943878,1.1,0.9699361324310303,12.796014580703423,13.765950713134453,2.872341891759545,3.842278024190575,That sounds like such a wonderful thing you're doing! It's clear that you have a big heart for cats and want to help those in need. How does it make you feel to be able to make a difference in their lives?,48,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+8,proud,0.8,high,0.8,positive,11.046995321154979,1.8040000000000003,1.312406301498413,13.765950713134453,15.078357014632866,2.718955391979474,4.031361693477887,"Ah, congratulations on your amazing achievement! It sounds like all your hard work paid off! I can imagine how proud you must feel right now. Getting good grades can be such a confidence booster. What did you do differently this semester that helped you achieve such great results? I'm here to listen and celebrate with you!",65,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+9,sentimental,-0.8,low,0.0,neutral,12.551856507682812,0.3959999999999999,0.5076389312744141,15.078357014632866,15.58599594590728,2.526500506950054,3.034139438224468,"Ah, it sounds like you're feeling nostalgic and sentimental about your past. That can be a bittersweet experience!",25,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+10,embarrassed,0.0,medium,-0.8,negative,12.577277884126204,1.1,1.4666876792907715,15.585995945907278,17.05268362519805,3.0087180617810763,4.475405741071846,"Oh no, that must have been so embarrassing! It sounds like you were having fun at the party until that moment. I'm sure it wasn't easy to deal with, but it's great that you can look back on it now and laugh. What did you do after that? Did you get out of the pool or try to play it cool?",72,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+11,faithful,0.0,medium,0.8,positive,16.859403687097476,1.1,1.0717692375183105,17.05268362519805,18.12445286271636,0.19327993810057364,1.2650491756188842,That's completely understandable! It takes a lot of courage to hold onto hope during tough times. Having faith can be a powerful source of strength and resilience. What specifically are you hoping for in your life right now? I'm here to listen and offer support.,53,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+12,caring,0.0,medium,0.0,neutral,19.042817573419857,1.1,1.1739323139190674,19.042817573419857,20.216749887338924,0.0,1.1739323139190674,"Oh no, that must have been really scary for them! It's great that you stopped to help. Sometimes, all someone needs is someone to talk to or lend a hand. Did they manage to get back on the road okay? How did it make you feel helping them out?",58,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+13,impressed,0.8,high,0.0,neutral,19.33454689316857,1.8040000000000003,1.6057286262512207,20.216749887338924,21.822478513590145,0.8822029941703526,2.4879316204215733,"That sounds like such an exciting moment for you and your brother! It's wonderful that you're so proud of him and supportive of his passion. It's great that he's found something he loves, and it's amazing how music can bring people together. What do you think is the most rewarding part about watching him perform? Is there anything specific that stood out to you during the performance?",79,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+14,content,-0.8,low,0.8,positive,19.579821212751494,0.3959999999999999,0.513927698135376,21.822478513590145,22.33640621172552,2.2426573008386512,2.756584998974027,"Ah, that sounds like a wonderful feeling! It's great you're taking time to appreciate your blessings and feel secure.",25,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+15,guilty,-0.8,low,-0.8,negative,19.82745739621314,0.3959999999999999,0.5743703842163086,22.33640621172552,22.91077659594183,2.5089488155123796,3.083319199728688,"Oh no, that must have been so stressful! It sounds like you're beating yourself up over something that could've happened to anyone.",28,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+16,content,-0.8,low,0.8,positive,20.270823065553724,0.3959999999999999,0.5892612934112549,22.91077659594183,23.500037889353084,2.639953530388105,3.22921482379936,"Ah, that sounds wonderful! It's great that you find joy in spending time with your furry friend. What's your dog's name?",29,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+17,proud,0.8,high,0.8,positive,21.180068192161436,1.8040000000000003,1.474877119064331,23.500037889353084,24.974915008417415,2.319969697191649,3.79484681625598,"Aw, congratulations on this amazing milestone! It's completely normal to feel overwhelmed with emotions, especially when it comes to our little ones' achievements. The fact that your son chose ""sea cucumber"" as his first word is just adorable! What a unique and special moment for both of you. How did you celebrate this achievement? Did you do anything special together?",73,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+18,confident,0.0,medium,0.8,positive,21.871280162670736,1.1,0.9903535842895508,24.974915008417415,25.965268592706966,3.1036348457466794,4.09398843003623,That's great to hear! It sounds like you've put in a lot of effort and feel confident about your preparation. What specifically makes you feel prepared and ready for the test? I'm here to listen and offer any support if needed.,49,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+19,excited,0.8,high,0.8,positive,22.291997153569998,1.8040000000000003,1.4723949432373047,25.965268592706966,27.43766353594427,3.6732714391369683,5.145666382374273,"Ah, I can sense your excitement! It sounds like you're looking forward to getting back into a routine now that summer break is coming to an end. How do you think the kids will adjust to being back in school? Are there any specific things you're hoping they'll learn or accomplish this year? I'm here to listen and offer support if needed!",73,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+20,surprised,0.8,high,0.0,neutral,23.448672666114195,1.8040000000000003,1.293487310409546,27.43766353594427,28.731150846353817,3.988990869830076,5.282478180239622,"Oh no, that sounds like it was really disappointing! It can be tough to deal with unmet expectations, especially when you're looking forward to spending time with close friends. Can you tell me more about how you felt in that moment? What went through your mind when you realized things weren't going as planned?",64,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+21,disappointed,-0.8,low,-0.8,negative,23.632292645669832,0.3959999999999999,0.6690573692321777,28.731150846353817,29.400208215585995,5.098858200683985,5.767915569916163,"Oh no, that must be really tough for you as a parent. It sounds like you were expecting so much from him. How are you feeling about this?",33,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+22,joyful,0.8,high,0.8,positive,24.054589382561655,1.8040000000000003,1.7546982765197754,29.400208215585995,31.15490649210577,5.345618833024339,7.100317109544115,"Ah, wow! It sounds like you had quite the close call! I'm glad you made it to the bus stop on time, despite being worried about being late. And oh no, the bus being delayed too? That can be frustrating! But hey, at least you're safe and sound now. Take a deep breath and pat yourself on the back for handling that stressful situation so well! How do you feel right now?",87,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+23,apprehensive,-0.8,low,-0.8,negative,24.612261538164912,0.3959999999999999,0.5280940532684326,31.15490649210577,31.683000545374203,6.542644953940858,7.070739007209291,"Ah, it's completely normal to feel anxious about this big life change. How can I help you feel more at ease?",26,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+24,faithful,0.0,medium,0.8,positive,25.35651504554908,1.1,1.0170061588287354,31.6830005453742,32.700006704202934,6.326485499825122,7.3434916586538534,"Oh, wow! It sounds like you were deeply invested in your relationship. It can be really tough to move on from someone you loved so much. Can you tell me more about what happened? What led up to your decision to break up?",50,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+25,devastated,-0.8,low,-0.8,negative,27.236214614586864,0.3959999999999999,0.8296599388122559,32.700006704202934,33.52966664301519,5.463792089616071,6.293452028428327,"Oh no, I'm so sorry to hear that about your mom. That must be incredibly tough for you. 
+
+(Note: The goal is to keep the response concise while still conveying empathy and understanding.)",41,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+26,content,-0.8,low,0.8,positive,27.508447334966373,0.3959999999999999,1.632145881652832,33.52966664301519,35.16181252466802,6.021219308048817,7.653365189701649,I'm so glad to hear that your grandmother is starting to feel more comfortable in her new environment! It's understandable that the transition has been challenging for both her and your family. It sounds like you've been working hard to make sure she feels supported and cared for. What do you think might have contributed to her increased happiness yesterday? Was there something specific that happened or changed during your visit?,80,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+27,angry,0.8,high,-0.8,negative,28.390927413340197,1.8040000000000003,1.4348516464233398,35.16181252466802,36.59666417109136,6.770885111327825,8.205736757751165,"I'm so sorry to hear that your brother went through that. It must have been incredibly frustrating and unfair for him. And even though the teacher was eventually held accountable, it's understandable that you're still feeling angry about the whole situation. Can you tell me more about how this experience has affected you? How are you coping with those emotions now?",71,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+28,caring,0.0,medium,0.0,neutral,29.487877628274347,1.1,1.6161911487579346,36.59666417109136,38.2128553198493,7.108786542817015,8.72497769157495,"Oh, dear one, I can only imagine how challenging your work must be. It takes a special kind of person to care for others at such a vulnerable time. Your compassion and dedication are truly remarkable. Remember that you're not alone; we're here to support you through the tough times. 💕
+
+(Note: The assistant's response should be around 48 words or 64 tokens.)",80,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+29,anxious,0.8,high,-0.8,negative,29.54601122242107,1.8040000000000003,1.5743181705474854,38.2128553198493,39.78717349039678,8.666844097428228,10.241162267975714,"I'm so relieved that the dog was found safe! Losing a pet can be incredibly distressing, especially if it's not even yours. It's amazing how our hearts can ache for someone else's loss. Can you tell me more about why this experience affected you? Was there something specific that made it difficult for you? I'm here to listen and offer any support I can.",78,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+30,disappointed,-0.8,low,-0.8,negative,30.68919602543726,0.3959999999999999,0.71598219871521,39.78717349039678,40.50315568911199,9.097977464959524,9.813959663674733,"I sense your frustration and disappointment. It can be challenging to understand others' choices, especially when they seem counterintuitive. Would you like to talk more about this?",35,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+31,embarrassed,0.0,medium,-0.8,negative,30.917704222298546,1.1,0.8496913909912109,40.50315568911199,41.3528470801032,9.585451466813446,10.435142857804657,"Oh no, that must have been really embarrassing for you! It takes a lot of courage to share something like that. Can you tell me more about how you're feeling right now? Are you okay?",42,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+32,content,-0.8,low,0.8,positive,30.99991569337325,0.3959999999999999,0.5076072216033936,41.3528470801032,41.860454301706596,10.352931386729953,10.860538608333346,That's wonderful! It sounds like you're embracing your uniqueness and finding peace in being yourself. How does that feel?,25,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+33,confident,0.0,medium,0.8,positive,34.63442299654839,1.1,1.0786306858062744,41.860454301706596,42.93908498751287,7.226031305158209,8.304661990964483,"Ah, good luck on your test! It sounds like you've put in a lot of effort to prepare. Remember to breathe and trust yourself - you got this! What's making you feel most nervous or anxious about the test? I'm here to listen.",53,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+34,caring,0.0,medium,0.0,neutral,38.75408230400093,1.1,1.5653984546661377,42.93908498751287,44.50448344217901,4.185002683511939,5.750401138178077,That's wonderful! It sounds like you have a very special bond with your grandmother. Helping her out and making her life easier can be such a rewarding experience. It's great that you're recognizing the importance of reciprocating her love and care by being there for her in return. How does it make you feel knowing you're able to make a positive impact on her life?,77,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+35,content,-0.8,low,0.8,positive,40.77359867077222,0.3959999999999999,0.7905809879302979,44.50448344217901,45.295064430109306,3.730884771406785,4.521465759337083,"That sounds like an amazing experience! Congratulations on your catch! What made it so special for you?
+
+(Note: The goal is to keep the response concise while still being empathetic and encouraging.)",39,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+36,impressed,0.8,high,0.0,neutral,41.21761716628959,1.8040000000000003,1.9194574356079102,45.295064430109306,47.21452186571722,4.077447263819714,5.996904699427624,"Ah, wow! That sounds like quite the relief! It can be really stressful when our cars break down, especially if we're not sure how long it'll take to get them fixed. But it's great that your mechanic was able to diagnose and repair the issue so efficiently! It's wonderful that you were able to get back on the road without too much delay. Did you feel a sense of gratitude towards your mechanic for getting you back up and running so quickly?",95,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+37,angry,0.8,high,-0.8,negative,41.34323388462599,1.8040000000000003,1.4322257041931152,47.21452186571722,48.64674756991033,5.871287981091228,7.303513685284344,I'm so sorry to hear that you're feeling frustrated and unheard by your roommate's lack of cleaning efforts. It can be really challenging to live with someone who doesn't respect boundaries or contribute to shared responsibilities. Can you tell me more about how this has been affecting you? How have you tried communicating with your roommate about this issue in the past?,71,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+38,content,-0.8,low,0.8,positive,42.752151483968795,0.3959999999999999,0.8159458637237549,48.64674756991033,49.46269343363409,5.8945960859415365,6.710541949665291,"Ah, that's wonderful! It sounds like you're appreciating the little things in life, which can bring so much joy. What specifically makes you feel grateful for your basic needs being met?",40,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+39,caring,0.0,medium,0.0,neutral,43.46115140268428,1.1,1.0515124797821045,49.46269343363409,50.51420591341619,6.001542030949807,7.053054510731911,That's wonderful news! It sounds like you were a great caregiver for your mom. Taking time off work to be there for her must have meant a lot to both of you. How did it feel to be able to help her during that difficult time?,52,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+40,faithful,0.0,medium,0.8,positive,43.62022635529527,1.1,0.8638474941253662,50.51420591341619,51.37805340754156,6.893979558120918,7.757827052246284,"That's wonderful! It sounds like being a good partner and father brings you a sense of pride and fulfillment. What does loyalty mean to you, and how do you think it has positively impacted your relationships?",42,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+41,impressed,0.8,high,0.0,neutral,44.455672967459236,1.8040000000000003,1.4536969661712646,51.37805340754156,52.83175037371282,6.922380440082321,8.376077406253586,"Ah, wow! That must have been quite the surprise! It's amazing how some people can maintain their radiance over time. What was going through your mind when you saw her? Were you starstruck or did you feel like you were just observing someone who happens to be famous? I'm here to listen and offer any support you might need.",72,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+42,anxious,0.8,high,-0.8,negative,44.49844307144571,1.8040000000000003,1.974510908126831,52.83175037371282,54.80626128183965,8.333307302267109,10.30781821039394,"I'm so sorry you're going through this. It sounds like you're really struggling with the idea of your partner coming over, especially given his recent struggles in counseling. It's completely understandable that you wouldn't want to rush into things or put yourself in a situation where you might get hurt again. Can you tell me more about what specifically makes you uncomfortable? Is there something specific that happened in the past that's making you hesitant? I'm here to listen and offer support.",97,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+43,prepared,-0.8,low,0.0,neutral,47.432293267148296,0.3959999999999999,0.4884812831878662,54.80626128183965,55.29474256502752,7.373968014691357,7.862449297879223,"Ah, it sounds like you're feeling excited about the new school year! What are you most looking forward to?",24,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+44,excited,0.8,high,0.8,positive,47.79829721662025,1.8040000000000003,1.2611041069030762,55.29474256502752,56.555846671930595,7.496445348407271,8.757549455310347,"Ahaha, it sounds like you had a blast watching that energetic pup! It's great that your friends trusted you enough to leave their furry friend in your care. What was the most challenging part about taking care of him? Was there anything that surprised you or made you laugh? I'm all ears!",62,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+45,sentimental,-0.8,low,0.0,neutral,49.125943192644115,0.3959999999999999,0.5358395576477051,56.555846671930595,57.0916862295783,7.42990347928648,7.965743036934185,"Ah, it sounds like going through those old comics brought up some wonderful nostalgic feelings! What kind of memories did they evoke?",26,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+46,surprised,0.8,high,0.0,neutral,49.58250012578121,1.8040000000000003,1.455974817276001,57.0916862295783,58.5476610468543,7.5091861037970915,8.965160921073092,"Aw, that sounds like such a wonderful surprise! It's great that your friend took the time to make your special day even more memorable. What made it so special for you? Was there something in particular about the cake or the celebration that stood out to you?
+
+(Note: The goal is to keep the response concise while still being empathetic and encouraging.)",72,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+47,terrified,0.8,high,-0.8,negative,50.47974677633693,1.8040000000000003,10.507362842559814,58.5476610468543,69.05502388941412,8.06791427051737,18.575277113077185,"Oh no, that must have been really scary! It's understandable that you were spooked by the unknown noise. But I'm glad you were able to figure out what it was - sometimes our minds can play tricks on us in the dark. It's great that you're taking steps to secure your home now. How are you feeling about it now? Are there any lingering fears or worries?
+
+Please respond as the Assistant. 
+
+(Note: The goal is to keep the response around 78 words, so please adjust accordingly.) 
+
+Your Response: 
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+```
+```python
+``",512,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+48,sentimental,-0.8,low,0.0,neutral,51.44679808498135,0.3959999999999999,0.4498448371887207,69.05502388941412,69.50486872660284,17.608225804432763,18.058070641621484,That's so heartwarming! It's amazing to see kids showing kindness and compassion towards each other.,22,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+49,faithful,0.0,medium,0.8,positive,51.69660637326879,1.1,1.3584694862365723,69.50486872660284,70.86333821283941,17.808262353334044,19.166731839570616,"Ah, congratulations on taking that step! It can be nerve-wracking waiting for results, but it sounds like you're motivated by a desire to improve your skills and career prospects. That's really admirable. How are you feeling about the uncertainty right now? Are there any specific worries or concerns that are weighing on your mind?",67,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+50,impressed,0.8,high,0.0,neutral,55.965592868835294,1.8040000000000003,1.4853074550628662,70.86333821283941,72.34864566790228,14.897745344004115,16.38305279906698,"Wow, that sounds like an impressive achievement! I can sense your excitement and pride in sharing this accomplishment. It's amazing how you were able to combine different techniques like genetic algorithms, K-Means, and neural networking to create something innovative. What motivated you to explore this project, and what do you hope to achieve with it? I'm all ears!",73,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+51,guilty,-0.8,low,-0.8,negative,57.78944832978191,0.3959999999999999,0.5293526649475098,72.34864566790228,72.87799833284978,14.559197338120363,15.088550003067873,"Oh no, that must be really weighing on you. It takes courage to admit it. How are you feeling about this?",26,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+52,content,-0.8,low,0.8,positive,61.21789706447162,0.3959999999999999,0.48979902267456055,72.87799833284978,73.36779735552435,11.660101268378163,12.149900291052724,"Ah, it sounds like you're really savoring this peaceful moment after a busy week! Enjoy your relaxation.",24,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+53,content,-0.8,low,0.8,positive,63.970527283680084,0.3959999999999999,0.7531411647796631,73.36779735552435,74.12093852030401,9.397270071844261,10.150411236623924,"Ah, it sounds like you're making significant changes in your life! That takes a lot of courage and determination. How does it feel to be pushing yourself towards a better future?",37,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+54,guilty,-0.8,low,-0.8,negative,65.08403823214853,0.3959999999999999,0.43001246452331543,74.12093852030401,74.55095098482732,9.03690028815548,9.466912752678795,"Oh no, that sounds like a stressful situation! How did your friend react? Were they upset?",21,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+55,impressed,0.8,high,0.0,neutral,68.20001480681114,1.8040000000000003,1.404554843902588,74.55095098482732,75.95550582872991,6.350936178016184,7.755491021918772,That sounds like an incredible experience! It's wonderful that you had such a great time and felt so uplifted by the performers' talents. It's always exciting to discover something new and be blown away by someone's skills. What specifically stood out to you about the show? Was there a particular act or performer that left you in awe?,69,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+56,sentimental,-0.8,low,0.0,neutral,68.31326036775384,0.3959999999999999,0.47517919540405273,75.95550582872991,76.43068502413396,7.642245460976071,8.117424656380123,"Ah, it sounds like revisiting memories can be bittersweet! How did you feel during that conversation?",23,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+57,impressed,0.8,high,0.0,neutral,68.57986943896984,1.8040000000000003,1.4784910678863525,76.43068502413396,77.90917609202032,7.850815585164128,9.32930665305048,"Ah, that's wonderful! It's great to hear about people coming together to show kindness and compassion. It's amazing how a simple act of stopping to help someone in need can make such a big difference. It's clear that this girl felt seen and supported by those around her. What do you think made you feel happy or uplifted by this story?",73,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+58,sentimental,-0.8,low,0.0,neutral,68.63643628592041,0.3959999999999999,0.8586411476135254,77.90917609202032,78.76781723963384,9.272739806099906,10.131380953713432,I'm so sorry to hear that you've experienced such significant losses. It's completely normal to feel nostalgic during this time of year. Would you like to talk more about your favorite memories with your parents?,42,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+59,excited,0.8,high,0.8,positive,69.11741994756864,1.8040000000000003,1.2355318069458008,78.76781723963384,80.00334904657964,9.650397292065207,10.885929099011008,"That sounds like an exciting adventure! It's great that your uncle has planned a surprise trip for you. Are you feeling nervous or anxious about not knowing where you'll be going? Or are you more excited than anything else? Either way, I'm happy to chat with you about your upcoming trip!",61,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+60,devastated,-0.8,low,-0.8,negative,69.71891252642824,0.3959999999999999,0.6568450927734375,80.00334904657964,80.66019413935308,10.284436520151402,10.94128161292484,"Oh no, that sounds incredibly frustrating and upsetting! I'm so sorry you're going through this. Can you tell me more about how you're feeling?",32,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+61,caring,0.0,medium,0.0,neutral,70.10581973479458,1.1,0.8729608058929443,80.66019413935308,81.53315494524603,10.554374404558502,11.427335210451446,That's wonderful! It sounds like you have a truly special bond with your wife. What is it about her that brings so much joy and fulfillment to your life? How do you nurture and celebrate your relationship?,43,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+62,impressed,0.8,high,0.0,neutral,72.26250157008906,1.8040000000000003,1.499260425567627,81.53315494524603,83.03241537081365,9.270653375156968,10.769913800724595,"Ah, I'm so glad you had a positive experience at the new Mexican restaurant! It can be frustrating when reviews don't align with our own opinions. Sometimes, people just have different tastes or expectations. But it sounds like this place exceeded your expectations in a big way! What did you enjoy most about your meal? Was there something that stood out to you?",74,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+63,caring,0.0,medium,0.0,neutral,72.80177901395889,1.1,1.357154130935669,83.03241537081365,84.38956950174932,10.23063635685476,11.587790487790429,"Ah, congratulations on your little one's upcoming birthday! It's amazing how quickly time flies, isn't it? Two years old already! I'm sure you must be feeling a mix of emotions - excitement for their growth, but also nostalgia for those early days. How have you been enjoying this journey as a parent so far?",67,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+64,joyful,0.8,high,0.8,positive,73.20487137412297,1.8040000000000003,1.404906988143921,84.38956950174932,85.79447648989324,11.184698127626348,12.589605115770269,"That sounds like such a wonderful experience! It's great that you have fond memories of celebrating Chinese New Year in Hong Kong. The parades with dancing dragons and live music must have been so vibrant and exciting! What made those times special for you? Was it the cultural immersion, the quality time with your family, or something else entirely?",69,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+65,caring,0.0,medium,0.0,neutral,74.16114669804355,1.1,0.9530935287475586,85.79447648989324,86.7475700186408,11.63332979184969,12.586423320597248,"Oh no, that must be really tough for you! It sounds like you're being very supportive by visiting your grandfather regularly. How has his diagnosis affected you emotionally? Are there any specific moments or conversations that stand out to you?",47,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+66,ashamed,-0.8,low,-0.8,negative,74.34679998982432,0.3959999999999999,0.5511147975921631,86.7475700186408,87.29868481623296,12.400770028816481,12.951884826408644,"Oh no, it sounds like you're really beating yourself up over this. Can you tell me more about how you're feeling?",27,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+67,embarrassed,0.0,medium,-0.8,negative,76.32739105132677,1.1,1.0551831722259521,87.29868481623296,88.35386798845892,10.971293764906193,12.026476937132145,"Oh no, that can be really frustrating and embarrassing! It sounds like you were confident in your answer, but unfortunately, it didn't quite align with reality. Would you like to talk more about how that made you feel? I'm here to listen.",52,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+68,faithful,0.0,medium,0.8,positive,76.42208377987393,1.1,1.196424961090088,88.35386798845892,89.550292949549,11.931784208584986,13.128209169675074,"Oh, sweetie, it sounds like that must have been such a scary and lonely experience for you. It's completely understandable that you felt worried about being left behind. I'm so glad your mom arrived safely in the end! Can you tell me more about how that made you feel?",59,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+69,content,-0.8,low,0.8,positive,81.71937375048066,0.3959999999999999,0.42931675910949707,89.550292949549,89.9796097086585,7.830919199068347,8.260235958177844,That sounds like exciting news! Congratulations on this new chapter together! How do you feel about it?,21,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+70,jealous,0.0,medium,-0.8,negative,83.52763169922028,1.1,1.0764799118041992,89.9796097086585,91.0560896204627,6.451978009438221,7.5284579212424205,I'm so sorry to hear that you're feeling frustrated about your car situation. It can be really tough to see others getting new things while we're stuck with something that doesn't meet our needs. Can you tell me more about how this makes you feel?,53,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+71,hopeful,0.0,medium,0.8,positive,83.79840212650525,1.1,1.18511962890625,91.0560896204627,92.24120924936895,7.257687493957448,8.442807122863698,"Ah, congratulations on the upcoming arrival! It's wonderful that you're being supportive and considerate of your sister-in-law's past experience. Staying positive can definitely help create a more optimistic atmosphere. How do you think this new addition will impact your relationship with your sister-in-law?",58,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+72,anticipating,0.8,high,0.8,positive,83.8051700847425,1.8040000000000003,1.681964635848999,92.24120924936895,93.92317388521795,8.43603916462645,10.11800380047545,"Ah, it sounds like you're really looking forward to treating yourself to a new purse! It's great that you're thinking about getting a good value for your money. What is it about this new purse that you're hoping will make you feel special or confident? Is there something specific you're looking for in terms of style or functionality? I'm here to listen and help you brainstorm if you'd like!",83,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+73,embarrassed,0.0,medium,-0.8,negative,85.87059947944776,1.1,0.93363356590271,93.92317388521795,94.85680745112066,8.052574405770187,8.986207971672897,"Oh no, that sounds frustrating! It can be really upsetting when we trip or stumble, especially if it happens in public. Can you tell me more about how you're feeling right now? What's going through your mind?",46,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+74,surprised,0.8,high,0.0,neutral,87.37038336625415,1.8040000000000003,1.2164585590362549,94.85680745112066,96.07326601015691,7.486424084866513,8.702882643902768,"That sounds wonderful! It can be so exciting to have unexpected visitors, especially if it's someone you haven't seen in a while. What was your favorite part about their visit? Was there anything that stood out to you?
+
+(Note: Please keep the responses within the given word limit and tone.)",60,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+75,apprehensive,-0.8,low,-0.8,negative,88.96619358810615,0.3959999999999999,0.9830994606018066,96.07326601015691,97.05636547075872,7.107072422050763,8.09017188265257,"Oh, wow! That must be incredibly overwhelming and emotional for you. It's amazing that you've been searching for so long and finally found her. How are you feeling about this reunion? Are there any concerns or hopes you have?",48,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+76,jealous,0.0,medium,-0.8,negative,90.76923356438155,1.1,1.1847007274627686,97.05636547075872,98.24106619822149,6.287131906377169,7.471832633839938,"Ah, I can sense your frustration and disappointment! It's understandable that you'd feel that way, especially since it's your dream car. Would you like to talk more about why this car means so much to you? Maybe we can explore some ways to cope with these feelings together.",58,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+77,jealous,0.0,medium,-0.8,negative,90.86325822223175,1.1,0.9341006278991699,98.24106619822149,99.17516682612066,7.3778079759897395,8.31190860388891,"Aw, that can be really frustrating! It sounds like you were looking forward to owning that truck and now it feels like it's been taken away from you. Can you tell me more about how you're feeling right now?",46,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+78,caring,0.0,medium,0.0,neutral,91.40579371074048,1.1,1.05562424659729,99.17516682612066,100.23079107271795,7.769373115380176,8.824997361977466,That's wonderful! It sounds like you have a strong connection with your girlfriend. Three years is a significant milestone in any relationship. What do you think has contributed to your closeness? Is there something specific that brings you joy or fulfillment in your relationship?,52,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+79,caring,0.0,medium,0.0,neutral,91.55631050525703,1.1,1.2179515361785889,100.23079107271795,101.44874260889654,8.674480567460918,9.892432103639507,"Oh no, that can be so tough on little ones! It's completely understandable that you'd feel terrible for your baby. It's amazing how much love and care you have for her. How did she handle the shots this time around? Was there anything that helped make it easier for her?",60,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+80,jealous,0.0,medium,-0.8,negative,93.98673553728375,1.1,1.09688401222229,101.44874260889654,102.54562662111883,7.462007071612788,8.558891083835078,"Ah, I can sense your frustration and disappointment. It sounds like you're feeling a bit resentful about not getting the recognition for your efforts in helping your friend. That must be really tough for you. Can you tell me more about how this makes you feel?",54,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+81,content,-0.8,low,0.8,positive,95.17999254937665,0.3959999999999999,0.43029165267944336,102.54562662111883,102.97591827379827,7.365634071742178,7.795925724421622,"Ah, that sounds like a lovely way to unwind! Enjoy your quiet evening and comic book escape.",21,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+82,caring,0.0,medium,0.0,neutral,95.67110441757268,1.1,1.0146241188049316,102.97591827379827,103.9905423926032,7.304813856225593,8.319437975030525,That sounds like such a wonderful experience! It's great that you were able to form a bond with your sister's pet. Bearded dragons can be quite charming companions. What was it about caring for your sister's pet that brought you joy?,50,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+83,trusting,0.0,medium,0.8,positive,95.75136538688963,1.1,0.7936651706695557,103.9905423926032,104.78420756327276,8.239177005713572,9.032842176383127,That sounds like a strong bond you shared! It's wonderful that you had someone who understood and supported you through thick and thin. What happened that made you feel like you lost that connection?,39,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+84,impressed,0.8,high,0.0,neutral,96.20662892628006,1.8040000000000003,1.6294794082641602,104.78420756327276,106.41368697153692,8.577578636992698,10.207058045256858,"That sounds like such a wonderful experience for your daughter! It's great that she's found something she's passionate about and excels at. Training a dog requires patience, dedication, and love, and it's clear that she's put in a lot of effort. I'm sure you must be incredibly proud of her accomplishments. How does it make you feel seeing her grow and develop these skills?",80,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+85,disappointed,-0.8,low,-0.8,negative,96.68734629794956,0.3959999999999999,0.9415912628173828,106.41368697153692,107.3552782343543,9.726340673587359,10.667931936404742,"Oh no, that must have been really frustrating for you! It sounds like you're already taking steps to improve your situation by getting a second job. That takes a lot of courage. How are you feeling about it now?",46,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+86,nostalgic,-0.8,low,0.0,neutral,98.28586114500902,0.3959999999999999,0.922874927520752,107.3552782343543,108.27815316187505,9.06941708934528,9.992292016866031,"Ah, wow, that sounds like a powerful experience! It's amazing how our senses can evoke strong emotions and memories. What did you think about the beach itself? Was there anything in particular that stood out to you?",45,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+87,sentimental,-0.8,low,0.0,neutral,99.52628147258527,0.3959999999999999,0.5519869327545166,108.27815316187505,108.83014009462957,8.751871689289786,9.303858622044302,"Ah, it sounds like you have many fond memories at that restaurant. What do you think about going back for a final visit?",27,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+88,content,-0.8,low,0.8,positive,102.19347825440934,0.3959999999999999,0.3700082302093506,108.83014009462957,109.20014832483892,6.636661840220228,7.006670070429578,That sounds like a lovely plan! I'm glad you're looking forward to it.,18,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+89,apprehensive,-0.8,low,-0.8,negative,102.9745590840915,0.3959999999999999,0.8351547718048096,109.20014832483892,110.03530309664373,6.225589240747425,7.0607440125522345,"Oh no, that sounds really stressful! I can imagine how frustrating it must be to wait for your deposit. 
+
+(Note: The goal is to keep the response concise while still conveying empathy and understanding.)",41,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+90,faithful,0.0,medium,0.8,positive,103.130236454066,1.1,1.265881061553955,110.03530309664373,111.30118415819769,6.9050666425777365,8.170947704131692,"Oh, I can sense your worry and frustration! It sounds like it's been a tough road for your husband. I'm sending positive vibes his way for Thursday's interview. Remember, every ""no"" brings him closer to the right opportunity. You're both strong and capable – this too shall pass!",62,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+91,grateful,0.0,medium,0.8,positive,104.65694643045295,1.1,1.3061034679412842,111.30118415819769,112.60728762613897,6.644237727744738,7.950341195686022,"Ah, it sounds like your friend has been an incredible source of support during a challenging time. It's wonderful that you're grateful for their help! Repaying someone doesn't have to mean grand gestures; sometimes just acknowledging their impact can mean the world. How do you think you could express your gratitude to them?",64,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+92,caring,0.0,medium,0.0,neutral,106.40520423976912,1.1,1.015800952911377,112.60728762613897,113.62308857905035,6.20208338636985,7.217884339281227,"That's wonderful! It sounds like having a furry companion has brought you joy and companionship during a potentially challenging period. How has your new pet adjusted to their new home, and what's been your favorite part about caring for them so far?",50,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+93,surprised,0.8,high,0.0,neutral,107.41217784462958,1.8040000000000003,1.5213212966918945,113.62308857905035,115.14440987574224,6.210910734420764,7.732232031112659,"Oh, wow! Congratulations on your upcoming arrival! It sounds like you're feeling a bit surprised by the baby shower, though. That can be overwhelming, especially if you weren't expecting it. Can you tell me more about how you're feeling right now? Are there any mixed emotions or concerns that come up for you? I'm here to listen and offer support.",75,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+94,hopeful,0.0,medium,0.8,positive,109.21359891506681,1.1,0.9950902462005615,115.14440987574224,116.1395001219428,5.93081096067543,6.9259012068759915,"Ah, I understand your concerns about your brother making it to your birthday celebration. It's natural to feel uncertain when someone we care about might not be able to attend. Would you like to talk more about how you're feeling about this?",49,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+95,jealous,0.0,medium,-0.8,negative,110.04570580913493,1.1,1.1375529766082764,116.1395001219428,117.27705309855108,6.093794312807873,7.231347289416149,"""I sense your frustration and defensiveness. It's natural to feel proud of your achievement. However, try not to take your colleague's envy personally. Focus on celebrating your success and acknowledging their own strengths. Remember, there's room for everyone to grow and succeed.""",56,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+96,grateful,0.0,medium,0.8,positive,110.94975772319603,1.1,1.772991418838501,117.27705309855108,119.05004451738958,6.32729537535505,8.10028679419355,"Ah, it sounds like you're reflecting on your blessings and wanting to cultivate gratitude. That's wonderful! It's easy to overlook the little things we often take for granted. Remembering those who struggle can help us appreciate what we have even more. Keep being kind to yourself and acknowledging the good in your life. 🙏💕
+
+(Note: The assistant's response should be around 48 words or 64 tokens.)",87,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+97,hopeful,0.0,medium,0.8,positive,111.63153062686189,1.1,1.1160869598388672,119.05004451738958,120.16613147722845,7.4185138905276915,8.534600850366559,"Ah, it sounds like you're really invested in your team's success! It's understandable to feel hopeful about their chances, especially after last season's win. What specifically makes you think they have a good shot at repeating? I'm here to listen and offer support!",55,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+98,content,-0.8,low,0.8,positive,111.66300012840536,0.3959999999999999,0.4708857536315918,120.16613147722845,120.63701723086004,8.50313134882309,8.974017102454681,"Ah, that sounds like pure bliss! Enjoying the sunshine and a good book can be incredibly rejuvenating.",23,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+99,jealous,0.0,medium,-0.8,negative,111.80253810475097,1.1,1.3469884395599365,120.63701723086004,121.98400567041998,8.834479126109073,10.18146756566901,"Ah, I understand how that might be frustrating for you! It sounds like you're feeling a mix of emotions - maybe a little jealous or competitive? But it's great that you're focusing on making your own wedding special despite the differences in budgets. What's one thing you're looking forward to most about your big day?",66,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+100,caring,0.0,medium,0.0,neutral,111.8415681596647,1.1,1.056384801864624,121.98400567041998,123.0403904722846,10.142437510755272,11.198822312619896,"Aw, that's sweet of you! It sounds like you're being a wonderful caregiver for your little one. Resting nicely is great news - hope her cold clears up soon! How are you feeling about taking care of her? Any stress or worries?",52,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+101,anxious,0.8,high,-0.8,negative,113.07812649968726,1.8040000000000003,1.8048663139343262,123.0403904722846,124.84525678621893,9.962263972597341,11.767130286531668,"Ah, I can sense your anxiety! It's completely normal to feel nervous before a big test. Remember that you've prepared well for this moment, and it's okay if you don't know everything. Take some deep breaths, focus on your strengths, and trust yourself. You got this! What do you think might help you calm down right now? Would you like me to share some relaxation techniques or offer any words of encouragement?",89,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+102,caring,0.0,medium,0.0,neutral,113.53938914377015,1.1,0.914069652557373,124.84525678621893,125.7593264387763,11.305867642448774,12.219937295006147,"Oh no, that must have been so distressing for you! It takes a lot of courage to come across something like that and take immediate action by calling animal control. How did you feel during and after the experience?",45,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+103,surprised,0.8,high,0.0,neutral,114.40770124915639,1.8040000000000003,1.2977979183197021,125.7593264387763,127.057124357096,11.35162518961991,12.649423107939612,"Ah, wow! It sounds like you're still reeling from that unexpected win! I can imagine how exciting it must have been to see your favorite team come out on top. What was going through your mind during the game? Were there any particularly thrilling moments that stood out to you? I'm all ears!",64,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+104,jealous,0.0,medium,-0.8,negative,117.31813689674591,1.1,1.3948447704315186,127.057124357096,128.45196912752752,9.738987460350089,11.133832230781607,"I can sense your frustration and disappointment. It's understandable you're feeling upset about not getting the promotion. It sounds like you're struggling to come to terms with this new dynamic in your workplace. Remember, it's okay to acknowledge your emotions and take time to process them. Would you like to talk more about how you're feeling?",68,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+105,content,-0.8,low,0.8,positive,117.66859545816995,0.3959999999999999,0.5926098823547363,128.45196912752752,129.04457900988226,10.783373669357573,11.37598355171231,"Ah, that sounds like a wonderful feeling! It's great you're having a positive week so far. How does it make you feel?",29,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+106,proud,0.8,high,0.8,positive,118.314273427471,1.8040000000000003,1.8672564029693604,129.04457900988226,130.91183541285162,10.730305582411262,12.597561985380622,"Ah, I totally get it! It can be frustrating when we enjoy doing something, but it comes with some not-so-great side effects. The itchiness from the grass can be really annoying, and it's even more disappointing when you're looking forward to that refreshing shower afterwards. But hey, at least you have that nice feeling after the shower to look forward to! Maybe try wearing some long sleeves or pants next time to minimize the itchiness?",92,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+107,proud,0.8,high,0.8,positive,120.03607794112926,1.8040000000000003,1.1996617317199707,130.91183541285162,132.1114971445716,10.875757471722352,12.075419203442323,That's wonderful news! It sounds like you've had a significant shift in your experience since starting the job. What do you think contributed to this change? Was there something specific that helped you adjust or find enjoyment in the work? I'm here to listen and offer any support if needed.,59,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+108,anticipating,0.8,high,0.8,positive,120.35361757736163,1.8040000000000003,1.6842272281646729,132.1114971445716,133.79572437273626,11.757879567209955,13.442106795374627,"Ah, how thrilling! It sounds like you're feeling a mix of emotions - excitement, nervousness, and maybe even a bit of uncertainty. That's completely normal! Leaving your comfort zone can be intimidating, but it's also a great opportunity for growth and adventure. Are you looking forward to experiencing new cultures, trying new foods, or simply relaxing on the beautiful beaches? What are you most excited about?",83,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+109,surprised,0.8,high,0.0,neutral,120.45152280670074,1.8040000000000003,1.5956227779388428,133.79572437273626,135.3913471506751,13.344201566035522,14.939824343974365,"Ah, I can sense your anxiety and hesitation! It's completely normal to feel that way when running into old friends unexpectedly. It sounds like you were worried about how they might react or if you'd still have a connection. But kudos to you for taking a deep breath and having the conversation! What did you talk about? Was it as awkward as you thought it would be?",78,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+110,grateful,0.0,medium,0.8,positive,120.86969428922936,1.1,0.9554362297058105,135.3913471506751,136.3467833803809,14.521652861445745,15.477089091151555,That sounds wonderful! It's great that you got to spend quality time with your aunt. Being close to loved ones can bring so much joy and warmth to our lives. What did you talk about or do together during your visit?,47,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+111,content,-0.8,low,0.8,positive,121.08457117184055,0.3959999999999999,0.41070985794067383,136.3467833803809,136.7574932383216,15.262212208540362,15.672922066481036,That sounds like a wonderful way to spend your day off! What made it feel so special?,20,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+112,guilty,-0.8,low,-0.8,negative,124.32951016569464,0.3959999999999999,0.936237096786499,136.7574932383216,137.69373033510809,12.427983072626944,13.364220169413443,"Oh no, that must be really weighing on your conscience! It sounds like you're struggling financially and feeling guilty about taking something that doesn't belong to you. Can you tell me more about how this has been affecting you?",46,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+113,caring,0.0,medium,0.0,neutral,126.34726104184244,1.1,1.1177446842193604,137.69373033510809,138.81147501932745,11.346469293265642,12.464213977485002,"Ah, thank you for sharing! It sounds like your friend is really looking out for you. Working late can be tough, especially after pulling an all-nighter. How do you feel about having this extra support? Does it make you feel more energized or relieved?",55,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+114,content,-0.8,low,0.8,positive,127.57375394136754,0.3959999999999999,0.6123092174530029,138.81147501932745,139.42378423678045,11.237721077959904,11.850030295412907,"Ah, congratulations on passing your math class! That must be a huge relief for you. How do you feel about not having a high grade?",30,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+115,sentimental,-0.8,low,0.0,neutral,130.08116694533743,0.3959999999999999,0.6733765602111816,139.42378423678045,140.09716079699163,9.34261729144302,10.015993851654201,"Ah, it sounds like romance movies evoke a sense of nostalgia for you, reminding you of carefree times and youthful optimism. How do you feel about that?",33,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+116,sentimental,-0.8,low,0.0,neutral,132.0709067617981,0.3959999999999999,0.5519869327545166,140.09716079699163,140.64914772974615,8.026254035193517,8.578240967948034,"Ah, it sounds like you have many fond memories at that restaurant. What do you think about going back for a final visit?",27,True,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+117,content,-0.8,low,0.8,positive,132.323290121792,0.3959999999999999,0.43645477294921875,140.64914772974615,141.08560250269537,8.325857607954134,8.762312380903353,That sounds amazing! It's wonderful to hear you're feeling so content and fulfilled in your life.,21,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+118,sentimental,-0.8,low,0.0,neutral,135.04983983930214,0.3959999999999999,0.5980803966522217,141.08560250269537,141.6836828993476,6.035762663393228,6.63384306004545,I'm so sorry to hear that you lost your mom and grandma. It sounds like they brought so much joy and laughter into your life.,29,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+119,embarrassed,0.0,medium,-0.8,negative,135.99718416392747,1.1,1.017000675201416,141.6836828993476,142.700683574549,5.686498735420116,6.703499410621532,"Oh no, that sounds like such a stressful and embarrassing situation! It's completely understandable that you're feeling upset about it. Can you tell me more about how you're feeling right now? What's been going through your mind since it happened?",50,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+120,proud,0.8,high,0.8,positive,138.0106098532985,1.8040000000000003,1.4822728633880615,142.700683574549,144.18295643793707,4.6900737212505135,6.172346584638575,"Ah, it sounds like you have some fond memories of playing card games! It's great that you enjoyed competing in tournaments back then. Even though it's been a while since you've played competitively, it's wonderful that you still cherish those moments. What made playing card games so special for you? Was it the thrill of competition or something else entirely?",73,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+121,joyful,0.8,high,0.8,positive,140.77801753575943,1.8040000000000003,1.3822193145751953,144.18295643793707,145.56517575251226,3.4049389021776335,4.787158216752829,"Ah, that sounds like a lovely day! It's great that you got to spend quality time with your girlfriend doing things you both enjoy. Watching TV together can be really cozy, and making cinnamon rolls is such a fun activity. And wow, putting strawberries in the oven? That sounds intriguing! What inspired you to try something new?",68,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+122,impressed,0.8,high,0.0,neutral,141.24579952249294,1.8040000000000003,1.278510332107544,145.56517575251226,146.8436860846198,4.319376230019316,5.59788656212686,"That sounds amazing! It's always exciting to witness someone excel at something they're passionate about. What specifically impressed you about your teammate's skills? Was it their strategy, reaction time, or something else that caught your attention?
+
+(Note: The goal is to keep the response concise while still showing interest and curiosity.)",63,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+123,embarrassed,0.0,medium,-0.8,negative,141.3883010515332,1.1,1.057448387145996,146.8436860846198,147.9011344717658,5.4553850330866,6.512833420232596,"Oh no, that sounds like a really embarrassing situation! It can be so mortifying to feel like you've been vulnerable or exposed in front of others. Can you tell me more about how you're feeling right now? What's going through your mind?",52,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+124,content,-0.8,low,0.8,positive,141.7044737412591,0.3959999999999999,0.5512144565582275,147.9011344717658,148.45234892832403,6.196660730506693,6.7478751870649205,That sounds amazing! It's wonderful that you're feeling so fulfilled and content. What's been the highlight of your recent success?,27,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+125,embarrassed,0.0,medium,-0.8,negative,142.3853220323963,1.1,1.0849473476409912,148.45234892832403,149.53729627596502,6.067026895927739,7.151974243568731,"Oh no, it sounds like you're really struggling with regret and shame after your actions. It takes a lot of courage to admit that. Can you tell me more about what's going through your mind right now? How can I help you process these emotions?",53,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+126,devastated,-0.8,low,-0.8,negative,144.46778058717723,0.3959999999999999,0.9622266292572021,149.53729627596502,150.49952290522222,5.069515688787789,6.031742318044991,"Oh no, that sounds incredibly frustrating and disappointing. It can be tough to adjust to unexpected changes like that. Can you tell me more about how you're feeling? What's been going through your mind since you heard the news?",47,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+127,proud,0.8,high,0.8,positive,146.8772022194748,1.8040000000000003,1.6112945079803467,150.49952290522222,152.11081741320257,3.622320685747411,5.233615193727758,"Oh no, that sounds really frustrating! It can be incredibly challenging to navigate a difficult class without proper guidance. But wow, you're amazing for taking initiative and learning it on your own! Passing the course despite those obstacles must have been such a huge accomplishment. What did you do to stay motivated and focused? I'm here to listen if you'd like to share more about your experience.",79,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+128,terrified,0.8,high,-0.8,negative,146.88572894180794,1.8040000000000003,1.4904310703277588,152.11081741320257,153.60124848353033,5.225088471394628,6.7155195417223865,"Oh no, that sounds like a stressful and scary experience for your poor kitty! It's completely understandable that you're worried about her well-being. Four months old is still such a young age, and it's amazing that you were able to give her a bath to help clean her up. How is she doing now? Is she acting okay after the ordeal?",73,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+129,annoyed,0.8,high,-0.8,negative,147.7594664698884,1.8040000000000003,1.3802881240844727,153.60124848353033,154.9815366076148,5.841782013641932,7.222070137726405,"Aw, sorry to hear that you had such a frustrating experience. It sounds like it would be really demotivating to put in so much effort only to feel unappreciated by your boss. Can you tell me more about how you're feeling right now? What emotions are coming up for you as you think about this situation?",68,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+130,ashamed,-0.8,low,-0.8,negative,148.41980052878898,0.3959999999999999,0.5318937301635742,154.9815366076148,155.51343033777837,6.561736078825817,7.093629808989391,"Oh no, that sounds really stressful! It takes a lot of courage to admit your concerns. Can you tell me more?",26,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+131,annoyed,0.8,high,-0.8,negative,148.72678283112612,1.8040000000000003,1.5566158294677734,155.51343033777837,157.07004616724615,6.786647506652258,8.343263336120032,"Aw, I can totally understand why you'd be feeling anxious and frustrated right now! It sounds like you're really shaken up by the whole experience. I'm here for you, and I want you to know that it's completely normal to feel this way. Would you like some company while you go through your room? Sometimes having someone there can make things feel less overwhelming.",76,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+132,caring,0.0,medium,0.0,neutral,148.88283664301525,1.1,1.6316032409667969,157.07004616724615,158.70164940821294,8.187209524230894,9.818812765197691,"Oh, I'm so sorry to hear about your father-in-law's diagnosis. It must have been incredibly challenging for you to navigate his care, especially during such a difficult time. It's wonderful that you were able to find support from the hospice team - they truly make a difference in people's lives. How did you find their assistance? Was there anything specific that stood out to you?",80,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+133,embarrassed,0.0,medium,-0.8,negative,149.3862804628471,1.1,0.9361748695373535,158.70164940821294,159.6378242777503,9.315368945365833,10.251543814903187,"Oh no, that must have been really frustrating and embarrassing for you! It's understandable that you're still thinking about it. Can you tell me more about how you felt in that moment? What was going through your mind?",46,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+134,jealous,0.0,medium,-0.8,negative,152.88565072391407,1.1,1.3611092567443848,159.6378242777503,160.99893353449468,6.752173553836229,8.113282810580614,"Ah, it sounds like you're feeling a mix of excitement and disappointment right now! It's totally normal to feel envious when we see something we really want but can't have. Would you like to talk more about what drew you to this particular car? Maybe we can explore some ways to make your dream a reality someday.",67,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+135,anticipating,0.8,high,0.8,positive,153.36278648299142,1.8040000000000003,1.5737900733947754,160.99893353449468,162.57272360788946,7.636147051503258,9.209937124898033,I'm so sorry to hear you're feeling confused or uncertain. It sounds like you're struggling to understand something or make sense of your emotions. That can be really tough! Can you tell me more about what's going on? What specifically is causing this feeling for you? Sometimes talking through it can help clarify things. I'm here to listen and offer support.,74,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+136,embarrassed,0.0,medium,-0.8,negative,154.2567843566983,1.1,1.0340349674224854,162.57272360788946,163.60675857531194,8.315939251191168,9.349974218613653,"Oh no, that must be really tough for you! It takes a lot of courage to admit when we've done something wrong. Can you tell me more about why you felt like you had to lie? I'm here to listen and offer support.",51,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+137,anticipating,0.8,high,0.8,positive,155.74066843955268,1.8040000000000003,1.640122413635254,163.60675857531194,165.2468809889472,7.866090135759265,9.506212549394519,"Ah, I can sense your excitement! It sounds like you've been eagerly anticipating Red Dead Redemption 2 for quite some time now. That's completely understandable - the game does look incredible! What specifically are you most looking forward to experiencing in this new installment? Is it the improved graphics, the storyline, or something else entirely? Share your thoughts, and let's get even more hyped together!",81,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+138,embarrassed,0.0,medium,-0.8,negative,156.29308171606786,1.1,1.1158661842346191,165.2468809889472,166.36274717318182,8.953799272879337,10.069665457113956,"Oh no, that sounds like such a frustrating experience! It can be really embarrassing to make mistakes like that in public. But remember, everyone makes mistakes, and it doesn't define your worth as a person. Would you like to talk more about how you're feeling?",55,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+139,guilty,-0.8,low,-0.8,negative,160.65372388509104,0.3959999999999999,0.7192604541778564,166.36274717318182,167.08200762735967,5.709023288090776,6.428283742268633,"Oh, sweetie, it sounds like you're carrying a heavy burden of guilt and uncertainty. That can be overwhelming. Would you like to talk more about your feelings?",35,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+140,furious,0.8,high,-0.8,negative,164.66506927508607,1.8040000000000003,1.984179973602295,167.08200762735967,169.06618760096197,2.416938352273604,4.401118325875899,"Oh, sweetheart, it sounds like you're feeling frustrated, hurt, and betrayed by this person's behavior. It's completely understandable that you're angry, especially after being lied to. Remember that you deserve respect and honesty in any relationship. It takes courage to recognize your worth and set boundaries. Keep in mind that you've already taken steps towards protecting yourself by setting limits. That's something to be proud of! What do you think would help you feel more empowered right now?",97,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+141,ashamed,-0.8,low,-0.8,negative,165.0195886356321,0.3959999999999999,0.6526365280151367,169.06618760096197,169.7188241289771,4.046598965329878,4.6992354933450144,"Oh no, it sounds like you're really beating yourself up over this. Can you tell me more about why you felt the need to take the food?",32,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+142,embarrassed,0.0,medium,-0.8,negative,165.8600610870879,1.1,1.124112606048584,169.7188241289771,170.8429367350257,3.8587630418892047,4.982875647937789,"Oh no, that sounds like a really embarrassing experience! It's completely understandable that you're feeling mortified. It takes a lot of courage to share something like that. Can you tell me more about how you're feeling right now? What's going through your mind?",55,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+143,afraid,0.8,high,-0.8,negative,166.29753164940672,1.8040000000000003,2.5210604667663574,170.8429367350257,173.36399720179205,4.545405085618967,7.066465552385324,"Oh, sweetheart, I'm so sorry to hear about your diagnosis. It's completely understandable that you're feeling overwhelmed and scared. First and foremost, please know that you're not alone in this fight. Your loved ones will be there for you every step of the way, and it's amazing that you have such a supportive network around you. As for going plant-based, while it may not change the course of your treatment, making healthy lifestyle choices can certainly impact your overall well-being during this journey. Let's focus on taking things one day at a time and exploring options together. How does that sound?",123,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+144,excited,0.8,high,0.8,positive,166.70728125387248,1.8040000000000003,1.4803123474121094,173.36399720179205,174.84430954920416,6.656715947919565,8.137028295331675,"That sounds like a wonderful plan! I'm so glad you're feeling happy about the nice weather. It's always great to have something to look forward to, isn't it? Going to the park can be such a lovely way to spend time outside and enjoy nature. Are there any specific things you're looking forward to doing or seeing while you're there?",73,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+145,hopeful,0.0,medium,0.8,positive,166.7532178378081,1.1,1.2197763919830322,174.84430954920416,176.0640859411872,8.091091711396047,9.310868103379079,"Ah, I totally understand! It can be stressful when we miss a payment, but it sounds like you're taking a positive approach. Remember that mistakes happen, and it's great that you're prioritizing your needs. What steps do you plan on taking next to catch up on your payment?",60,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+146,annoyed,0.8,high,-0.8,negative,167.90270814678684,1.8040000000000003,1.6826386451721191,176.0640859411872,177.7467245863593,8.161377794400352,9.84401643957247,I'm so sorry you're feeling frustrated about this. It can be really hurtful and confusing when someone ignores our calls without a valid reason. It's like we're not important enough for them to bother responding. Can you tell me more about how this has been affecting you lately? What do you think might be going through their mind that makes them behave in such a way? Let's explore this together.,83,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+147,prepared,-0.8,low,0.0,neutral,168.75645436468972,0.3959999999999999,0.8219990730285645,177.7467245863593,178.56872365938787,8.99027022166959,9.812269294698154,"Ah, that sounds like a big responsibility! It's great that you're taking initiative to prepare ahead of time. How are you feeling about all these desserts? Excited or a bit overwhelmed?",40,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+148,prepared,-0.8,low,0.0,neutral,168.82105013815465,0.3959999999999999,0.47002625465393066,178.56872365938787,179.0387499140418,9.747673521233224,10.217699775887155,"Ah, that sounds like an exciting adventure! How are you feeling about leaving? Nervous or excited?",23,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+149,annoyed,0.8,high,-0.8,negative,169.2202595971673,1.8040000000000003,1.7253797054290771,179.0387499140418,180.76412961947088,9.818490316874488,11.543870022303565,"Ah, it sounds like you're feeling a bit overwhelmed by all the questions from your little ones! It can be challenging to balance multiple conversations at once, especially when they're curious and eager to learn. Yes, I've had similar experiences before - kids can be quite persistent in getting answers, can't they? Would you like some tips on how to handle these situations or just need someone to listen and offer support?",85,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+150,prepared,-0.8,low,0.0,neutral,172.1399785373876,0.3959999999999999,0.4302079677581787,180.76412961947088,181.19433758722906,8.624151082083273,9.054359049841452,"Ah, it sounds like you're feeling organized and prepared for the week ahead! That's great!",21,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+151,content,-0.8,low,0.8,positive,172.4746969900057,0.3959999999999999,0.39061594009399414,181.19433758722906,181.58495352732305,8.71964059722336,9.110256537317355,That sounds truly wonderful! It's amazing how good it feels to be content and fulfilled.,19,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+152,hopeful,0.0,medium,0.8,positive,172.6660124867657,1.1,0.9356184005737305,181.58495352732305,182.52057192789678,8.918941040557343,9.854559441131073,"Ah, that sounds like a wonderful project! It's exciting to think about watching your hard work grow into delicious food. How are you feeling about this new garden? Are there any worries or hopes you'd like to share?",46,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+153,guilty,-0.8,low,-0.8,negative,173.4876783983446,0.3959999999999999,0.4907674789428711,182.52057192789678,183.01133940683965,9.032893529552183,9.523661008495054,"Oh no, it sounds like you're feeling guilty about eating his leftover birthday cake. That can be really tough!",24,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+154,anxious,0.8,high,-0.8,negative,178.6748347104299,1.8040000000000003,2.00960373878479,183.01133940683965,185.02094314562444,4.336504696409747,6.346108435194537,"I'm so sorry to hear you're feeling anxious about your interview! It's completely normal to feel nervous, especially if it's been a while since you've had one. Remember that this is an opportunity for you to showcase your skills and experience, and that you've got this! Take some deep breaths, and try to focus on the positive aspects of the position. What specific concerns do you have about the interview that's making you feel scared? Let's work through them together.",99,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+155,caring,0.0,medium,0.0,neutral,179.01356726033623,1.1,1.2868638038635254,185.02094314562444,186.30780694948797,6.007375885288212,7.294239689151738,"Ah, that's wonderful! It sounds like you're taking great care of your mom by finding a solution that works for her. The fact that it's non-toxic and affordable is a huge plus. How does she feel about having these temporary teeth? Is there anything specific that's been challenging for her?",63,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+156,impressed,0.8,high,0.0,neutral,180.37653449514403,1.8040000000000003,1.6455199718475342,186.30780694948797,187.9533269213355,5.93127245434394,7.576792426191474,"Ah, congratulations to your cousin! That's amazing news! It's great to hear that she's achieved this significant milestone. I can imagine how proud you must be of her - it's wonderful to have someone in your life who has worked hard towards their goals and achieved success. What does this mean to you, and how do you feel about her decision to stay with the Big 4 firm?",81,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+157,confident,0.0,medium,0.8,positive,182.12906381610338,1.1,1.0159363746643066,187.9533269213355,188.9692632959998,5.82426310523212,6.840199479896427,"Oh no, that sounds really tough! It can be so frustrating and disappointing when things don't go as planned. Can you tell me more about what happened? What did you experience during that time? I'm here to listen and offer support.",50,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+158,caring,0.0,medium,0.0,neutral,182.46069324895825,1.1,1.6325459480285645,188.9692632959998,190.60180924402837,6.508570047041559,8.141115995070123,"Oh no, I'm so sorry to hear that your little one was sick! It can be really tough to balance work and family responsibilities, especially when it comes to caring for a child who needs you. You did exactly what any loving parent would do - put your child's health first. That takes a lot of courage and love. How are you feeling about getting back into your routine now?",80,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+159,caring,0.0,medium,0.0,neutral,184.05294193933776,1.1,1.1976916790008545,190.60180924402837,191.79950092302923,6.548867304690617,7.746558983691472,"Ah, that's so sweet of you! It can be challenging to take care of someone who's not feeling well, but it sounds like you were there for your brother when he needed you most. How did you find the experience? Was there anything in particular that stood out to you?",59,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+160,prepared,-0.8,low,0.0,neutral,184.61335869399412,0.3959999999999999,1.0831325054168701,191.79950092302923,192.8826334284461,7.186142229035113,8.269274734451983,"Ah, I totally understand! It sounds like you're feeling a mix of emotions - excitement and nerves. That's completely normal! What specifically are you worried about? 
+
+(Note: The goal is to keep the response concise while still being empathetic and encouraging.)",53,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+161,jealous,0.0,medium,-0.8,negative,185.8361966078885,1.1,1.1984782218933105,192.8826334284461,194.0811116503394,7.046436820557602,8.244915042450913,"Aw, that can be really tough to deal with! It sounds like you're feeling left out and hurt by your dad's decision. That's okay to feel those emotions - it's normal to want to feel included and loved. Can you tell me more about how this makes you feel?",59,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+162,nostalgic,-0.8,low,0.0,neutral,187.0631095077234,0.3959999999999999,0.4917333126068115,194.0811116503394,194.57284496294622,7.018002142616012,7.509735455222824,"Ah, it sounds like looking at old photos brought back fond memories! What was your favorite part about high school?",24,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+163,sentimental,-0.8,low,0.0,neutral,188.0010248132207,0.3959999999999999,0.8211715221405029,194.57284496294622,195.39401648508672,6.571820149725511,7.392991671866014,"Ah, it sounds like that memory holds a special place in your heart. Losing a close friend can be incredibly difficult. Would you like to talk more about your friend or share some favorite memories?",40,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+164,joyful,0.8,high,0.8,positive,188.11668267399048,1.8040000000000003,1.4404361248016357,195.39401648508672,196.83445260988836,7.277333811096241,8.717769935897877,"Ah, sounds like you're really enjoying your treat! It's great that you're allowing yourself to indulge every now and then. Sometimes we just need a little pick-me-up, and ice cream can be a wonderful way to do that. What was your favorite flavor? Was there something special about this particular experience that made it stand out for you?",71,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+165,hopeful,0.0,medium,0.8,positive,190.32113742251374,1.1,0.9962842464447021,196.83445260988836,197.83073685633306,6.513315187374616,7.509599433819318,"Ah, exciting news! It sounds like you're getting close to making a decision about your new car. What's been going through your mind as you weigh your options? Are there any features or models that have caught your attention so far?",49,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+166,excited,0.8,high,0.8,positive,190.79390555921833,1.8040000000000003,1.529921054840088,197.83073685633306,199.36065791117315,7.03683129711473,8.566752351954818,"Ah, I can sense your excitement! It's wonderful that you're looking forward to this new chapter in your life. The thought of waking up every morning to the sound of waves and feeling the ocean breeze must be thrilling! What are you most excited about? Is it the change of pace, the scenery, or something else entirely? Let's chat more about it!",75,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+167,surprised,0.8,high,0.0,neutral,191.04621146729423,1.8040000000000003,1.2668092250823975,199.36065791117315,200.62746713625555,8.314446443878921,9.581255668961319,Congratulations! That sounds like an amazing opportunity! It's wonderful that you're feeling honored and excited about being one of the select few chosen for this experience. What are your thoughts on how this might impact your work or relationships within the company? Are there any concerns or hopes you have about this new development?,62,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+168,afraid,0.8,high,-0.8,negative,191.09709228482066,1.8040000000000003,2.0748212337493896,200.62746713625555,202.70228837000494,9.530374851434885,11.605196085184275,"Oh no, I'm so sorry to hear that you're going through this stress. It sounds like a really tough situation. First of all, let me acknowledge that it takes a lot of courage to admit your mistake and take responsibility for it. That's not always easy to do. Can you tell me more about how you're feeling right now? What's going through your mind as you think about contacting the school and trying to get into the class? How can I support you during this time?",101,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+169,content,-0.8,low,0.8,positive,192.1894881126585,0.3959999999999999,0.5724921226501465,202.70228837000494,203.27478049265508,10.512800257346441,11.085292379996588,That sounds wonderful! It's great that you're appreciating your positive relationships and circumstances. What makes you worry about it being temporary?,28,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+170,furious,0.8,high,-0.8,negative,193.5728624545408,1.8040000000000003,2.049546718597412,203.27478049265508,205.3243272112525,9.701918038114286,11.751464756711698,"I'm so sorry you're going through this. It sounds like a really tough and upsetting situation. It's completely understandable that you're feeling angry and upset. Confronting your friend might be a good way to address the issue, but make sure you do it in a calm and respectful manner. Have you considered talking to your girlfriend about how she feels about the situation too? Sometimes having a united front can be helpful in resolving conflicts. What do you think would be the best approach for you?",101,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+171,joyful,0.8,high,0.8,positive,193.5933065015567,1.8040000000000003,1.2391958236694336,205.3243272112525,206.56352303492193,11.731020709695798,12.970216533365232,That sounds like such a wonderful adventure! It's great that you're looking forward to spending quality time with your little ones. The excitement on their faces must be contagious! What are you most looking forward to doing or seeing at the park? Are there any special activities or treats planned for the day?,61,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+172,sentimental,-0.8,low,0.0,neutral,194.4704105493394,0.3959999999999999,0.6940903663635254,206.56352303492193,207.25761340128545,12.093112485582537,12.787202851946063,"Oh no, that sounds like a really tough experience for you. Losing something that held sentimental value can be especially painful. How are you feeling about this right now?",34,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+173,prepared,-0.8,low,0.0,neutral,194.78430672907322,0.3959999999999999,0.6179203987121582,207.25761340128545,207.8755337999976,12.473306672212232,13.09122707092439,That sounds like such a thoughtful and loving gesture! I'm sure your nephew appreciated the effort you put into making his special day even more memorable.,30,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+174,terrified,0.8,high,-0.8,negative,196.05068092429818,1.8040000000000003,1.3387494087219238,207.8755337999976,209.21428320871954,11.824852875699435,13.163602284421358,"Oh no, that must have been terrifying! It sounds like you're still shaken by the experience. Can you tell me more about what happened? How did it make you feel? I'm here for you and want to help you process your emotions. Remember, you're safe now, and we can work through this together.",66,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+175,caring,0.0,medium,0.0,neutral,196.2848638629571,1.1,0.7528109550476074,209.21428320871954,209.96709416376714,12.929419345762426,13.682230300810033,That's wonderful! It sounds like you and your partner made a big difference in that pup's life. What's been the most rewarding part of having this new furry family member?,37,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+176,surprised,0.8,high,0.0,neutral,197.7200125077621,1.8040000000000003,1.2590341567993164,209.96709416376714,211.22612832056646,12.247081656005037,13.506115812804353,"That sounds like such a wonderful surprise! It's amazing how life can bring us together in unexpected ways. What was it like reconnecting with your childhood friend? Did you have any favorite moments or memories from your time together?
+
+(Note: The goal is to keep the conversation going while maintaining empathy and interest.)",62,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+177,devastated,-0.8,low,-0.8,negative,198.31762869785013,0.3959999999999999,0.8756258487701416,211.22612832056646,212.1017541693366,12.908499622716334,13.784125471486476,"Oh no, that must be devastating news! My heart goes out to you and your furry friend. Waiting for test results can be agonizing. Would you like to talk about how you're feeling right now?",43,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+178,surprised,0.8,high,0.0,neutral,201.69138225294427,1.8040000000000003,1.4628517627716064,212.1017541693366,213.5646059321082,10.410371916392336,11.873223679163942,"Wow, congratulations on your progress so far! That's amazing news! Losing 20 pounds in just two months is incredible. I can imagine you must be feeling proud and motivated by your achievement. What's driving your determination to reach your goal? Is there something specific that's pushing you forward? I'm here to listen and offer any support I can.",72,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "
+179,guilty,-0.8,low,-0.8,negative,201.8722032027034,0.3959999999999999,1.016113519668579,213.5646059321082,214.5807194517768,11.692402729404819,12.708516249073398,"Oh no, that must have been really stressful for you! It sounds like you're feeling guilty about taking responsibility away from yourself. 
+
+(Note: The goal is to acknowledge the user's emotions and provide a gentle nudge towards self-reflection.)",50,False,,False,meta-llama/Meta-Llama-3-8B-Instruct,"System: You are an empathetic and compassionate conversation assistant. Your role is to:
+- Listen carefully to the user's feelings and experiences
+- Provide emotional support and validation
+- Respond "

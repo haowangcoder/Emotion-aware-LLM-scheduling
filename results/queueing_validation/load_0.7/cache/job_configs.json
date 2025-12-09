@@ -1,0 +1,2018 @@
+{
+  "metadata": {
+    "experiment_mode": "fixed_jobs",
+    "num_jobs": 200,
+    "arrival_rate": 0.35,
+    "system_load": 0.7,
+    "random_seed": 42,
+    "base_service_time": 2.0,
+    "alpha": 0.8,
+    "emotion_correlation": 1.0,
+    "enable_emotion_aware": true,
+    "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+    "created_at": "2025-12-07T17:28:03.196639",
+    "version": "1.0"
+  },
+  "jobs": [
+    {
+      "job_id": 0,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 114,
+      "arrival_time": 1.3407659713624547,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 1,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 25,
+      "arrival_time": 9.941112916841087,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 2,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 281,
+      "arrival_time": 13.703243469828084,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 3,
+      "emotion": "confident",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 250,
+      "arrival_time": 16.311650766330807,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 4,
+      "emotion": "lonely",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 228,
+      "arrival_time": 16.79629325336608,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 5,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 142,
+      "arrival_time": 17.28085408740781,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 6,
+      "emotion": "anticipating",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 104,
+      "arrival_time": 17.451821997718326,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 7,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 1116,
+      "arrival_time": 23.19819589623244,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 8,
+      "emotion": "faithful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 44,
+      "arrival_time": 25.824144906596054,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 9,
+      "emotion": "sad",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 604,
+      "arrival_time": 29.342002225752026,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 10,
+      "emotion": "anxious",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 432,
+      "arrival_time": 29.401428820035278,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 11,
+      "emotion": "sentimental",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 32,
+      "arrival_time": 39.41159303477331,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 12,
+      "emotion": "devastated",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 30,
+      "arrival_time": 44.5156774443581,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 13,
+      "emotion": "hopeful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 95,
+      "arrival_time": 45.19764208792652,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 14,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 447,
+      "arrival_time": 45.77101062721127,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 15,
+      "emotion": "sentimental",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 238,
+      "arrival_time": 46.349900406732004,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 16,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 517,
+      "arrival_time": 47.38633963376194,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 17,
+      "emotion": "apprehensive",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 27,
+      "arrival_time": 49.51184772193581,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 18,
+      "emotion": "disappointed",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 574,
+      "arrival_time": 51.12766791273677,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 19,
+      "emotion": "grateful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 203,
+      "arrival_time": 52.1111621771766,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 20,
+      "emotion": "anticipating",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 665,
+      "arrival_time": 54.81507895974745,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 21,
+      "emotion": "apprehensive",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 429,
+      "arrival_time": 55.24432047039699,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 22,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 225,
+      "arrival_time": 56.231507647546714,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 23,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 459,
+      "arrival_time": 57.53515684246342,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 24,
+      "emotion": "guilty",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 603,
+      "arrival_time": 59.274970236348494,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 25,
+      "emotion": "grateful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 284,
+      "arrival_time": 63.66907312500824,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 26,
+      "emotion": "hopeful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 6,
+      "arrival_time": 64.30546130251878,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 27,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 163,
+      "arrival_time": 66.36840174547058,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 28,
+      "emotion": "excited",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 714,
+      "arrival_time": 68.93270094921274,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 29,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 865,
+      "arrival_time": 69.06859766280249,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 30,
+      "emotion": "faithful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 174,
+      "arrival_time": 71.74097772180137,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 31,
+      "emotion": "sentimental",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 284,
+      "arrival_time": 72.27515272745113,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 32,
+      "emotion": "confident",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 159,
+      "arrival_time": 72.46733538710629,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 33,
+      "emotion": "annoyed",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 220,
+      "arrival_time": 80.96358622569753,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 34,
+      "emotion": "guilty",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 344,
+      "arrival_time": 90.59395863272945,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 35,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 104,
+      "arrival_time": 95.31490598362339,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 36,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 94,
+      "arrival_time": 96.35287129781985,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 37,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 389,
+      "arrival_time": 96.64652076925557,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 38,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 198,
+      "arrival_time": 99.9400943781089,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 39,
+      "emotion": "joyful",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 367,
+      "arrival_time": 101.59749678549575,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 40,
+      "emotion": "excited",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 352,
+      "arrival_time": 101.96936031107988,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 41,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 541,
+      "arrival_time": 103.92235239146316,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 42,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 44,
+      "arrival_time": 104.02233445273025,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 43,
+      "emotion": "anxious",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 470,
+      "arrival_time": 110.88068555956745,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 44,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 1098,
+      "arrival_time": 111.7362792076837,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 45,
+      "emotion": "sad",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 127,
+      "arrival_time": 114.83986720358364,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 46,
+      "emotion": "hopeful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 387,
+      "arrival_time": 115.90714315117685,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 47,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 80,
+      "arrival_time": 118.00460285377466,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 48,
+      "emotion": "angry",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 565,
+      "arrival_time": 120.2652422765798,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 49,
+      "emotion": "sad",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 300,
+      "arrival_time": 120.84920970374525,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 50,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 643,
+      "arrival_time": 130.82865865442017,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 51,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 633,
+      "arrival_time": 135.09221687481485,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 52,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 370,
+      "arrival_time": 143.10677235850508,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 53,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 591,
+      "arrival_time": 149.54149235145994,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 54,
+      "emotion": "disappointed",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 196,
+      "arrival_time": 152.1445049582693,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 55,
+      "emotion": "joyful",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 71,
+      "arrival_time": 159.42860604189616,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 56,
+      "emotion": "terrified",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 46,
+      "arrival_time": 159.69333592461933,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 57,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 677,
+      "arrival_time": 160.31657790928008,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 58,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 233,
+      "arrival_time": 160.44881209695674,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 59,
+      "emotion": "disappointed",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 296,
+      "arrival_time": 161.5731894878227,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 60,
+      "emotion": "confident",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 81,
+      "arrival_time": 162.97927603580618,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 61,
+      "emotion": "sentimental",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 238,
+      "arrival_time": 163.88373444497427,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 62,
+      "emotion": "proud",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 103,
+      "arrival_time": 168.92532834566265,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 63,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 778,
+      "arrival_time": 170.185976915748,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 64,
+      "emotion": "devastated",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 284,
+      "arrival_time": 171.128270744703,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 65,
+      "emotion": "grateful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 464,
+      "arrival_time": 173.36371955386798,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 66,
+      "emotion": "joyful",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 650,
+      "arrival_time": 173.79771426192693,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 67,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 747,
+      "arrival_time": 178.42766739271187,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 68,
+      "emotion": "confident",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 166,
+      "arrival_time": 178.64902701788705,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 69,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 379,
+      "arrival_time": 191.03230227385083,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 70,
+      "emotion": "angry",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 363,
+      "arrival_time": 195.25939877739802,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 71,
+      "emotion": "joyful",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 214,
+      "arrival_time": 195.89236860741482,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 72,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 273,
+      "arrival_time": 195.9081898084889,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 73,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 73,
+      "arrival_time": 200.73646631559214,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 74,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 623,
+      "arrival_time": 204.24245462241225,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 75,
+      "emotion": "ashamed",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 175,
+      "arrival_time": 207.97292007609224,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 76,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 546,
+      "arrival_time": 212.18781872193085,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 77,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 250,
+      "arrival_time": 212.40761662339884,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 78,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 167,
+      "arrival_time": 213.67588140173092,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 79,
+      "emotion": "prepared",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 473,
+      "arrival_time": 214.0277388434579,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 80,
+      "emotion": "prepared",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 388,
+      "arrival_time": 219.70925190533853,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 81,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 276,
+      "arrival_time": 222.4986838816596,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 82,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 1140,
+      "arrival_time": 223.64673759952043,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 83,
+      "emotion": "sentimental",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 224,
+      "arrival_time": 223.83436064467696,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 84,
+      "emotion": "hopeful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 332,
+      "arrival_time": 224.89861307442084,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 85,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 57,
+      "arrival_time": 226.02236796923265,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 86,
+      "emotion": "disappointed",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 234,
+      "arrival_time": 229.75915592339763,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 87,
+      "emotion": "disgusted",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 32,
+      "arrival_time": 232.6588398060434,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 88,
+      "emotion": "furious",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 323,
+      "arrival_time": 238.89384527004773,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 89,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 410,
+      "arrival_time": 240.71974850826575,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 90,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 274,
+      "arrival_time": 241.08366963288148,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 91,
+      "emotion": "annoyed",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 67,
+      "arrival_time": 244.65260204521462,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 92,
+      "emotion": "furious",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 216,
+      "arrival_time": 248.7394384825771,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 93,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 580,
+      "arrival_time": 251.09340275367947,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 94,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 322,
+      "arrival_time": 255.30451694431193,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 95,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 435,
+      "arrival_time": 257.24970189148416,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 96,
+      "emotion": "annoyed",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 671,
+      "arrival_time": 259.36307000227634,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 97,
+      "emotion": "proud",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 511,
+      "arrival_time": 260.9568248420147,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 98,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 405,
+      "arrival_time": 261.0303899105579,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 99,
+      "emotion": "hopeful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 658,
+      "arrival_time": 261.35658258253466,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 100,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 469,
+      "arrival_time": 261.44782167194336,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 101,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 292,
+      "arrival_time": 264.3384775317364,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 102,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 271,
+      "arrival_time": 265.4167538425795,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 103,
+      "emotion": "proud",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 142,
+      "arrival_time": 267.4465743486772,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 104,
+      "emotion": "grateful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 252,
+      "arrival_time": 274.2501901482371,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 105,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 574,
+      "arrival_time": 275.0694439281894,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 106,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 551,
+      "arrival_time": 276.57882099928275,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 107,
+      "emotion": "excited",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 269,
+      "arrival_time": 280.6038185636787,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 108,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 598,
+      "arrival_time": 281.3461190120141,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 109,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 438,
+      "arrival_time": 281.57498837930035,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 110,
+      "emotion": "prepared",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 597,
+      "arrival_time": 282.5525321046919,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 111,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 408,
+      "arrival_time": 283.05484170040637,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 112,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 370,
+      "arrival_time": 290.640413374351,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 113,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 224,
+      "arrival_time": 295.3572336043069,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 114,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 141,
+      "arrival_time": 298.224359862937,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 115,
+      "emotion": "prepared",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 521,
+      "arrival_time": 304.0858448072822,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 116,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 505,
+      "arrival_time": 308.73718463796945,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 117,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 93,
+      "arrival_time": 309.3271717132798,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 118,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 48,
+      "arrival_time": 315.7009242996671,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 119,
+      "emotion": "sentimental",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 112,
+      "arrival_time": 317.9154954481419,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 120,
+      "emotion": "joyful",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 156,
+      "arrival_time": 322.62220485186634,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 121,
+      "emotion": "devastated",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 642,
+      "arrival_time": 329.09146956411274,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 122,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 163,
+      "arrival_time": 330.1849858967365,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 123,
+      "emotion": "devastated",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 432,
+      "arrival_time": 330.5181063542332,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 124,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 610,
+      "arrival_time": 331.25721134320287,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 125,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 65,
+      "arrival_time": 332.84880475105604,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 126,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 394,
+      "arrival_time": 337.71688968431016,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 127,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 390,
+      "arrival_time": 343.3493038896811,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 128,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 610,
+      "arrival_time": 343.36923648734296,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 129,
+      "emotion": "confident",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 479,
+      "arrival_time": 345.4117397997388,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 130,
+      "emotion": "prepared",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 541,
+      "arrival_time": 346.9553778595065,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 131,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 257,
+      "arrival_time": 347.67299882600884,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 132,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 566,
+      "arrival_time": 348.0377999447107,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 133,
+      "emotion": "impressed",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 11,
+      "arrival_time": 349.2146816014605,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 134,
+      "emotion": "ashamed",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 117,
+      "arrival_time": 357.3950276662923,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 135,
+      "emotion": "grateful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 698,
+      "arrival_time": 358.5104099602394,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 136,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 549,
+      "arrival_time": 360.6002751195541,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 137,
+      "emotion": "joyful",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 273,
+      "arrival_time": 364.06909505349944,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 138,
+      "emotion": "confident",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 656,
+      "arrival_time": 365.3604507648336,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 139,
+      "emotion": "excited",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 348,
+      "arrival_time": 375.55415973138133,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 140,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 114,
+      "arrival_time": 384.93133077292816,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 141,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 300,
+      "arrival_time": 385.7600773300488,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 142,
+      "emotion": "grateful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 445,
+      "arrival_time": 387.72481812565974,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 143,
+      "emotion": "annoyed",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 161,
+      "arrival_time": 388.74747658302846,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 144,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 464,
+      "arrival_time": 389.7053328012601,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 145,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 3,
+      "arrival_time": 389.8127170234473,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 146,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 269,
+      "arrival_time": 392.4998372262547,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 147,
+      "emotion": "surprised",
+      "arousal": 0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 1025,
+      "arrival_time": 394.495607605768,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 148,
+      "emotion": "proud",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 182,
+      "arrival_time": 394.6466107125691,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 149,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 519,
+      "arrival_time": 395.5798276297416,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 150,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 108,
+      "arrival_time": 402.405144632854,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 151,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 640,
+      "arrival_time": 403.18760335325993,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 152,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 305,
+      "arrival_time": 403.634834384647,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 153,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 654,
+      "arrival_time": 405.55561184028596,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 154,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 519,
+      "arrival_time": 417.68143179061525,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 155,
+      "emotion": "joyful",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 623,
+      "arrival_time": 418.4732741150716,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 156,
+      "emotion": "annoyed",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 203,
+      "arrival_time": 421.6594312873496,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 157,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 156,
+      "arrival_time": 425.7562530766052,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 158,
+      "emotion": "confident",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 382,
+      "arrival_time": 426.5314907118504,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 159,
+      "emotion": "apprehensive",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 165,
+      "arrival_time": 430.2536305075427,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 160,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 552,
+      "arrival_time": 431.5636956482979,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 161,
+      "emotion": "proud",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 543,
+      "arrival_time": 434.42227778467435,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 162,
+      "emotion": "terrified",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 0,
+      "arrival_time": 437.2903858622105,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 163,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 613,
+      "arrival_time": 439.4829151477886,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 164,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 331,
+      "arrival_time": 439.7532841729647,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 165,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 500,
+      "arrival_time": 444.9065550136684,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 166,
+      "emotion": "prepared",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 19,
+      "arrival_time": 446.01172728128955,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 167,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 114,
+      "arrival_time": 446.6015333001683,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 168,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 371,
+      "arrival_time": 446.72047547100925,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 169,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 314,
+      "arrival_time": 449.2741280555652,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 170,
+      "emotion": "joyful",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 245,
+      "arrival_time": 452.5079901534719,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 171,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 59,
+      "arrival_time": 452.5557814322104,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 172,
+      "emotion": "annoyed",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 246,
+      "arrival_time": 454.6061545309232,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 173,
+      "emotion": "prepared",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 580,
+      "arrival_time": 455.3399378082231,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 174,
+      "emotion": "furious",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 80,
+      "arrival_time": 458.3002930697879,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 175,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 87,
+      "arrival_time": 458.847733705614,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 176,
+      "emotion": "anxious",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 497,
+      "arrival_time": 462.20262664152176,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 177,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 70,
+      "arrival_time": 463.59965150146775,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 178,
+      "emotion": "jealous",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 545,
+      "arrival_time": 471.48634812376577,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 179,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 128,
+      "arrival_time": 471.909046447878,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 180,
+      "emotion": "proud",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 131,
+      "arrival_time": 473.1008534021499,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 181,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 486,
+      "arrival_time": 473.444979930827,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 182,
+      "emotion": "proud",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 562,
+      "arrival_time": 480.83409535125764,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 183,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 169,
+      "arrival_time": 486.8293345145748,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 184,
+      "emotion": "afraid",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 271,
+      "arrival_time": 487.6816984290362,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 185,
+      "emotion": "annoyed",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 540,
+      "arrival_time": 490.7638776834474,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 186,
+      "emotion": "proud",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 621,
+      "arrival_time": 495.61954646241657,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 187,
+      "emotion": "caring",
+      "arousal": 0.0,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 433,
+      "arrival_time": 497.9342103500923,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 188,
+      "emotion": "devastated",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 216,
+      "arrival_time": 500.08929437921785,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 189,
+      "emotion": "annoyed",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 552,
+      "arrival_time": 500.8803716518976,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 190,
+      "emotion": "anticipating",
+      "arousal": 0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 205,
+      "arrival_time": 501.1595891961117,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 191,
+      "emotion": "faithful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 365,
+      "arrival_time": 507.6599412680961,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 192,
+      "emotion": "nostalgic",
+      "arousal": -0.8,
+      "valence": 0.0,
+      "valence_class": "neutral",
+      "conversation_index": 319,
+      "arrival_time": 514.2507253470916,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 193,
+      "emotion": "sad",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 408,
+      "arrival_time": 517.1154965456141,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 194,
+      "emotion": "disgusted",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 687,
+      "arrival_time": 518.2984865736464,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 195,
+      "emotion": "faithful",
+      "arousal": 0.0,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 332,
+      "arrival_time": 519.5258226188225,
+      "service_time": 2.0
+    },
+    {
+      "job_id": 196,
+      "emotion": "guilty",
+      "arousal": -0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 382,
+      "arrival_time": 523.2242952751857,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 197,
+      "emotion": "anxious",
+      "arousal": 0.8,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 448,
+      "arrival_time": 529.7217162726349,
+      "service_time": 3.2800000000000002
+    },
+    {
+      "job_id": 198,
+      "emotion": "content",
+      "arousal": -0.8,
+      "valence": 0.8,
+      "valence_class": "positive",
+      "conversation_index": 529,
+      "arrival_time": 535.9535236137681,
+      "service_time": 0.7199999999999998
+    },
+    {
+      "job_id": 199,
+      "emotion": "embarrassed",
+      "arousal": 0.0,
+      "valence": -0.8,
+      "valence_class": "negative",
+      "conversation_index": 462,
+      "arrival_time": 540.277987019285,
+      "service_time": 2.0
+    }
+  ]
+}
