@@ -86,13 +86,13 @@ def plot_pareto_tradeoff(agg_data: dict, x_metric: str, y_metric: str,
 
     ax.annotate(
         'Ideal\n(High Fairness,\nLow Latency)',
-        xy=(0.95, 0.05),
+        xy=(0.05, 0.95),
         xycoords='axes fraction',
         fontsize=9,
         color='green',
         alpha=0.7,
-        ha='right',
-        va='bottom',
+        ha='left',
+        va='top',
         bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.3)
     )
 

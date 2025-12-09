@@ -18,8 +18,8 @@ set -e  # Exit on error
 NUM_SEEDS=${1:-20}  # Default to 20 seeds if not specified
 BASE_OUTPUT_DIR="results/multi_seed_runs"
 MODE="fixed_jobs"
-NUM_JOBS=54
-SYSTEM_LOAD=1.2
+NUM_JOBS=180
+SYSTEM_LOAD=0.9
 
 # Schedulers to compare
 SCHEDULERS=("FCFS" "SSJF-Emotion" "SSJF-Valence" "SSJF-Combined")

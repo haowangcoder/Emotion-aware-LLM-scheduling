@@ -49,7 +49,7 @@ Examples:
     parser.add_argument(
         '--runs-dir',
         type=str,
-        default='results/llm_runs_job54_load1.2',
+        default='results/llm_runs_job54_load0.9',
         help='Directory with *_jobs.csv and *_summary.json files (default: %(default)s)'
     )
 
