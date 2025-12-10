@@ -104,6 +104,9 @@ class Job:
         self.fallback_used = False
         self.model_name = None
 
+        # === Early Prompt Generation Fields ===
+        self.prompt = None  # Pre-generated prompt for BERT prediction
+
     # === Basic Getters/Setters ===
 
     def get_job_id(self):
@@ -229,6 +232,16 @@ class Job:
 
     def get_conversation_context(self):
         return self.conversation_context
+
+    # === Early Prompt Generation Getters/Setters ===
+
+    def set_prompt(self, prompt):
+        """Set pre-generated prompt for BERT prediction."""
+        self.prompt = prompt
+
+    def get_prompt(self):
+        """Get pre-generated prompt (if available)."""
+        return self.prompt
 
     def set_actual_execution_duration(self, actual_execution_duration):
         self.actual_execution_duration = actual_execution_duration

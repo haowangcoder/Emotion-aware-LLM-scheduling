@@ -30,7 +30,7 @@ workload:
 # ============================================================================
 llm:
   model:
-    name: 'meta-llama/Meta-Llama-3-8B-Instruct'
+    name: 'lmsys/vicuna-13b-v1.3'
     device_map: 'auto'
     dtype: 'auto'
     trust_remote_code: true
@@ -94,7 +94,7 @@ scheduler:
 # LENGTH PREDICTOR CONFIGURATION (BERT-based)
 # ============================================================================
 length_predictor:
-  enabled: false                 # Disabled by default (requires trained model)
+  enabled: true                 # Disabled by default (requires trained model)
   model_path: 'predictor/models/bert_regression.pth'
   model_name: 'bert-base-uncased'
   device: 'cuda'

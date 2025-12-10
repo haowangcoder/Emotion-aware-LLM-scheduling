@@ -52,12 +52,30 @@ class LengthEstimator:
         self.predictor = None
         self._model_path = model_path
 
-        # Initialize BERT predictor if model path is provided and file exists
-        if model_path and os.path.exists(model_path):
+        # Resolve relative model path in a robust way:
+        # 1) As given (relative to current working directory)
+        # 2) Relative to the package root (model-serving/)
+        resolved_path = None
+        if model_path:
+            if os.path.isabs(model_path):
+                resolved_path = model_path if os.path.exists(model_path) else None
+            else:
+                # Try relative to current working directory first
+                if os.path.exists(model_path):
+                    resolved_path = model_path
+                else:
+                    # Then try relative to the model-serving package root
+                    package_root = os.path.dirname(os.path.dirname(__file__))
+                    candidate = os.path.join(package_root, model_path)
+                    if os.path.exists(candidate):
+                        resolved_path = candidate
+
+        # Initialize BERT predictor if a valid model path was found
+        if resolved_path:
             try:
                 from predictor.bert_predictor import BertPredictor
                 self.predictor = BertPredictor(
-                    model_path=model_path,
+                    model_path=resolved_path,
                     model_name=model_name,
                     device=device,
                     per_token_latency=per_token_latency,
@@ -70,6 +88,9 @@ class LengthEstimator:
                     f"Using default service time: {default_service_time}"
                 )
                 self.predictor = None
+
+        # Store the resolved path (if any) for introspection
+        self._model_path = resolved_path
 
     def predict(self, prompt: str) -> float:
         """

@@ -11,6 +11,7 @@ def run_scheduling_loop(
     verbose: bool = False,
     llm_handler=None,
     llm_skip_on_error: bool = True,
+    early_prompt_generator=None,
 ) -> Tuple[List[Job], dict]:
     """
     Run fixed-num_jobs scheduling loop.
@@ -24,6 +25,7 @@ def run_scheduling_loop(
         verbose: Whether to print progress information
         llm_handler: Optional LLM handler for real inference
         llm_skip_on_error: Whether to skip failed jobs or abort
+        early_prompt_generator: Optional EarlyPromptGenerator for BERT prediction
 
     Returns:
         Tuple of (completed_jobs, metrics)
@@ -50,6 +52,35 @@ def run_scheduling_loop(
         # Add arrived jobs to waiting queue
         while next_index < total_jobs and jobs[next_index].arrival_time <= current_time:
             new_job = jobs[next_index]
+
+            # === Early prompt generation and BERT prediction ===
+            # Check if job already has predicted_service_time (from trace)
+            if new_job.predicted_service_time is None and early_prompt_generator is not None:
+                prompt, predicted_time, conv_idx = early_prompt_generator.generate_prompt_and_predict(new_job)
+                new_job.set_prompt(prompt)
+                new_job.set_conversation_context(prompt)
+                new_job.predicted_service_time = predicted_time
+                # Use BERT-predicted service time as simulated execution duration
+                new_job.execution_duration = predicted_time
+                if new_job.conversation_index is None:
+                    new_job.conversation_index = conv_idx
+
+                if verbose:
+                    # Distinguish true BERT predictions from default fallback
+                    is_true_prediction = (
+                        hasattr(early_prompt_generator, "is_prediction_available")
+                        and early_prompt_generator.is_prediction_available()
+                    )
+                    if is_true_prediction:
+                        print(
+                            f"    BERT predicted: {predicted_time:.3f}s for Job {new_job.job_id}"
+                        )
+                    else:
+                        print(
+                            f"    Using default service time: {predicted_time:.3f}s "
+                            f"(BERT not available) for Job {new_job.job_id}"
+                        )
+
             waiting_queue.append(new_job)
 
             if verbose and next_index % 50 == 0:
@@ -254,13 +285,14 @@ def run_scheduling_loop_time_window(
     verbose: bool = False,
     llm_handler=None,
     llm_skip_on_error: bool = True,
+    early_prompt_generator=None,
 ) -> Tuple[List[Job], dict]:
     """
     Run time-window scheduling loop with pre-generated trace.
-    
+
     Jobs arrive according to the pre-generated trace, but only jobs completed
     within the simulation_duration are counted.
-    
+
     Args:
         scheduler: Scheduler instance
         job_trace: Pre-generated job trace (list of dicts)
@@ -269,7 +301,8 @@ def run_scheduling_loop_time_window(
         verbose: Print progress
         llm_handler: Optional LLM handler
         llm_skip_on_error: Skip failed jobs
-    
+        early_prompt_generator: Optional EarlyPromptGenerator for BERT prediction
+
     Returns:
         Tuple of (completed_jobs, metrics)
     """
@@ -309,9 +342,17 @@ def run_scheduling_loop_time_window(
             if russell_quadrant is None:
                 russell_quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
 
+            # Check if trace already has predicted_service_time
+            predicted_service_time = job_config.get('predicted_service_time')
+            prompt_from_trace = job_config.get('prompt')
+            conversation_index = job_config.get('conversation_index')
+
             new_job = Job(
                 job_id=job_config['job_id'],
-                execution_duration=job_config['service_time'],
+                # Prefer BERT-predicted service time if available
+                execution_duration=predicted_service_time
+                if predicted_service_time is not None
+                else job_config['service_time'],
                 arrival_time=job_config['arrival_time'],
                 emotion_label=job_config['emotion'],
                 arousal=arousal,
@@ -319,7 +360,42 @@ def run_scheduling_loop_time_window(
                 russell_quadrant=russell_quadrant,
                 affect_weight=affect_weight,
                 urgency=urgency,
+                predicted_service_time=predicted_service_time,
             )
+
+            # Set conversation_index and prompt if available from trace
+            if conversation_index is not None:
+                new_job.conversation_index = conversation_index
+            if prompt_from_trace is not None:
+                new_job.set_prompt(prompt_from_trace)
+                new_job.set_conversation_context(prompt_from_trace)
+
+            # === Early prompt generation and BERT prediction ===
+            # Only if not already in trace and generator available
+            if new_job.predicted_service_time is None and early_prompt_generator is not None:
+                prompt, predicted_time, conv_idx = early_prompt_generator.generate_prompt_and_predict(new_job)
+                new_job.set_prompt(prompt)
+                new_job.set_conversation_context(prompt)
+                new_job.predicted_service_time = predicted_time
+                # Use BERT-predicted service time as simulated execution duration
+                new_job.execution_duration = predicted_time
+                if new_job.conversation_index is None:
+                    new_job.conversation_index = conv_idx
+
+                if verbose:
+                    # Distinguish true BERT predictions from default fallback
+                    is_true_prediction = (
+                        hasattr(early_prompt_generator, "is_prediction_available")
+                        and early_prompt_generator.is_prediction_available()
+                    )
+                    if is_true_prediction:
+                        print(f"    BERT predicted: {predicted_time:.3f}s for Job {new_job.job_id}")
+                    else:
+                        print(
+                            f"    Using default service time: {predicted_time:.3f}s "
+                            f"(BERT not available) for Job {new_job.job_id}"
+                        )
+
             waiting_queue.append(new_job)
 
             if verbose and next_trace_index % 50 == 0:

@@ -283,6 +283,8 @@ def generate_job_trace(
     w_max: float = 2.0,
     p: float = 1.0,
     q: float = 1.0,
+    early_prompt_generator=None,
+    save_prompts: bool = False,
 ) -> List[Dict]:
     """
     Generate a complete job trace for reproducible experiments across schedulers.
@@ -297,6 +299,8 @@ def generate_job_trace(
         enable_emotion: Whether to enable emotion-aware features
         random_seed: Random seed for reproducibility
         use_stratified_sampling: Whether to use stratified sampling by Russell quadrant
+        early_prompt_generator: Optional EarlyPromptGenerator for BERT prediction
+        save_prompts: Whether to save prompts in trace (for debugging)
         class_distribution: Target distribution for 4 quadrants (default: uniform 1/4 each)
         w_max: Maximum affect weight
         p: Exponent for negative valence
@@ -354,7 +358,7 @@ def generate_job_trace(
             urgency = 0.0
             affect_weight = 1.0
 
-        trace.append({
+        job_entry = {
             'job_id': job_id,
             'arrival_time': float(arrival_times[job_id]),
             'emotion': emotion_label,
@@ -364,7 +368,34 @@ def generate_job_trace(
             'service_time': float(default_service_time),
             'affect_weight': float(affect_weight),
             'urgency': float(urgency),
-        })
+        }
+
+        # === BERT prediction during trace generation ===
+        if early_prompt_generator is not None:
+            # Create a temporary Job-like object for prediction
+            class TempJob:
+                def __init__(self, emotion, arousal, valence, job_id):
+                    self.emotion_label = emotion
+                    self.arousal = arousal
+                    self.valence = valence
+                    self.job_id = job_id
+                    self.conversation_index = None
+
+                def get_emotion_label(self):
+                    return self.emotion_label
+
+                def get_arousal(self):
+                    return self.arousal
+
+            temp_job = TempJob(emotion_label, arousal, valence, job_id)
+            prompt, predicted_time, conv_idx = early_prompt_generator.generate_prompt_and_predict(temp_job)
+
+            job_entry['predicted_service_time'] = float(predicted_time)
+            job_entry['conversation_index'] = conv_idx
+            if save_prompts:
+                job_entry['prompt'] = prompt
+
+        trace.append(job_entry)
 
     # Print Russell quadrant distribution
     if enable_emotion:
@@ -418,9 +449,17 @@ def create_jobs_from_trace(
         affect_weight = job_config.get('affect_weight', 1.0)
         urgency = job_config.get('urgency', 0.0)
 
+        # Get BERT prediction fields if available
+        predicted_service_time = job_config.get('predicted_service_time')
+        conversation_index = job_config.get('conversation_index')
+        prompt = job_config.get('prompt')
+
         job = Job(
             job_id=job_config['job_id'],
-            execution_duration=job_config['service_time'],
+            # Prefer BERT-predicted service time if available
+            execution_duration=predicted_service_time
+            if predicted_service_time is not None
+            else job_config['service_time'],
             arrival_time=job_config['arrival_time'],
             emotion_label=job_config['emotion'],
             arousal=arousal,
@@ -428,7 +467,16 @@ def create_jobs_from_trace(
             russell_quadrant=russell_quadrant,
             affect_weight=affect_weight,
             urgency=urgency,
+            predicted_service_time=predicted_service_time,
         )
+
+        # Set optional fields
+        if conversation_index is not None:
+            job.conversation_index = conversation_index
+        if prompt is not None:
+            job.set_prompt(prompt)
+            job.set_conversation_context(prompt)
+
         jobs.append(job)
 
     return jobs

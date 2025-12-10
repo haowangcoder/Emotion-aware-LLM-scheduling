@@ -104,6 +104,31 @@ def run_emotion_aware_experiment(args) -> None:
         # Get default service time from length predictor config
         default_service_time = config.length_predictor.default_service_time
 
+        # === Initialize BERT Length Predictor (for early service time prediction) ===
+        early_prompt_generator = None
+        length_estimator = None
+
+        if config.length_predictor.enabled:
+            print(f"\nInitializing BERT Length Predictor...")
+            print(f"  Model path: {config.length_predictor.model_path}")
+
+            from predictor.length_estimator import create_length_estimator
+
+            length_estimator = create_length_estimator({
+                'enabled': config.length_predictor.enabled,
+                'model_path': config.length_predictor.model_path,
+                'model_name': config.length_predictor.model_name,
+                'device': config.length_predictor.device,
+                'per_token_latency': config.length_predictor.per_token_latency,
+                'const_latency': config.length_predictor.const_latency,
+                'default_service_time': config.length_predictor.default_service_time,
+            })
+
+            if length_estimator.is_available():
+                print(f"  ✓ BERT predictor loaded successfully")
+            else:
+                print(f"  ⚠ BERT predictor not available, using default service time")
+
         if mode == "fixed_jobs":
             # ------------------------------------------------------------------
             # Fixed-jobs mode: keep the original JobConfigManager behaviour.
@@ -195,6 +220,62 @@ def run_emotion_aware_experiment(args) -> None:
         # Initialize LLM handler (LLM-only mode)
         llm_handler = init_llm_handler(config)
 
+        # === Create EarlyPromptGenerator if BERT predictor is available ===
+        if length_estimator is not None and llm_handler is not None:
+            from predictor.early_prompt_generator import EarlyPromptGenerator
+
+            early_prompt_generator = EarlyPromptGenerator(
+                dataset_loader=llm_handler.dataset_loader,
+                prompt_builder=llm_handler.prompt_builder,
+                length_estimator=length_estimator,
+                default_service_time=default_service_time,
+            )
+            print(f"  ✓ Early prompt generator initialized")
+
+            # Check if trace needs BERT predictions
+            if job_trace is not None:
+                # Check if trace already has predicted_service_time
+                has_predictions = any('predicted_service_time' in entry for entry in job_trace)
+                if not has_predictions and early_prompt_generator.is_prediction_available():
+                    print(f"\nEnriching trace with BERT predictions...")
+                    for i, entry in enumerate(job_trace):
+                        # Create temp job for prediction
+                        class TempJob:
+                            def __init__(self, emotion, arousal, valence, job_id, conv_idx):
+                                self.emotion_label = emotion
+                                self.arousal = arousal
+                                self.valence = valence
+                                self.job_id = job_id
+                                self.conversation_index = conv_idx
+
+                            def get_emotion_label(self):
+                                return self.emotion_label
+
+                            def get_arousal(self):
+                                return self.arousal
+
+                        temp_job = TempJob(
+                            entry['emotion'],
+                            entry['arousal'],
+                            entry['valence'],
+                            entry['job_id'],
+                            entry.get('conversation_index')
+                        )
+                        prompt, predicted_time, conv_idx = early_prompt_generator.generate_prompt_and_predict(temp_job)
+                        entry['predicted_service_time'] = float(predicted_time)
+                        entry['conversation_index'] = conv_idx
+
+                        if (i + 1) % 100 == 0:
+                            print(f"    Processed {i + 1}/{len(job_trace)} jobs")
+
+                    print(f"  ✓ Added BERT predictions to {len(job_trace)} jobs")
+
+                    # Save updated trace (for time_window mode)
+                    if mode == "time_window" and 'trace_file' in locals():
+                        with open(trace_file, "w") as f:
+                            json.dump(job_trace, f, indent=2)
+                        print(f"  ✓ Saved updated trace with predictions")
+
         # Run scheduling based on mode
         print(f"\nRunning scheduling ({mode} mode)...")
 
@@ -205,10 +286,11 @@ def run_emotion_aware_experiment(args) -> None:
                 verbose=config.output.verbose,
                 llm_handler=llm_handler,
                 llm_skip_on_error=config.llm.error_handling.skip_on_error,
+                early_prompt_generator=early_prompt_generator,
             )
         else:  # time_window
             from simulator.loop import run_scheduling_loop_time_window
-            
+
             completed_jobs, run_metrics = run_scheduling_loop_time_window(
                 scheduler=scheduler,
                 job_trace=job_trace,
@@ -217,6 +299,7 @@ def run_emotion_aware_experiment(args) -> None:
                 verbose=config.output.verbose,
                 llm_handler=llm_handler,
                 llm_skip_on_error=config.llm.error_handling.skip_on_error,
+                early_prompt_generator=early_prompt_generator,
             )
 
         # Save cache if LLM was used

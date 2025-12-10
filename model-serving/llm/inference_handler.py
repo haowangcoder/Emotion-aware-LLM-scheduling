@@ -158,7 +158,7 @@ class LLMInferenceHandler:
         if max_retries is None:
             max_retries = self.max_retries
 
-        # Get conversation context from dataset based on emotion
+        # Get emotion label
         emotion = job.get_emotion_label()
 
         if not emotion:
@@ -166,35 +166,45 @@ class LLMInferenceHandler:
             job.set_error_msg("No emotion label")
             return False
 
-        # Get arousal value for emotion-aware response length control
-        arousal = job.get_arousal()
+        # === Check for pre-generated prompt (from early prompt generation) ===
+        prompt = job.get_prompt()
 
-        # Get user context from dataset
-        # Use conversation_index if available (for reproducibility)
-        conversation_index = getattr(job, 'conversation_index', None)
+        if prompt is not None:
+            # Reuse pre-generated prompt from early generation
+            logger.debug(f"Job {job.get_job_id()}: Reusing pre-generated prompt")
+        else:
+            # Fall back to original prompt generation logic
+            logger.debug(f"Job {job.get_job_id()}: Generating prompt on-the-fly")
 
-        user_context, selected_index = self.dataset_loader.get_user_context_by_emotion(
-            emotion=emotion.lower(),
-            max_turns=self.max_conversation_turns,
-            conversation_index=conversation_index
-        )
+            # Get arousal value for emotion-aware response length control
+            arousal = job.get_arousal()
 
-        # Store the conversation index in the job for later saving
-        if job.conversation_index is None and selected_index >= 0:
-            job.conversation_index = selected_index
+            # Get user context from dataset
+            # Use conversation_index if available (for reproducibility)
+            conversation_index = getattr(job, 'conversation_index', None)
 
-        if not user_context:
-            logger.warning(f"No conversation found for emotion: {emotion}, using fallback")
-            user_context = f"I'm feeling {emotion} right now."
+            user_context, selected_index = self.dataset_loader.get_user_context_by_emotion(
+                emotion=emotion.lower(),
+                max_turns=self.max_conversation_turns,
+                conversation_index=conversation_index
+            )
 
-        # Build prompt with arousal for emotion-aware response length
-        prompt = self.prompt_builder.build_prompt(
-            user_context=user_context,
-            emotion=emotion,
-            arousal=arousal
-        )
+            # Store the conversation index in the job for later saving
+            if job.conversation_index is None and selected_index >= 0:
+                job.conversation_index = selected_index
 
-        # Store conversation context in job
+            if not user_context:
+                logger.warning(f"No conversation found for emotion: {emotion}, using fallback")
+                user_context = f"I'm feeling {emotion} right now."
+
+            # Build prompt with arousal for emotion-aware response length
+            prompt = self.prompt_builder.build_prompt(
+                user_context=user_context,
+                emotion=emotion,
+                arousal=arousal
+            )
+
+        # Store conversation context in job (ensure consistency)
         job.set_conversation_context(prompt)
 
         # Check cache first (if enabled and not forcing regeneration)
