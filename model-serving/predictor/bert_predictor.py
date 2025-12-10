@@ -137,6 +137,29 @@ class BertPredictor:
         self.model.to(self.device)
         self.model.eval()
 
+    def _truncate_tail(self, inputs: dict, max_length: int = 512) -> dict:
+        """
+        Truncate inputs to keep the LAST max_length tokens (tail truncation).
+
+        This matches the training data preprocessing in preprocess_dataset.py
+        which uses: example['input_ids'] = example['input_ids'][-512:]
+
+        Args:
+            inputs: Tokenizer outputs with input_ids, attention_mask, etc.
+            max_length: Maximum sequence length
+
+        Returns:
+            Truncated inputs
+        """
+        seq_len = inputs['input_ids'].shape[-1]
+        if seq_len > max_length:
+            for key in inputs:
+                if inputs[key].dim() == 1:
+                    inputs[key] = inputs[key][-max_length:]
+                else:
+                    inputs[key] = inputs[key][:, -max_length:]
+        return inputs
+
     def predict_tokens(self, prompt: str) -> float:
         """
         Predict output token count for a single prompt.
@@ -147,13 +170,15 @@ class BertPredictor:
         Returns:
             Predicted number of output tokens
         """
+        # Tokenize without truncation first
         inputs = self.tokenizer(
             prompt,
             return_tensors='pt',
-            truncation=True,
-            max_length=512,
+            truncation=False,
             padding=True
         )
+        # Apply tail truncation to match training preprocessing
+        inputs = self._truncate_tail(inputs, max_length=512)
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         with torch.no_grad():
@@ -197,26 +222,11 @@ class BertPredictor:
         if not prompts:
             return []
 
-        inputs = self.tokenizer(
-            prompts,
-            return_tensors='pt',
-            truncation=True,
-            max_length=512,
-            padding=True
-        )
-        inputs = {k: v.to(self.device) for k, v in inputs.items()}
-
-        with torch.no_grad():
-            predicted_tokens = self.model(
-                input_ids=inputs['input_ids'],
-                attention_mask=inputs['attention_mask']
-            )
-
-        # Convert to service times
-        service_times = [
-            self.const_latency + max(0.0, t.item()) * self.per_token_latency
-            for t in predicted_tokens
-        ]
+        # Process each prompt individually to apply tail truncation
+        # (batch processing with variable-length tail truncation is complex)
+        service_times = []
+        for prompt in prompts:
+            service_times.append(self.predict_service_time(prompt))
 
         return service_times
 
@@ -233,19 +243,9 @@ class BertPredictor:
         if not prompts:
             return []
 
-        inputs = self.tokenizer(
-            prompts,
-            return_tensors='pt',
-            truncation=True,
-            max_length=512,
-            padding=True
-        )
-        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+        # Process each prompt individually to apply tail truncation
+        token_counts = []
+        for prompt in prompts:
+            token_counts.append(self.predict_tokens(prompt))
 
-        with torch.no_grad():
-            predicted_tokens = self.model(
-                input_ids=inputs['input_ids'],
-                attention_mask=inputs['attention_mask']
-            )
-
-        return [max(0.0, t.item()) for t in predicted_tokens]
+        return token_counts
