@@ -1,167 +1,150 @@
 # ============================================================================
-# Emotion-aware LLM Scheduling - Default Configuration
+# Affect-Aware LLM Scheduling - Default Configuration
 # ============================================================================
-# This is the single source of truth for all default configuration values.
-# Configuration precedence: default.yaml → environment variables → CLI args
+# AW-SSJF (Affect-Weighted Shortest-Service-Job-First) Framework
+#
+# Core Innovation:
+#   - Service time S predicted by BERT model (not emotion-based)
+#   - Affect weight w computed using Depression-First strategy
+#   - Scheduling score = S / w (lower = higher priority)
+#
+# Configuration precedence: default.yaml -> environment variables -> CLI args
 
 # ============================================================================
 # WORKLOAD GENERATION
 # ============================================================================
 workload:
-  # Service Time Mapping Parameters
-  # Formula: S_i = base_service_time * (1 + alpha * arousal_i)
   service_time:
-    base_service_time: 1.1      # L_0: Base service time when arousal = 0 (seconds)
-    alpha: 0.8                   # α: Sensitivity coefficient for arousal impact
-                                 # NOTE: Same alpha used for both service time prediction
-                                 # and LLM response length generation (synchronized)
-    emotion_correlation: 1.0     # Correlation strength between emotion and service time [0,1]
-                                 # (Previously 'rho' - renamed to avoid confusion with system_load)
-    min_service_time: 0.1        # Minimum allowed service time (safety bound)
-    mapping_function: 'linear'   # 'linear'
+    base_service_time: 2.0       # Default service time when predictor unavailable
+    min_service_time: 0.1        # Minimum allowed service time
 
-  # Emotion Parameters
   emotion:
-    arousal_noise_std: 0.0       # Standard deviation of noise added to arousal values
-    enable_emotion_aware: true   # Enable/disable emotion-aware features globally
-  
-    use_stratified_sampling: true # stratified sampling
-    # 'uniform' for equal distribution (1/9 each), or specify 9 classes:
-    # high_positive, high_neutral, high_negative,
-    # medium_positive, medium_neutral, medium_negative,
-    # low_positive, low_neutral, low_negative
-    class_distribution: uniform
+    arousal_noise_std: 0.0       # Noise added to arousal values (NRC-VAD)
+    valence_noise_std: 0.0       # Noise added to valence values (NRC-VAD)
+    enable_emotion_aware: true   # Enable emotion-aware features
+    use_stratified_sampling: true  # Stratified sampling by Russell quadrant
+    quadrant_distribution: uniform  # 'uniform' or dict with 4 quadrants
 
 # ============================================================================
 # LLM INFERENCE CONFIGURATION
 # ============================================================================
 llm:
-  # Model Configuration
   model:
-    name: 'meta-llama/Meta-Llama-3-8B-Instruct'  # HuggingFace model identifier
-    device_map: 'auto'           # 'auto', 'cuda', 'cpu', or specific GPU mapping
-    dtype: 'auto'                # 'auto', 'float16', 'bfloat16', 'float32'
-    trust_remote_code: true      # Allow custom model code (needed for some models)
-    load_in_8bit: false          # Use 8-bit quantization for memory efficiency
+    name: 'meta-llama/Meta-Llama-3-8B-Instruct'
+    device_map: 'auto'
+    dtype: 'auto'
+    trust_remote_code: true
+    load_in_8bit: false
 
-  # Generation Parameters
   generation:
-    max_new_tokens: 512         # Maximum tokens to generate per response
-    temperature: 0.7             # Sampling temperature (0.0 = greedy, 1.0 = more random)
-    top_p: 0.9                   # Nucleus sampling threshold
-    do_sample: false             # Use sampling instead of greedy decoding
-    repetition_penalty: 1.1      # Penalty for repeating tokens
+    max_new_tokens: 512
+    temperature: 0.7
+    top_p: 0.9
+    do_sample: false
+    repetition_penalty: 1.1
 
-  # Prompt Configuration
   prompt:
-    include_system_prompt: true  # Include system instruction in prompt
-    include_emotion_hint: false  # Explicitly mention user's emotion in prompt
-    max_conversation_turns: 2    # Max turns of conversation history to include
+    include_system_prompt: true
+    include_emotion_hint: false
+    max_conversation_turns: 2
 
-    # Emotion-aware response length control
-    # Formula: L_i = base_response_length * (1 + alpha * arousal_i)
-    emotion_length_control:
-      enabled: true              # Enable emotion-based response length control
-      base_response_length: 64  # L_0: Base response length in tokens
-      # Note: Uses same alpha (0.5) from workload.service_time.alpha
-
-  # Response Caching
   cache:
-    use_response_cache: true     # Enable response caching for reproducibility
-    cache_dir: null              # Directory to store cache files, use placeholder, actual path will be set in config_loader
-    cache_file: 'responses.json' # Cache file name
-    force_regenerate: false      # Force regenerate even if cached (ignores cache)
-
-    # Job Configuration Cache
+    use_response_cache: true
+    cache_dir: null              # Set by config_loader
+    cache_file: 'responses.json'
+    force_regenerate: false
     use_saved_job_config: true
-    job_config_file: 'job_configs.json'  # Job config file name
+    job_config_file: 'job_configs.json'
     force_new_job_config: false
 
-  # Error Handling
   error_handling:
-    max_retries: 1               # Maximum retries on generation failure
-    enable_cpu_fallback: false    # Fallback to CPU if GPU OOM
-    skip_on_error: true          # Skip job on persistent errors (vs fail entire experiment)
+    max_retries: 1
+    enable_cpu_fallback: false
+    skip_on_error: true
 
 # ============================================================================
 # SCHEDULER CONFIGURATION
 # ============================================================================
 scheduler:
-  # Algorithm Selection
-  algorithm: 'FCFS'              # 'FCFS', 'SJF', 'SJFP', 'SSJF-Emotion', 'SSJF-Valence'
+  # Available algorithms:
+  #   - FCFS: First-Come-First-Serve (baseline)
+  #   - SJF: Shortest-Job-First (uses predicted service time)
+  #   - SSJF: Speculative SJF (same as SJF for now)
+  #   - AW-SSJF: Affect-Weighted SSJF (main algorithm)
+  #   - Weight-Only: Pure affect-based priority (ablation baseline)
+  algorithm: 'FCFS'
 
-  # System Load Parameter
-  # ρ = (λ * E[S]) / N where N=1 (single GPU)
-  # Recommended test values: [0.4, 0.6, 0.8, 0.9]
-  system_load: 1.2               # Target system load (ρ)
+  system_load: 0.6               # Target system load (rho)
 
-  # Starvation Prevention (for SSJF-Emotion)
+  # Starvation Prevention
   starvation_prevention:
-    threshold: .inf              # Absolute time threshold (inf = disabled by default)
-    coefficient: 10.0             # Relative threshold (multiple of execution duration)
+    threshold: .inf              # Absolute time threshold (inf = disabled)
+    coefficient: 3.0             # Relative threshold (multiple of service time)
 
-  # Valence Priority (for SSJF-Valence)
-  valence_priority:
-    beta: 0.8                    # π_i = 1 + β(-v_i), v_i ∈ {-0.8, 0, 0.8}
-    min_positive_weight: 0.1     # Floor for positive-class weight when beta is large
+  # Affect Weight Parameters (Depression-First Strategy)
+  # Weight formula: w = 1 + (w_max - 1) * c * u
+  # Urgency formula: u = max(0,-v)^p * max(0,-a)^q
+  affect_weight:
+    w_max: 2.0                   # Maximum weight [1.2, 3.0] recommended
+    p: 1.0                       # Exponent for negative valence
+    q: 1.0                       # Exponent for low arousal
+    use_confidence: true         # Apply confidence discount
+
+# ============================================================================
+# LENGTH PREDICTOR CONFIGURATION (BERT-based)
+# ============================================================================
+length_predictor:
+  enabled: false                 # Disabled by default (requires trained model)
+  model_path: 'predictor/models/bert_regression.pth'
+  model_name: 'bert-base-uncased'
+  device: 'cuda'
+  per_token_latency: 0.02        # Latency per generated token (seconds)
+  const_latency: 0.1             # Constant latency overhead (seconds)
+  default_service_time: 2.0      # Fallback when predictor unavailable
 
 # ============================================================================
 # DATASET AND EXPERIMENT
 # ============================================================================
 dataset:
-  emotion_dataset_path: './dataset'  # Path to EmpatheticDialogues dataset
+  emotion_dataset_path: './dataset'
 
 experiment:
-  # Experiment Mode Selection
-  mode: 'fixed_jobs'           # 'fixed_jobs' or 'time_window'
-  
-  # Fixed-Jobs Mode Parameters
-  num_jobs: 50                 # Number of jobs (for fixed_jobs mode)
-  
-  # Time-Window Mode Parameters
-  simulation_duration: 300.0   # Simulation duration in seconds (for time_window mode)
-  
-  # Common Parameters
-  random_seed: 42              # Random seed for reproducibility
-
-  # Fairness Metrics
-  fairness_metric: 'waiting_time'  # 'waiting_time' or 'turnaround_time'
-  calculate_fairness: true       # Whether to calculate fairness metrics
+  mode: 'fixed_jobs'             # 'fixed_jobs' or 'time_window'
+  num_jobs: 50
+  simulation_duration: 300.0
+  random_seed: 42
+  fairness_metric: 'waiting_time'
+  calculate_fairness: true
 
 # ============================================================================
 # OUTPUT AND LOGGING
 # ============================================================================
 output:
-  results_dir: 'results/llm_runs/'  # Directory to save results
-  verbose: true                 # Print detailed scheduling progress
+  results_dir: 'results/llm_runs/'
+  verbose: true
 
 # ============================================================================
 # CONFIGURATION NOTES
 # ============================================================================
-# 1. FIXED-JOBS EXPERIMENT MODEL:
-#    - Generate a fixed number of jobs (num_jobs) with Poisson arrivals
-#    - Run all schedulers on the same job set for fair comparison
-#    - Simulation continues until ALL jobs are completed (no time cutoff)
-#    - Throughput = num_jobs / total_completion_time
-#    - Supports percentile throughput (P25, P50, P75) for early response analysis
+# 1. AW-SSJF SCHEDULING MODEL:
+#    Score_i = S_i / w_i (lower = higher priority)
+#    - S_i: Predicted service time (from BERT or default)
+#    - w_i: Affect weight (Depression-First)
 #
-# 2. ALPHA SYNCHRONIZATION:
-#    The alpha parameter (workload.service_time.alpha = 0.5) is used for BOTH:
-#    - Service time prediction: S_i = L_0 * (1 + α * a_i)
-#    - LLM response length: L_i = L_0 * (1 + α * a_i)
-#    This ensures prediction and execution use the same arousal scaling.
+# 2. DEPRESSION-FIRST STRATEGY:
+#    Only users with BOTH negative valence AND low arousal get priority boost.
+#    - Excited users (high valence, high arousal): w = 1 (no boost)
+#    - Calm users (high valence, low arousal): w = 1 (no boost)
+#    - Panic users (low valence, high arousal): w = 1 (no boost)
+#    - Depression users (low valence, low arousal): w > 1 (priority boost)
 #
-# 3. ENVIRONMENT VARIABLE OVERRIDES:
-#    Each parameter can be overridden via environment variable:
-#    - Format: SECTION_SUBSECTION_PARAMETER (e.g., WORKLOAD_SERVICE_TIME_ALPHA)
-#    - Boolean values: 'true' or 'false' (case-insensitive)
+# 3. RUSSELL QUADRANT SAMPLING:
+#    Uses stratified sampling by Russell's 4 quadrants for fair comparison:
+#    - excited: V >= 0, A >= 0
+#    - calm: V >= 0, A < 0
+#    - panic: V < 0, A >= 0
+#    - depression: V < 0, A < 0
 #
-# 4. CLI ARGUMENT OVERRIDES:
-#    Command-line arguments have highest precedence and will override both
-#    default.yaml and environment variables.
-#
-# 5. ARRIVAL RATE CALCULATION:
-#    λ = ρ / E[S] where:
-#    - ρ = system_load (e.g., 0.6)
-#    - E[S] = base_service_time (e.g., 2.0s)
-#    - Example: λ = 0.6 / 2.0 = 0.3 req/sec
+# 4. BERT LENGTH PREDICTOR:
+#    Service time = const_latency + predicted_tokens * per_token_latency
+#    Train the model separately using the output-token-len-prediction module.

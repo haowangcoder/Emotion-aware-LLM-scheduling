@@ -1,31 +1,42 @@
 """
-Emotion-aware Task Generator for LLM Scheduling
+Affect-Aware Task Generator for LLM Scheduling
 
-This module creates jobs/tasks with emotion attributes for the emotion-aware
+This module creates jobs/tasks with emotion attributes for the affect-aware
 scheduling simulator. It integrates:
-1. Emotion sampling from emotion.py
-2. Service time mapping from service_time_mapper.py
-3. Poisson arrival process for task generation
+1. Emotion sampling with NRC-VAD values and Russell quadrant mapping
+2. Service time mapping (fixed or BERT-predicted)
+3. Affect weight computation (Depression-First strategy)
+4. Poisson arrival process for task generation
 
 Tasks arrive according to a Poisson process with exponential inter-arrival times.
 """
 
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from core.job import Job
-from core.emotion import EmotionConfig, sample_emotion, sample_emotions_batch
+from core.emotion import (
+    EmotionConfig,
+    sample_emotion,
+    sample_emotions_batch,
+    sample_emotions_batch_stratified_quadrant,
+)
+from core.affect_weight import compute_urgency_and_weight
 from workload.service_time_mapper import ServiceTimeConfig, map_service_time
 
 
 def generate_job_on_demand(
-        job_id: int,
-        arrival_time: float,
-        emotion_config: EmotionConfig = None,
-        service_time_config: ServiceTimeConfig = None,
-        enable_emotion: bool = True) -> Job:
+    job_id: int,
+    arrival_time: float,
+    emotion_config: EmotionConfig = None,
+    service_time_config: ServiceTimeConfig = None,
+    enable_emotion: bool = True,
+    w_max: float = 2.0,
+    p: float = 1.0,
+    q: float = 1.0,
+) -> Job:
     """
-    Generate a single job on-demand for fixed-rate arrival simulation
+    Generate a single job on-demand for fixed-rate arrival simulation.
 
     Args:
         job_id: Unique job identifier
@@ -33,9 +44,12 @@ def generate_job_on_demand(
         emotion_config: EmotionConfig object
         service_time_config: ServiceTimeConfig object
         enable_emotion: Whether to enable emotion-aware features
+        w_max: Maximum affect weight
+        p: Exponent for negative valence
+        q: Exponent for low arousal
 
     Returns:
-        Single Job object with emotion attributes
+        Single Job object with emotion and affect weight attributes
     """
     if emotion_config is None:
         emotion_config = EmotionConfig()
@@ -44,18 +58,26 @@ def generate_job_on_demand(
 
     # Sample emotion for this job
     if enable_emotion:
-        emotion_label, arousal = sample_emotion(emotion_config)
-        emotion_class = emotion_config.classify_arousal(arousal)
-        valence = emotion_config.get_valence(emotion_label)
-        valence_class = emotion_config.classify_valence(valence)
+        emotion_label, arousal, valence = sample_emotion(emotion_config)
+        russell_quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
         service_time = map_service_time(arousal, service_time_config)
+
+        # Compute affect weight
+        urgency, affect_weight = compute_urgency_and_weight(
+            arousal=arousal,
+            valence=valence,
+            w_max=w_max,
+            p=p,
+            q=q,
+        )
     else:
         emotion_label = 'neutral'
         arousal = 0.0
-        emotion_class = 'medium'
         valence = 0.0
-        valence_class = 'neutral'
+        russell_quadrant = 'calm'
         service_time = service_time_config.base_service_time
+        urgency = 0.0
+        affect_weight = 1.0
 
     # Create job
     job = Job(
@@ -64,36 +86,44 @@ def generate_job_on_demand(
         arrival_time=arrival_time,
         emotion_label=emotion_label,
         arousal=arousal,
-        emotion_class=emotion_class,
         valence=valence,
-        valence_class=valence_class,
+        russell_quadrant=russell_quadrant,
+        affect_weight=affect_weight,
+        urgency=urgency,
     )
 
     return job
 
 
 def create_emotion_aware_jobs(
-        num_jobs: int,
-        arrival_rate: float = 1.0,
-        emotion_config: EmotionConfig = None,
-        service_time_config: ServiceTimeConfig = None,
-        enable_emotion: bool = True,
-        job_configs: List[Dict] = None,
-        random_seed: int = None) -> List[Job]:
+    num_jobs: int,
+    arrival_rate: float = 1.0,
+    emotion_config: EmotionConfig = None,
+    service_time_config: ServiceTimeConfig = None,
+    enable_emotion: bool = True,
+    job_configs: List[Dict] = None,
+    random_seed: int = None,
+    w_max: float = 2.0,
+    p: float = 1.0,
+    q: float = 1.0,
+) -> List[Job]:
     """
-    Create a list of jobs with emotion attributes using Poisson arrival process
+    Create a list of jobs with emotion attributes using Poisson arrival process.
 
     Args:
         num_jobs: Number of jobs to create
-        arrival_rate: Arrival rate (λ) for Poisson process
+        arrival_rate: Arrival rate (lambda) for Poisson process
         emotion_config: EmotionConfig object
         service_time_config: ServiceTimeConfig object
         enable_emotion: Whether to enable emotion-aware features
         job_configs: Optional list of job configurations to load (for reproducibility)
         random_seed: Optional random seed for reproducibility
+        w_max: Maximum affect weight
+        p: Exponent for negative valence
+        q: Exponent for low arousal
 
     Returns:
-        List of Job objects with emotion attributes
+        List of Job objects with emotion and affect weight attributes
     """
     if emotion_config is None:
         emotion_config = EmotionConfig()
@@ -109,81 +139,68 @@ def create_emotion_aware_jobs(
     # Load emotions from config or sample new ones
     if job_configs is not None:
         # Use pre-defined job configurations
-        emotions_arousal = []
+        emotions_data = []
         for job_config in job_configs[:num_jobs]:
             emotion = job_config.get('emotion', 'neutral')
-            # Use saved arousal value if available, otherwise recalculate from emotion
-            arousal = job_config.get('arousal')
-            if arousal is None:
-                # Fallback: recalculate arousal from emotion (for old config files)
-                if enable_emotion and emotion in emotion_config.emotion_arousal_map:
-                    arousal = emotion_config.get_arousal(emotion, add_noise=False)
-                else:
-                    arousal = 0.0
-            # Use saved valence if available; otherwise compute from emotion label
-            valence = job_config.get('valence')
-            if valence is None:
-                if enable_emotion and emotion in emotion_config.emotion_valence_map:
-                    valence = emotion_config.get_valence(emotion)
-                else:
-                    valence = 0.0
-            emotions_arousal.append((emotion, arousal, valence))
+            arousal = job_config.get('arousal', 0.0)
+            valence = job_config.get('valence', 0.0)
+            emotions_data.append((emotion, arousal, valence))
     elif enable_emotion:
         # Sample emotions for all jobs
-        emotions_arousal = []
-        for emotion, arousal in sample_emotions_batch(num_jobs, emotion_config):
-            valence = emotion_config.get_valence(emotion)
-            emotions_arousal.append((emotion, arousal, valence))
+        emotions_data = sample_emotions_batch(num_jobs, emotion_config)
     else:
         # Neutral emotion if disabled
-        emotions_arousal = [('neutral', 0.0, 0.0)] * num_jobs
+        emotions_data = [('neutral', 0.0, 0.0)] * num_jobs
 
-    # Generate arrival times: use saved values if loading from config, otherwise generate new
+    # Generate arrival times
     if job_configs is not None:
-        # Load arrival times from saved job configurations
         arrival_times = [job_configs[i].get('arrival_time', 0.0) for i in range(num_jobs)]
     else:
-        # Generate new arrival times using Poisson process
-        arrival_times = _generate_arrival_times(
-            num_jobs=num_jobs,
-            arrival_rate=arrival_rate
-        )
+        arrival_times = _generate_arrival_times(num_jobs, arrival_rate)
 
-    # Create jobs with emotion attributes
+    # Create jobs with emotion and affect weight attributes
     job_list = []
     for job_id in range(num_jobs):
-        emotion_label, arousal, valence = emotions_arousal[job_id]
-        emotion_class = emotion_config.classify_arousal(arousal)
-        valence_class = None
+        emotion_label, arousal, valence = emotions_data[job_id]
 
-        # Get service time: use saved value if loading from config, otherwise calculate
+        # Classify Russell quadrant
+        russell_quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
+
+        # Get service time
         if job_configs is not None and job_id < len(job_configs):
-            # Use exact saved service_time to ensure identical scheduling decisions
             service_time = job_configs[job_id].get('service_time',
                                                     map_service_time(arousal, service_time_config))
-            valence_class = job_configs[job_id].get('valence_class')
         elif enable_emotion:
-            # Calculate service time from arousal
             service_time = map_service_time(arousal, service_time_config)
         else:
-            # Use default service time if emotion disabled
             service_time = service_time_config.base_service_time
 
-        if valence_class is None:
-            valence_class = emotion_config.classify_valence(valence)
+        # Compute affect weight
+        if enable_emotion:
+            urgency, affect_weight = compute_urgency_and_weight(
+                arousal=arousal,
+                valence=valence,
+                w_max=w_max,
+                p=p,
+                q=q,
+            )
+        else:
+            urgency = 0.0
+            affect_weight = 1.0
 
         arrival_time = arrival_times[job_id]
 
-        # Create job with emotion attributes
+        # Create job
         job = Job(
             job_id=job_id,
             execution_duration=service_time,
             arrival_time=arrival_time,
             emotion_label=emotion_label,
             arousal=arousal,
-            emotion_class=emotion_class,
             valence=valence,
-            valence_class=valence_class,
+            russell_quadrant=russell_quadrant,
+            affect_weight=affect_weight,
+            urgency=urgency,
         )
 
         # Set conversation_index if loading from config
@@ -195,54 +212,49 @@ def create_emotion_aware_jobs(
     return job_list
 
 
-def _generate_arrival_times(
-        num_jobs: int,
-        arrival_rate: float) -> np.ndarray:
+def _generate_arrival_times(num_jobs: int, arrival_rate: float) -> np.ndarray:
     """
-    Generate arrival times using Poisson process
+    Generate arrival times using Poisson process.
 
     Args:
         num_jobs: Number of jobs
-        arrival_rate: Arrival rate (λ) for Poisson process
+        arrival_rate: Arrival rate (lambda) for Poisson process
 
     Returns:
         Array of arrival times
     """
-    # Poisson process: arrival intervals follow exponential distribution
-    # Inter-arrival time ~ Exponential(λ) where λ is the arrival_rate
     intervals = np.random.exponential(1.0 / arrival_rate, num_jobs)
     arrival_times = np.cumsum(intervals)
-
     return arrival_times
 
 
 def get_emotion_aware_statistics(job_list: List[Job]) -> Dict:
     """
-    Calculate statistics about emotion-aware job generation
+    Calculate statistics about emotion-aware job generation.
 
     Args:
         job_list: List of Job objects with emotion attributes
 
     Returns:
-        Dictionary with statistics
+        Dictionary with statistics including Russell quadrant distribution
     """
     arousals = [job.arousal for job in job_list if job.arousal is not None]
+    valences = [job.valence for job in job_list if job.valence is not None]
     service_times = [job.execution_duration for job in job_list]
     arrival_times = [job.arrival_time for job in job_list]
+    affect_weights = [job.affect_weight for job in job_list if job.affect_weight is not None]
 
-    # Count by emotion class
-    emotion_classes = [job.emotion_class for job in job_list if job.emotion_class is not None]
-    class_counts = {
-        'high': emotion_classes.count('high'),
-        'medium': emotion_classes.count('medium'),
-        'low': emotion_classes.count('low')
+    # Count by Russell quadrant
+    quadrant_counts = {
+        'excited': 0,
+        'calm': 0,
+        'panic': 0,
+        'depression': 0,
     }
-    valence_classes = [job.valence_class for job in job_list if job.valence_class is not None]
-    valence_counts = {
-        'negative': valence_classes.count('negative'),
-        'neutral': valence_classes.count('neutral'),
-        'positive': valence_classes.count('positive'),
-    }
+    for job in job_list:
+        quadrant = getattr(job, 'russell_quadrant', None)
+        if quadrant in quadrant_counts:
+            quadrant_counts[quadrant] += 1
 
     # Calculate arrival intervals
     arrival_intervals = np.diff(arrival_times) if len(arrival_times) > 1 else [0]
@@ -251,18 +263,22 @@ def get_emotion_aware_statistics(job_list: List[Job]) -> Dict:
         'num_jobs': len(job_list),
         'arousal_mean': np.mean(arousals) if arousals else 0,
         'arousal_std': np.std(arousals) if arousals else 0,
+        'valence_mean': np.mean(valences) if valences else 0,
+        'valence_std': np.std(valences) if valences else 0,
         'service_time_mean': np.mean(service_times),
         'service_time_std': np.std(service_times),
         'service_time_min': np.min(service_times),
         'service_time_max': np.max(service_times),
+        'affect_weight_mean': np.mean(affect_weights) if affect_weights else 1.0,
+        'affect_weight_std': np.std(affect_weights) if affect_weights else 0.0,
         'arrival_interval_mean': np.mean(arrival_intervals),
         'arrival_interval_std': np.std(arrival_intervals),
-        'emotion_class_counts': class_counts,
-        'valence_class_counts': valence_counts,
+        'quadrant_counts': quadrant_counts,
         'total_duration': arrival_times[-1] if arrival_times else 0,
     }
 
     return stats
+
 
 def generate_job_trace(
     num_jobs: int,
@@ -271,24 +287,29 @@ def generate_job_trace(
     service_time_config: ServiceTimeConfig = None,
     enable_emotion: bool = True,
     random_seed: int = None,
-    use_stratified_sampling: bool = True,  # for stratification
-    class_distribution: Dict[str, float] = None,  # e.g., 9-class: {'high_positive': 1/9, ...}
+    use_stratified_sampling: bool = True,
+    class_distribution: Optional[Dict[str, float]] = None,
+    w_max: float = 2.0,
+    p: float = 1.0,
+    q: float = 1.0,
 ) -> List[Dict]:
     """
     Generate a complete job trace for reproducible experiments across schedulers.
 
-    This creates a pre-determined sequence of job arrivals, emotions, and service times
-    that can be reused by different schedulers for fair comparison.
+    Uses stratified sampling by Russell quadrant (4 categories) for fair comparison.
 
     Args:
         num_jobs: Number of jobs to generate
-        arrival_rate: Arrival rate (λ) for Poisson process
+        arrival_rate: Arrival rate (lambda) for Poisson process
         emotion_config: EmotionConfig object
         service_time_config: ServiceTimeConfig object
         enable_emotion: Whether to enable emotion-aware features
         random_seed: Random seed for reproducibility
-        use_stratified_sampling: Whether to use stratified sampling by 9-class category
-        class_distribution: Target distribution for 9 classes (default: uniform 1/9 each)
+        use_stratified_sampling: Whether to use stratified sampling by Russell quadrant
+        class_distribution: Target distribution for 4 quadrants (default: uniform 1/4 each)
+        w_max: Maximum affect weight
+        p: Exponent for negative valence
+        q: Exponent for low arousal
 
     Returns:
         List of job configuration dictionaries
@@ -307,29 +328,45 @@ def generate_job_trace(
     # Generate arrival times
     arrival_times = _generate_arrival_times(num_jobs, arrival_rate)
 
-    # Generate emotions (9-class stratified or simple random)
+    # Generate emotions with Russell quadrant stratification
     if enable_emotion:
         if use_stratified_sampling:
-            from core.emotion import sample_emotions_batch_stratified_9class
-            emotions_arousal_valence = sample_emotions_batch_stratified_9class(
+            emotions_data = sample_emotions_batch_stratified_quadrant(
                 num_jobs, emotion_config, class_distribution
             )
         else:
-            # Simple random sampling (returns 2-tuple, need to add valence)
-            emotions_arousal_valence = []
-            for emotion, arousal in sample_emotions_batch(num_jobs, emotion_config):
-                valence = emotion_config.get_valence(emotion)
-                emotions_arousal_valence.append((emotion, arousal, valence))
+            # Simple random sampling
+            emotions_data = []
+            for emotion, arousal, valence in sample_emotions_batch(num_jobs, emotion_config):
+                quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
+                emotions_data.append((emotion, arousal, valence, quadrant))
     else:
-        emotions_arousal_valence = [('neutral', 0.0, 0.0)] * num_jobs
+        emotions_data = [('neutral', 0.0, 0.0, 'calm')] * num_jobs
 
     # Create trace
     trace = []
     for job_id in range(num_jobs):
-        emotion_label, arousal, valence = emotions_arousal_valence[job_id]
-        valence_class = emotion_config.classify_valence(valence) if enable_emotion else 'neutral'
+        if len(emotions_data[job_id]) == 4:
+            emotion_label, arousal, valence, quadrant = emotions_data[job_id]
+        else:
+            emotion_label, arousal, valence = emotions_data[job_id]
+            quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
+
         service_time = map_service_time(arousal, service_time_config) if enable_emotion \
                       else service_time_config.base_service_time
+
+        # Compute affect weight
+        if enable_emotion:
+            urgency, affect_weight = compute_urgency_and_weight(
+                arousal=arousal,
+                valence=valence,
+                w_max=w_max,
+                p=p,
+                q=q,
+            )
+        else:
+            urgency = 0.0
+            affect_weight = 1.0
 
         trace.append({
             'job_id': job_id,
@@ -337,70 +374,75 @@ def generate_job_trace(
             'emotion': emotion_label,
             'arousal': float(arousal),
             'valence': float(valence),
-            'valence_class': valence_class,
+            'russell_quadrant': quadrant,
             'service_time': float(service_time),
+            'affect_weight': float(affect_weight),
+            'urgency': float(urgency),
         })
 
-    # Print 9-class distribution statistics
+    # Print Russell quadrant distribution
     if enable_emotion:
-        category_counts = {cat: 0 for cat in emotion_config.get_categories()}
-        for emotion_label, arousal, valence in emotions_arousal_valence:
-            category = emotion_config.classify_emotion(arousal, valence)
-            category_counts[category] += 1
+        quadrant_counts = {'excited': 0, 'calm': 0, 'panic': 0, 'depression': 0}
+        for entry in trace:
+            quadrant = entry['russell_quadrant']
+            if quadrant in quadrant_counts:
+                quadrant_counts[quadrant] += 1
 
-        print(f"  9-class emotion distribution:")
-        for category in emotion_config.get_categories():
-            count = category_counts[category]
+        print(f"  Russell quadrant distribution:")
+        for quadrant in ['excited', 'calm', 'panic', 'depression']:
+            count = quadrant_counts[quadrant]
             pct = count / num_jobs * 100
-            print(f"    {category}: {count} ({pct:.1f}%)")
+            print(f"    {quadrant}: {count} ({pct:.1f}%)")
 
     return trace
-
 
 
 def create_jobs_from_trace(
     trace: List[Dict],
     emotion_config: EmotionConfig = None,
     max_jobs: int = None
-    ) -> List[Job]:
+) -> List[Job]:
     """
     Create Job objects from a pre-generated trace.
-    
+
     Args:
         trace: List of job configuration dictionaries
-        emotion_config: EmotionConfig object (for arousal classification)
+        emotion_config: EmotionConfig object
         max_jobs: Maximum number of jobs to create (None = all)
-    
+
     Returns:
         List of Job objects
     """
     if emotion_config is None:
         emotion_config = EmotionConfig()
-    
+
     jobs = []
     trace_subset = trace[:max_jobs] if max_jobs else trace
-    
+
     for job_config in trace_subset:
-        arousal = job_config['arousal']
-        emotion_class = emotion_config.classify_arousal(arousal)
-        valence = job_config.get('valence')
-        if valence is None:
-            if job_config['emotion'] in emotion_config.emotion_valence_map:
-                valence = emotion_config.get_valence(job_config['emotion'])
-            else:
-                valence = 0.0
-        valence_class = job_config.get('valence_class') or emotion_config.classify_valence(valence)
-        
+        arousal = job_config.get('arousal', 0.0)
+        valence = job_config.get('valence', 0.0)
+
+        # Get Russell quadrant from trace or compute
+        russell_quadrant = job_config.get('russell_quadrant')
+        if russell_quadrant is None:
+            russell_quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
+
+        # Get affect weight from trace or use default
+        affect_weight = job_config.get('affect_weight', 1.0)
+        urgency = job_config.get('urgency', 0.0)
+
         job = Job(
             job_id=job_config['job_id'],
             execution_duration=job_config['service_time'],
             arrival_time=job_config['arrival_time'],
             emotion_label=job_config['emotion'],
             arousal=arousal,
-            emotion_class=emotion_class,
             valence=valence,
-            valence_class=valence_class,
+            russell_quadrant=russell_quadrant,
+            affect_weight=affect_weight,
+            urgency=urgency,
         )
         jobs.append(job)
-    
+
     return jobs
