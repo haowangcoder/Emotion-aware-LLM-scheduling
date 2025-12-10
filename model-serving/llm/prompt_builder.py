@@ -33,12 +33,10 @@ class PromptBuilder:
 - Offer comfort and encouragement when appropriate
 No matter what emotion the user expresses, respond with kindness and genuine concern."""
 
-    # Alternative: shorter system prompt
-    CONCISE_SYSTEM_PROMPT = """You are a caring and empathetic assistant. Listen carefully and respond with compassion."""
-
     def __init__(
         self,
         system_prompt: Optional[str] = None,
+        include_system_prompt: bool = True,
         include_emotion_hint: bool = False,
     ):
         """
@@ -46,9 +44,11 @@ No matter what emotion the user expresses, respond with kindness and genuine con
 
         Args:
             system_prompt: Custom system prompt (uses default if None)
+            include_system_prompt: Whether to include system prompt in output
             include_emotion_hint: Whether to explicitly mention user's emotion in prompt
         """
         self.system_prompt = system_prompt or self.DEFAULT_SYSTEM_PROMPT
+        self.include_system_prompt = include_system_prompt
         self.include_emotion_hint = include_emotion_hint
 
     def build_prompt(
@@ -73,8 +73,9 @@ No matter what emotion the user expresses, respond with kindness and genuine con
         """
         prompt_parts = []
 
-        # 1. System instruction
-        prompt_parts.append(f"System: {self.system_prompt}")
+        # 1. System instruction (optional)
+        if self.include_system_prompt:
+            prompt_parts.append(f"System: {self.system_prompt}")
 
         # 2. Optional: Add emotion hint
         if self.include_emotion_hint and emotion:
@@ -99,25 +100,7 @@ No matter what emotion the user expresses, respond with kindness and genuine con
         # 5. Assistant prefix (model will continue from here)
         prompt_parts.append("\nAssistant:")
 
-        return "\n".join(prompt_parts)
-
-    def build_simple_prompt(self, user_context: str, emotion: Optional[str] = None) -> str:
-        """
-        Build a simpler prompt without extensive system instructions.
-
-        Good for models that don't need heavy prompting.
-
-        Args:
-            user_context: User's emotional expression
-            emotion: Emotion label (optional)
-
-        Returns:
-            str: Simple formatted prompt
-        """
-        if emotion and self.include_emotion_hint:
-            return f"User (feeling {emotion}): {user_context}\nAssistant:"
-        else:
-            return f"User: {user_context}\nAssistant:"
+        return "\n".join(prompt_parts).lstrip("\n")
 
     def _get_emotion_hint(self, emotion: str) -> str:
         """

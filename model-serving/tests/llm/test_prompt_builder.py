@@ -24,10 +24,10 @@ def build_empathetic_prompt(
     Returns:
         str: Formatted prompt
     """
-    builder = PromptBuilder(include_emotion_hint=include_emotion_hint)
-
-    if not include_system:
-        return builder.build_simple_prompt(user_context, emotion)
+    builder = PromptBuilder(
+        include_system_prompt=include_system,
+        include_emotion_hint=include_emotion_hint
+    )
 
     return builder.build_prompt(user_context, emotion)
 
@@ -94,13 +94,15 @@ def test_prompt_builder():
         print(prompt)
         print()
 
-    # Test 3: Simple prompt format
+    # Test 3: Without system prompt
     print(f"\n{'='*60}")
-    print("Test 3: Simple prompt format")
+    print("Test 3: Without system prompt")
     print("=" * 60)
 
+    builder_no_system = PromptBuilder(include_system_prompt=False)
+
     for test in test_cases[:2]:
-        prompt = builder.build_simple_prompt(
+        prompt = builder_no_system.build_prompt(
             user_context=test["context"],
             emotion=test["emotion"]
         )

@@ -46,6 +46,7 @@ class LLMInferenceHandler:
         dtype: str = 'auto',
         load_in_8bit: bool = False,
         # Prompt configuration
+        include_system_prompt: bool = True,
         include_emotion_hint: bool = False,
         max_conversation_turns: int = 2,
         # Generation parameters
@@ -69,6 +70,7 @@ class LLMInferenceHandler:
             device_map: Device mapping for model
             dtype: Data type for model weights
             load_in_8bit: Use 8-bit quantization
+            include_system_prompt: Include system prompt in prompts
             include_emotion_hint: Include emotion hints in prompts
             max_conversation_turns: Maximum conversation history turns to include
             max_new_tokens: Maximum tokens to generate
@@ -112,6 +114,7 @@ class LLMInferenceHandler:
 
         # 3. Initialize Prompt Builder
         self.prompt_builder = PromptBuilder(
+            include_system_prompt=include_system_prompt,
             include_emotion_hint=include_emotion_hint,
         )
 

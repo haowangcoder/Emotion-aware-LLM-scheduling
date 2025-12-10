@@ -11,14 +11,14 @@ This project implements a novel scheduling framework that:
 - **WSPT Scheduling**: Implements Weighted Shortest Processing Time rule: `Score = S / w`
 - **Russell Quadrant Analysis**: Evaluates fairness across four emotional quadrants (excited, calm, panic, depression)
 
-### Core Innovation: Separation of Concerns
+### Key Design Principles
 
-| Component | Old System | New System (AW-SSJF) |
-|-----------|-----------|----------------------|
-| **Service Time** | `S = L₀ × (1 + α × arousal)` | BERT proxy model prediction |
-| **Emotion Role** | Affects service time (length) | Affects scheduling weight (priority) |
-| **Scheduling** | Multiple ad-hoc schedulers | Unified WSPT framework |
-| **Fairness Goal** | Vague | Explicit Depression-First |
+| Component | Design |
+|-----------|--------|
+| **Service Time** | BERT proxy model prediction (content-based) |
+| **Emotion Role** | Affects scheduling weight (priority) |
+| **Scheduling** | Unified WSPT framework |
+| **Fairness Goal** | Depression-First prioritization |
 
 ## Quick Start
 

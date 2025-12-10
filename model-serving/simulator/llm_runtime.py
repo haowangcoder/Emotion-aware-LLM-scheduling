@@ -95,6 +95,7 @@ def init_llm_handler(config):
             device_map=config.llm.model.device_map,
             dtype=config.llm.model.dtype,
             load_in_8bit=config.llm.model.load_in_8bit,
+            include_system_prompt=config.llm.prompt.include_system_prompt,
             include_emotion_hint=config.llm.prompt.include_emotion_hint,
             max_conversation_turns=config.llm.prompt.max_conversation_turns,
             max_new_tokens=config.llm.generation.max_new_tokens,
