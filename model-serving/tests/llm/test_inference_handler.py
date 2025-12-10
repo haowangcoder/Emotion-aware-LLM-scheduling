@@ -45,7 +45,8 @@ def test_llm_inference_handler():
     for i, emotion in enumerate(test_emotions):
         # Sample emotion (or use predefined)
         arousal = emotion_config.get_arousal(emotion)
-        emotion_class = emotion_config.classify_arousal(arousal)
+        valence = emotion_config.get_valence(emotion)
+        emotion_class = emotion_config.classify_russell_quadrant(arousal, valence)
 
         # Calculate predicted service time
         predicted_time = map_service_time(arousal, service_time_config)
