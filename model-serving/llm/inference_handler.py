@@ -47,9 +47,6 @@ class LLMInferenceHandler:
         load_in_8bit: bool = False,
         # Prompt configuration
         include_emotion_hint: bool = False,
-        enable_emotion_length_control: bool = True,
-        base_response_length: int = 100,
-        alpha: float = 0.5,
         max_conversation_turns: int = 2,
         # Generation parameters
         max_new_tokens: int = 1024,
@@ -73,9 +70,6 @@ class LLMInferenceHandler:
             dtype: Data type for model weights
             load_in_8bit: Use 8-bit quantization
             include_emotion_hint: Include emotion hints in prompts
-            enable_emotion_length_control: Enable emotion-aware response length control
-            base_response_length: Base response length L_0 in tokens
-            alpha: Scaling factor α for arousal impact (synchronized with service time mapping)
             max_conversation_turns: Maximum conversation history turns to include
             max_new_tokens: Maximum tokens to generate
             temperature: Sampling temperature
@@ -119,9 +113,6 @@ class LLMInferenceHandler:
         # 3. Initialize Prompt Builder
         self.prompt_builder = PromptBuilder(
             include_emotion_hint=include_emotion_hint,
-            enable_emotion_length_control=enable_emotion_length_control,
-            base_response_length=base_response_length,
-            alpha=alpha
         )
 
         # 4. Initialize Response Cache

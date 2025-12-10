@@ -89,11 +89,13 @@ def run_scheduling_loop(
 
         # Print job info in verbose mode
         if verbose:
+            quadrant = getattr(selected_job, 'russell_quadrant', 'N/A')
+            weight = getattr(selected_job, 'affect_weight', 1.0)
             print(
                 f"  [{len(completed_jobs)+1}/{total_jobs}] Time {current_time:.2f}s: "
                 f"Job {selected_job.job_id} | "
-                f"emotion={selected_job.emotion_label} ({selected_job.emotion_class}) | "
-                f"arousal={selected_job.arousal:.2f} | "
+                f"emotion={selected_job.emotion_label} ({quadrant}) | "
+                f"weight={weight:.2f} | "
                 f"arrival={selected_job.arrival_time:.2f}s | "
                 f"wait={selected_job.waiting_duration:.2f}s | "
                 f"pred_exec={selected_job.execution_duration:.2f}s | "
@@ -293,35 +295,36 @@ def run_scheduling_loop_time_window(
     # Main loop
     while current_time < simulation_duration:
         # Add all jobs that have arrived up to current_time
-        while (next_trace_index < len(job_trace) and 
+        while (next_trace_index < len(job_trace) and
                job_trace[next_trace_index]['arrival_time'] <= current_time):
-            
+
             job_config = job_trace[next_trace_index]
-            arousal = job_config['arousal']
-            emotion_class = emotion_config.classify_arousal(arousal)
-            valence = job_config.get('valence')
-            if valence is None:
-                if job_config['emotion'] in emotion_config.emotion_valence_map:
-                    valence = emotion_config.get_valence(job_config['emotion'])
-                else:
-                    valence = 0.0
-            valence_class = job_config.get('valence_class') or emotion_config.classify_valence(valence)
-            
+            arousal = job_config.get('arousal', 0.0)
+            valence = job_config.get('valence', 0.0)
+            russell_quadrant = job_config.get('russell_quadrant')
+            affect_weight = job_config.get('affect_weight', 1.0)
+            urgency = job_config.get('urgency', 0.0)
+
+            # Classify Russell quadrant if not in trace
+            if russell_quadrant is None:
+                russell_quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
+
             new_job = Job(
                 job_id=job_config['job_id'],
                 execution_duration=job_config['service_time'],
                 arrival_time=job_config['arrival_time'],
                 emotion_label=job_config['emotion'],
                 arousal=arousal,
-                emotion_class=emotion_class,
                 valence=valence,
-                valence_class=valence_class
+                russell_quadrant=russell_quadrant,
+                affect_weight=affect_weight,
+                urgency=urgency,
             )
             waiting_queue.append(new_job)
-            
+
             if verbose and next_trace_index % 50 == 0:
                 print(f"  Time {new_job.arrival_time:.2f}: Job {new_job.job_id} arrived")
-            
+
             next_trace_index += 1
         
         # If queue empty, jump to next arrival
@@ -353,9 +356,12 @@ def run_scheduling_loop_time_window(
         scheduler.on_job_scheduled(selected_job, current_time)
         
         if verbose:
+            quadrant = getattr(selected_job, 'russell_quadrant', 'N/A')
+            weight = getattr(selected_job, 'affect_weight', 1.0)
             print(
                 f"  Time {current_time:.2f}s: Job {selected_job.job_id} | "
-                f"emotion={selected_job.emotion_label} ({selected_job.emotion_class}) | "
+                f"emotion={selected_job.emotion_label} ({quadrant}) | "
+                f"weight={weight:.2f} | "
                 f"wait={selected_job.waiting_duration:.2f}s | "
                 f"service={selected_job.execution_duration:.2f}s | "
                 f"queue={len(waiting_queue)}"

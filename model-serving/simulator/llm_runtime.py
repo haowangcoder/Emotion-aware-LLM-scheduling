@@ -16,22 +16,13 @@ def create_scheduler(config):
 
     Supported algorithms:
         - FCFS: First-Come-First-Serve (baseline)
-        - SJF: Shortest-Job-First (uses predicted service time)
+        - SJF/SSJF: Shortest-Job-First (uses predicted service time)
         - AW-SSJF: Affect-Weighted SSJF (main algorithm)
         - Weight-Only: Pure affect-based priority (ablation baseline)
-        - SSJF-Emotion: Legacy emotion-aware scheduler (deprecated)
-        - SSJF-Valence: Legacy valence-weighted scheduler (deprecated)
-        - SSJF-Combined: Legacy W/L scheduler (deprecated)
     """
     from core.scheduler_base import FCFSScheduler, SJFScheduler
     from core.aw_ssjf_scheduler import AWSSJFScheduler
     from core.weight_only_scheduler import WeightOnlyScheduler
-    # Legacy schedulers (deprecated)
-    from core.ssjf_emotion import (
-        SSJFEmotionScheduler,
-        SSJFValenceScheduler,
-        SSJFCombinedScheduler,
-    )
 
     algorithm = config.scheduler.algorithm
     print(f"\nCreating {algorithm} scheduler...")
@@ -39,7 +30,7 @@ def create_scheduler(config):
     if algorithm == "FCFS":
         scheduler = FCFSScheduler()
 
-    elif algorithm == "SJF" or algorithm == "SSJF":
+    elif algorithm in ("SJF", "SSJF"):
         scheduler = SJFScheduler()
 
     elif algorithm == "AW-SSJF":
@@ -67,70 +58,21 @@ def create_scheduler(config):
         )
         print(f"  w_max={affect_cfg.w_max}, p={affect_cfg.p}, q={affect_cfg.q}")
 
-    # ========== Legacy Schedulers (Deprecated) ==========
-    elif algorithm == "SSJF-Emotion":
-        scheduler = SSJFEmotionScheduler(
-            starvation_threshold=config.scheduler.starvation_prevention.threshold,
-            starvation_coefficient=config.scheduler.starvation_prevention.coefficient,
-        )
-        print("  [DEPRECATED] Using legacy SSJF-Emotion scheduler")
-
-    elif algorithm == "SSJF-Valence":
-        # Check if valence_priority config exists (backward compatibility)
-        if hasattr(config.scheduler, 'valence_priority'):
-            valence_cfg = config.scheduler.valence_priority
-            beta = valence_cfg.beta
-            min_positive_weight = valence_cfg.min_positive_weight
-            class_weights = getattr(valence_cfg, "class_weights", None)
-        else:
-            # Use affect_weight config as fallback
-            beta = config.scheduler.affect_weight.w_max - 1.0
-            min_positive_weight = 0.1
-            class_weights = None
-
-        scheduler = SSJFValenceScheduler(
-            beta=beta,
-            starvation_threshold=config.scheduler.starvation_prevention.threshold,
-            valence_weight_map=class_weights if class_weights else None,
-            min_positive_weight=min_positive_weight,
-        )
-        print("  [DEPRECATED] Using legacy SSJF-Valence scheduler")
-
-    elif algorithm == "SSJF-Combined":
-        # Check if valence_priority config exists (backward compatibility)
-        if hasattr(config.scheduler, 'valence_priority'):
-            beta = config.scheduler.valence_priority.beta
-        else:
-            beta = config.scheduler.affect_weight.w_max - 1.0
-
-        # Check if alpha config exists (backward compatibility)
-        if hasattr(config.workload.service_time, 'alpha'):
-            alpha = config.workload.service_time.alpha
-        else:
-            alpha = 0.5  # Default fallback
-
-        scheduler = SSJFCombinedScheduler(
-            beta=beta,
-            alpha=alpha,
-            base_service_time=config.workload.service_time.base_service_time,
-            starvation_threshold=config.scheduler.starvation_prevention.threshold,
-            starvation_coefficient=config.scheduler.starvation_prevention.coefficient,
-        )
-        print("  [DEPRECATED] Using legacy SSJF-Combined scheduler")
-
     else:
-        raise ValueError(f"Unknown scheduler algorithm: {algorithm}")
+        raise ValueError(
+            f"Unknown scheduler algorithm: {algorithm}. "
+            f"Supported: FCFS, SJF, SSJF, AW-SSJF, Weight-Only"
+        )
 
     return scheduler
 
 
-def init_llm_handler(config, alpha=None):
+def init_llm_handler(config):
     """
     Initialize LLM inference handler from configuration.
 
     Args:
         config: Configuration object
-        alpha: Alpha parameter (optional, for backward compatibility)
     """
     print(f"\nInitializing LLM Inference Handler...")
     print(f"  Model: {config.llm.model.name}")
@@ -141,11 +83,6 @@ def init_llm_handler(config, alpha=None):
 
     try:
         from llm.inference_handler import LLMInferenceHandler
-
-        # Get alpha from config if not provided
-        if alpha is None:
-            # Try to get alpha from workload config (backward compatibility)
-            alpha = getattr(config.workload.service_time, 'alpha', 0.5)
 
         llm_handler = LLMInferenceHandler(
             model_name=config.llm.model.name,
@@ -159,9 +96,6 @@ def init_llm_handler(config, alpha=None):
             dtype=config.llm.model.dtype,
             load_in_8bit=config.llm.model.load_in_8bit,
             include_emotion_hint=config.llm.prompt.include_emotion_hint,
-            enable_emotion_length_control=False,  # Disabled in new architecture
-            base_response_length=64,  # Not used when length control is disabled
-            alpha=alpha,  # Kept for backward compatibility
             max_conversation_turns=config.llm.prompt.max_conversation_turns,
             max_new_tokens=config.llm.generation.max_new_tokens,
             temperature=config.llm.generation.temperature,

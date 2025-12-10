@@ -5,7 +5,6 @@ from datetime import datetime
 import numpy as np
 
 from core.emotion import EmotionConfig
-from workload.service_time_mapper import ServiceTimeConfig
 from workload.task_generator import create_emotion_aware_jobs
 
 from .job_config import load_pre_generated_jobs, save_job_config_if_needed
@@ -33,10 +32,10 @@ class TeeLogger:
 
 def run_emotion_aware_experiment(args) -> None:
     """
-    Run a complete emotion-aware scheduling experiment with fixed job count.
+    Run a complete affect-aware scheduling experiment.
     """
     # Load hierarchical configuration (YAML → env → CLI)
-    from config.config_loader import load_config, get_alpha  # Local import to avoid circulars
+    from config.config_loader import load_config, get_affect_weight_params
 
     cli_args = {k: v for k, v in vars(args).items() if v is not None}
     config = load_config(cli_args=cli_args)
@@ -55,20 +54,13 @@ def run_emotion_aware_experiment(args) -> None:
         print("=" * 80)
         mode = config.experiment.mode
         mode_display = "Fixed-Jobs" if mode == "fixed_jobs" else "Time-Window"
-        print(f"Emotion-aware LLM Scheduling Simulator ({mode_display} Mode)")
+        print(f"Affect-Aware LLM Scheduling Simulator ({mode_display} Mode)")
         print("=" * 80)
         print(f"Log file: {log_path}")
 
         # Create configurations using loaded config
-        alpha = get_alpha(config)
         emotion_config = EmotionConfig(
             arousal_noise_std=config.workload.emotion.arousal_noise_std
-        )
-        service_config = ServiceTimeConfig(
-            base_service_time=config.workload.service_time.base_service_time,
-            alpha=alpha,
-            emotion_correlation=config.workload.service_time.emotion_correlation,
-            min_service_time=config.workload.service_time.min_service_time,
         )
 
         # Get experiment parameters
@@ -78,8 +70,9 @@ def run_emotion_aware_experiment(args) -> None:
 
         print(f"\nExperiment Configuration:")
         print(f"  Scheduler: {config.scheduler.algorithm}")
-        if config.scheduler.algorithm == "SSJF-Valence":
-            print(f"  Valence beta (π_i = 1 + β(-v_i)): {config.scheduler.valence_priority.beta}")
+        if config.scheduler.algorithm in ("AW-SSJF", "Weight-Only"):
+            affect_cfg = config.scheduler.affect_weight
+            print(f"  Affect Weight: w_max={affect_cfg.w_max}, p={affect_cfg.p}, q={affect_cfg.q}")
         print(f"  Experiment mode: {mode}")
 
         if mode == "fixed_jobs":
@@ -90,7 +83,6 @@ def run_emotion_aware_experiment(args) -> None:
 
         print(f"  System load (ρ): {config.scheduler.system_load}")
         print(f"  Base service time (L_0): {config.workload.service_time.base_service_time}")
-        print(f"  Alpha (α): {alpha}")
 
         # Calculate arrival rate from system_load
         expected_service_time = config.workload.service_time.base_service_time
@@ -109,6 +101,9 @@ def run_emotion_aware_experiment(args) -> None:
         # Generate or load job trace
         from workload.task_generator import generate_job_trace, create_jobs_from_trace
 
+        # Get default service time from length predictor config
+        default_service_time = config.length_predictor.default_service_time
+
         if mode == "fixed_jobs":
             # ------------------------------------------------------------------
             # Fixed-jobs mode: keep the original JobConfigManager behaviour.
@@ -116,7 +111,6 @@ def run_emotion_aware_experiment(args) -> None:
             pre_generated_jobs, _use_saved, force_new = load_pre_generated_jobs(
                 config=config,
                 emotion_config=emotion_config,
-                service_config=service_config,
                 arrival_rate=arrival_rate,
             )
 
@@ -132,11 +126,10 @@ def run_emotion_aware_experiment(args) -> None:
                     num_jobs=trace_size,
                     arrival_rate=arrival_rate,
                     emotion_config=emotion_config,
-                    service_time_config=service_config,
+                    default_service_time=default_service_time,
                     enable_emotion=config.workload.emotion.enable_emotion_aware,
                     random_seed=None,  # Seed already set globally
                     use_stratified_sampling=config.workload.emotion.use_stratified_sampling,
-                    class_distribution=config.workload.emotion.class_distribution,
                 )
 
                 # Convert trace dicts to Job objects for the fixed-jobs runner
@@ -149,8 +142,8 @@ def run_emotion_aware_experiment(args) -> None:
         else:  # mode == "time_window"
             # ------------------------------------------------------------------
             # Time-window mode:
-            # Use a persistent JSON trace so that all schedulers (FCFS,
-            # SSJF-Emotion, etc.) see exactly the same arrival pattern.
+            # Use a persistent JSON trace so that all schedulers see the same
+            # arrival pattern.
             # ------------------------------------------------------------------
             cache_dir = os.path.join(output_dir, "cache")
             os.makedirs(cache_dir, exist_ok=True)
@@ -181,14 +174,13 @@ def run_emotion_aware_experiment(args) -> None:
                     num_jobs=trace_size,
                     arrival_rate=arrival_rate,
                     emotion_config=emotion_config,
-                    service_time_config=service_config,
+                    default_service_time=default_service_time,
                     enable_emotion=config.workload.emotion.enable_emotion_aware,
                     random_seed=None,  # Seed already set globally
                     use_stratified_sampling=config.workload.emotion.use_stratified_sampling,
-                    class_distribution=config.workload.emotion.class_distribution,
                 )
 
-                # 保存到 output_dir/cache/ 下
+                # Save trace to cache
                 with open(trace_file, "w") as f:
                     json.dump(job_trace, f, indent=2)
 
@@ -201,7 +193,7 @@ def run_emotion_aware_experiment(args) -> None:
         scheduler = create_scheduler(config)
 
         # Initialize LLM handler (LLM-only mode)
-        llm_handler = init_llm_handler(config, alpha)
+        llm_handler = init_llm_handler(config)
 
         # Run scheduling based on mode
         print(f"\nRunning scheduling ({mode} mode)...")
@@ -237,7 +229,6 @@ def run_emotion_aware_experiment(args) -> None:
                 config=config,
                 completed_jobs=completed_jobs,
                 arrival_rate=arrival_rate,
-                alpha=alpha,
                 pre_generated_jobs=pre_generated_jobs if loaded_from_cache else None,
                 force_new=force_new,
             )

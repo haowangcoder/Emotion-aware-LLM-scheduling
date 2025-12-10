@@ -33,14 +33,6 @@ from .scheduler_base import SchedulerBase, FCFSScheduler, SJFScheduler
 from .aw_ssjf_scheduler import AWSSJFScheduler
 from .weight_only_scheduler import WeightOnlyScheduler
 
-# Backward compatibility imports (deprecated)
-from .ssjf_emotion import (
-    SSJFEmotionScheduler,
-    SSJFEmotionPriorityScheduler,
-    SSJFValenceScheduler,
-    SSJFCombinedScheduler,
-)
-
 __all__ = [
     # Job
     'Job',
@@ -69,10 +61,4 @@ __all__ = [
     'SJFScheduler',
     'AWSSJFScheduler',
     'WeightOnlyScheduler',
-
-    # Deprecated (backward compatibility)
-    'SSJFEmotionScheduler',
-    'SSJFEmotionPriorityScheduler',
-    'SSJFValenceScheduler',
-    'SSJFCombinedScheduler',
 ]

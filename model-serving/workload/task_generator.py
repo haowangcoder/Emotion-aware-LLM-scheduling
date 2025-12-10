@@ -4,7 +4,7 @@ Affect-Aware Task Generator for LLM Scheduling
 This module creates jobs/tasks with emotion attributes for the affect-aware
 scheduling simulator. It integrates:
 1. Emotion sampling with NRC-VAD values and Russell quadrant mapping
-2. Service time mapping (fixed or BERT-predicted)
+2. Service time (uses default or BERT-predicted values)
 3. Affect weight computation (Depression-First strategy)
 4. Poisson arrival process for task generation
 
@@ -22,14 +22,13 @@ from core.emotion import (
     sample_emotions_batch_stratified_quadrant,
 )
 from core.affect_weight import compute_urgency_and_weight
-from workload.service_time_mapper import ServiceTimeConfig, map_service_time
 
 
 def generate_job_on_demand(
     job_id: int,
     arrival_time: float,
     emotion_config: EmotionConfig = None,
-    service_time_config: ServiceTimeConfig = None,
+    default_service_time: float = 2.0,
     enable_emotion: bool = True,
     w_max: float = 2.0,
     p: float = 1.0,
@@ -42,7 +41,7 @@ def generate_job_on_demand(
         job_id: Unique job identifier
         arrival_time: When this job arrives in the system
         emotion_config: EmotionConfig object
-        service_time_config: ServiceTimeConfig object
+        default_service_time: Default service time for jobs
         enable_emotion: Whether to enable emotion-aware features
         w_max: Maximum affect weight
         p: Exponent for negative valence
@@ -53,14 +52,11 @@ def generate_job_on_demand(
     """
     if emotion_config is None:
         emotion_config = EmotionConfig()
-    if service_time_config is None:
-        service_time_config = ServiceTimeConfig()
 
     # Sample emotion for this job
     if enable_emotion:
         emotion_label, arousal, valence = sample_emotion(emotion_config)
         russell_quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
-        service_time = map_service_time(arousal, service_time_config)
 
         # Compute affect weight
         urgency, affect_weight = compute_urgency_and_weight(
@@ -75,14 +71,14 @@ def generate_job_on_demand(
         arousal = 0.0
         valence = 0.0
         russell_quadrant = 'calm'
-        service_time = service_time_config.base_service_time
         urgency = 0.0
         affect_weight = 1.0
 
-    # Create job
+    # Create job with default service time
+    # (actual service time will be set during LLM execution or by length predictor)
     job = Job(
         job_id=job_id,
-        execution_duration=service_time,
+        execution_duration=default_service_time,
         arrival_time=arrival_time,
         emotion_label=emotion_label,
         arousal=arousal,
@@ -99,7 +95,7 @@ def create_emotion_aware_jobs(
     num_jobs: int,
     arrival_rate: float = 1.0,
     emotion_config: EmotionConfig = None,
-    service_time_config: ServiceTimeConfig = None,
+    default_service_time: float = 2.0,
     enable_emotion: bool = True,
     job_configs: List[Dict] = None,
     random_seed: int = None,
@@ -114,7 +110,7 @@ def create_emotion_aware_jobs(
         num_jobs: Number of jobs to create
         arrival_rate: Arrival rate (lambda) for Poisson process
         emotion_config: EmotionConfig object
-        service_time_config: ServiceTimeConfig object
+        default_service_time: Default service time for jobs
         enable_emotion: Whether to enable emotion-aware features
         job_configs: Optional list of job configurations to load (for reproducibility)
         random_seed: Optional random seed for reproducibility
@@ -127,8 +123,6 @@ def create_emotion_aware_jobs(
     """
     if emotion_config is None:
         emotion_config = EmotionConfig()
-    if service_time_config is None:
-        service_time_config = ServiceTimeConfig()
 
     # Set random seed if provided
     if random_seed is not None:
@@ -166,14 +160,11 @@ def create_emotion_aware_jobs(
         # Classify Russell quadrant
         russell_quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
 
-        # Get service time
+        # Get service time from config or use default
         if job_configs is not None and job_id < len(job_configs):
-            service_time = job_configs[job_id].get('service_time',
-                                                    map_service_time(arousal, service_time_config))
-        elif enable_emotion:
-            service_time = map_service_time(arousal, service_time_config)
+            service_time = job_configs[job_id].get('service_time', default_service_time)
         else:
-            service_time = service_time_config.base_service_time
+            service_time = default_service_time
 
         # Compute affect weight
         if enable_emotion:
@@ -284,7 +275,7 @@ def generate_job_trace(
     num_jobs: int,
     arrival_rate: float,
     emotion_config: EmotionConfig = None,
-    service_time_config: ServiceTimeConfig = None,
+    default_service_time: float = 2.0,
     enable_emotion: bool = True,
     random_seed: int = None,
     use_stratified_sampling: bool = True,
@@ -302,7 +293,7 @@ def generate_job_trace(
         num_jobs: Number of jobs to generate
         arrival_rate: Arrival rate (lambda) for Poisson process
         emotion_config: EmotionConfig object
-        service_time_config: ServiceTimeConfig object
+        default_service_time: Default service time for jobs
         enable_emotion: Whether to enable emotion-aware features
         random_seed: Random seed for reproducibility
         use_stratified_sampling: Whether to use stratified sampling by Russell quadrant
@@ -316,8 +307,6 @@ def generate_job_trace(
     """
     if emotion_config is None:
         emotion_config = EmotionConfig()
-    if service_time_config is None:
-        service_time_config = ServiceTimeConfig()
 
     # Set random seed
     if random_seed is not None:
@@ -352,9 +341,6 @@ def generate_job_trace(
             emotion_label, arousal, valence = emotions_data[job_id]
             quadrant = emotion_config.classify_russell_quadrant(arousal, valence)
 
-        service_time = map_service_time(arousal, service_time_config) if enable_emotion \
-                      else service_time_config.base_service_time
-
         # Compute affect weight
         if enable_emotion:
             urgency, affect_weight = compute_urgency_and_weight(
@@ -375,7 +361,7 @@ def generate_job_trace(
             'arousal': float(arousal),
             'valence': float(valence),
             'russell_quadrant': quadrant,
-            'service_time': float(service_time),
+            'service_time': float(default_service_time),
             'affect_weight': float(affect_weight),
             'urgency': float(urgency),
         })
