@@ -93,10 +93,15 @@ uv run huggingface-cli login
 ```
 
 **Download EmpatheticDialogues Dataset:**
+
 ```bash
-mkdir -p dataset
-# Download from Kaggle and extract to dataset/
-# Expected files: train.csv, valid.csv, test.csv
+# Download and extract
+wget https://dl.fbaipublicfiles.com/parlai/empatheticdialogues/empatheticdialogues.tar.gz
+tar -xzf empatheticdialogues.tar.gz -C dataset/
+
+# Verify
+ls dataset/empatheticdialogues/
+# Expected: train.csv, valid.csv, test.csv
 ```
 
 ---
