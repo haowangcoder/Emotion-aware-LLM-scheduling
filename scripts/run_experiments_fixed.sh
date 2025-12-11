@@ -21,7 +21,7 @@ set -e  # Exit on error
 # CONFIGURATION
 # ============================================================================
 MODE="fixed_jobs"
-NUM_JOBS=54
+NUM_JOBS=80
 RANDOM_SEED=42
 
 # Schedulers to compare (updated to new naming convention)
@@ -101,7 +101,7 @@ echo "  Generating Visualization Plots"
 echo "========================================================================"
 echo ""
 
-uv run python analysis/plot_emotion_results.py --runs-dir "$OUTPUT_DIR"
+# uv run python analysis/plot_emotion_results.py --runs-dir "$OUTPUT_DIR"
 
 echo ""
 echo "========================================================================"
