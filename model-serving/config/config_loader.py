@@ -154,6 +154,10 @@ class SchedulerConfig:
     """Scheduler configuration."""
     algorithm: str = 'FCFS'  # FCFS, SSJF, SJF, Weight-Only, AW-SSJF
     system_load: float = 0.6
+    use_robust_scoring: bool = False  # Use log(S+1)/w instead of S/w for prediction error tolerance
+    use_conservative_prediction: bool = False  # Multiply predicted S by margin to reduce underestimation
+    conservative_margin: float = 1.3  # Safety margin multiplier (1.3 = 30% increase)
+    weight_exponent: float = 1.0  # Exponent k for w^k: 1=standard, 2=squared (amplifies weight influence)
     starvation_prevention: StarvationPreventionConfig = field(default_factory=StarvationPreventionConfig)
     affect_weight: AffectWeightConfig = field(default_factory=AffectWeightConfig)
 
@@ -344,6 +348,10 @@ class ConfigLoader:
             'random_seed': lambda c, v: setattr(c.experiment, 'random_seed', v),
             'starvation_threshold': lambda c, v: setattr(c.scheduler.starvation_prevention, 'threshold', v),
             'starvation_coefficient': lambda c, v: setattr(c.scheduler.starvation_prevention, 'coefficient', v),
+            'use_robust_scoring': lambda c, v: setattr(c.scheduler, 'use_robust_scoring', v),
+            'use_conservative_prediction': lambda c, v: setattr(c.scheduler, 'use_conservative_prediction', v),
+            'conservative_margin': lambda c, v: setattr(c.scheduler, 'conservative_margin', v),
+            'weight_exponent': lambda c, v: setattr(c.scheduler, 'weight_exponent', v),
 
             # Affect weight parameters
             'w_max': lambda c, v: setattr(c.scheduler.affect_weight, 'w_max', v),

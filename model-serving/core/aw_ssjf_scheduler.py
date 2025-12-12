@@ -32,6 +32,7 @@ References:
     - Russell, J. A. (1980). A circumplex model of affect.
 """
 
+import math
 from typing import List, Optional, Dict, Union
 from collections import defaultdict
 
@@ -72,6 +73,11 @@ class AWSSJFScheduler(SchedulerBase):
         starvation_coefficient: Relative threshold as multiple of service time.
         weight_config: v2.0 WeightConfig object (overrides w_max, p, q if provided)
         weight_preset: Name of preset config ('depression_first_soft', etc.)
+        use_robust_scoring: If True, use log(S+1)/w instead of S/w to reduce
+                           sensitivity to service time prediction errors. Default: False.
+        use_conservative_prediction: If True, multiply predicted service time by
+                                    conservative_margin to reduce underestimation impact. Default: False.
+        conservative_margin: Multiplier for conservative prediction. Default: 1.3 (30% safety margin).
 
     Example:
         >>> # Legacy mode (v1.0 compatible)
@@ -95,6 +101,10 @@ class AWSSJFScheduler(SchedulerBase):
         starvation_coefficient: float = 3.0,
         weight_config: Optional[WeightConfig] = None,
         weight_preset: Optional[str] = None,
+        use_robust_scoring: bool = False,
+        use_conservative_prediction: bool = False,
+        conservative_margin: float = 1.3,
+        weight_exponent: float = 1.0,
     ):
         super().__init__(name="AW-SSJF")
 
@@ -118,6 +128,20 @@ class AWSSJFScheduler(SchedulerBase):
         self.starvation_threshold = starvation_threshold
         self.starvation_coefficient = starvation_coefficient
 
+        # Robust scoring: use log(S+1)/w instead of S/w to reduce
+        # sensitivity to service time prediction errors
+        self.use_robust_scoring = use_robust_scoring
+
+        # Conservative prediction: multiply predicted service time by margin
+        # to reduce impact of underestimation (more important for SJF)
+        self.use_conservative_prediction = use_conservative_prediction
+        self.conservative_margin = conservative_margin
+
+        # Weight exponent: use w^k instead of w to amplify weight influence
+        # k=1: standard (w), k=2: squared (w²), etc.
+        # Higher k gives more priority to high-weight users
+        self.weight_exponent = weight_exponent
+
         # Statistics by Russell quadrant
         self.quadrant_stats = defaultdict(lambda: {
             'scheduled': 0,
@@ -129,28 +153,50 @@ class AWSSJFScheduler(SchedulerBase):
         self.weight_details_log = []
 
     def _get_service_time(self, job: Job) -> float:
-        """Get predicted service time from job."""
+        """
+        Get predicted service time from job.
+
+        If conservative prediction is enabled, multiplies the predicted
+        service time by a margin to reduce impact of underestimation.
+        """
         # Priority: predicted_service_time > execution_duration > default
         if hasattr(job, 'predicted_service_time') and job.predicted_service_time is not None:
-            return job.predicted_service_time
-        if hasattr(job, 'execution_duration') and job.execution_duration is not None:
-            return job.execution_duration
-        return 2.0  # Default fallback
+            service_time = job.predicted_service_time
+        elif hasattr(job, 'execution_duration') and job.execution_duration is not None:
+            service_time = job.execution_duration
+        else:
+            service_time = 2.0  # Default fallback
+
+        # Apply conservative margin if enabled
+        if self.use_conservative_prediction:
+            service_time = service_time * self.conservative_margin
+
+        return service_time
 
     def _compute_weight(self, job: Job) -> float:
-        """Compute affect weight for a job."""
+        """
+        Compute affect weight for a job.
+
+        Also updates job.affect_weight and job.urgency to ensure logging
+        reflects the actual values used for scheduling.
+        """
         arousal = getattr(job, 'arousal', 0.0) or 0.0
         valence = getattr(job, 'valence', 0.0) or 0.0
         confidence = getattr(job, 'emotion_confidence', 1.0) if self.use_confidence else 1.0
 
         if self.use_v2_weights and self.weight_config is not None:
             # v2.0 weight calculation
-            return affect_weight_v2(
+            weight = affect_weight_v2(
                 arousal=arousal,
                 valence=valence,
                 confidence=confidence,
                 config=self.weight_config
             )
+            # Update job object with v2 computed values for accurate logging
+            urgency = compute_urgency_v2(arousal, valence, self.weight_config)
+            job.affect_weight = weight
+            job.urgency = urgency
+            return weight
         else:
             # Legacy v1.0 weight calculation
             return affect_weight(
@@ -164,7 +210,20 @@ class AWSSJFScheduler(SchedulerBase):
 
     def _compute_score(self, job: Job) -> float:
         """
-        Compute WSPT score: Score = S / w.
+        Compute WSPT score for job scheduling.
+
+        Standard mode:  Score = S / w^k
+        Robust mode:    Score = log(S + 1) / w^k
+
+        Where k = weight_exponent (default 1.0):
+        - k=1: standard WSPT (w)
+        - k=2: squared weights (w²) - amplifies weight influence
+        - k>2: even stronger weight influence
+
+        Robust mode uses log transform to reduce sensitivity to service time
+        prediction errors. This compresses extreme values:
+        - Prediction errors at high S have less impact
+        - Short jobs still get priority, but less aggressively
 
         Lower score = higher priority.
         """
@@ -175,7 +234,16 @@ class AWSSJFScheduler(SchedulerBase):
         if weight <= 0:
             weight = 1.0
 
-        return service_time / weight
+        # Apply weight exponent: w^k amplifies weight influence
+        # k=2 example: w=1.7 -> 2.89, w=1.4 -> 1.96, w=1.0 -> 1.0
+        effective_weight = weight ** self.weight_exponent
+
+        if self.use_robust_scoring:
+            # Log transform: log(S+1) to handle S=0 case
+            # This reduces impact of prediction errors at large S values
+            return math.log1p(service_time) / effective_weight
+        else:
+            return service_time / effective_weight
 
     def schedule(self, waiting_queue: List[Job], current_time: float = 0) -> Optional[Job]:
         """
@@ -203,12 +271,18 @@ class AWSSJFScheduler(SchedulerBase):
                     return job
 
         # Check for starving jobs (relative threshold)
+        # Among starving jobs, still select the one with lowest score
+        starving_jobs = []
         for job in waiting_queue:
             waiting_time = current_time - job.arrival_time
             service_time = self._get_service_time(job)
             threshold = self.starvation_coefficient * service_time
             if waiting_time >= threshold:
-                return job
+                starving_jobs.append(job)
+
+        if starving_jobs:
+            # Select starving job with lowest score (not just first one!)
+            return min(starving_jobs, key=lambda j: (self._compute_score(j), j.arrival_time))
 
         # Select job with lowest score
         # Ties broken by arrival time (FCFS among equal scores)
@@ -308,6 +382,10 @@ class AWSSJFScheduler(SchedulerBase):
             'starvation_threshold': self.starvation_threshold,
             'starvation_coefficient': self.starvation_coefficient,
             'use_confidence': self.use_confidence,
+            'use_robust_scoring': self.use_robust_scoring,
+            'use_conservative_prediction': self.use_conservative_prediction,
+            'conservative_margin': self.conservative_margin,
+            'weight_exponent': self.weight_exponent,
         }
 
         if self.use_v2_weights and self.weight_config is not None:

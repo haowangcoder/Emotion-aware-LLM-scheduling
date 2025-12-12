@@ -66,6 +66,7 @@ def create_scheduler(config):
                     gamma_panic=getattr(affect_cfg, "gamma_panic", 0.3),
                 )
 
+        weight_exp = getattr(config.scheduler, 'weight_exponent', 1.0)
         scheduler = AWSSJFScheduler(
             w_max=affect_cfg.w_max,
             p=affect_cfg.p,
@@ -73,6 +74,68 @@ def create_scheduler(config):
             use_confidence=affect_cfg.use_confidence,
             starvation_threshold=config.scheduler.starvation_prevention.threshold,
             starvation_coefficient=config.scheduler.starvation_prevention.coefficient,
+            weight_config=weight_config,
+            weight_preset=weight_preset,
+            use_robust_scoring=getattr(config.scheduler, 'use_robust_scoring', False),
+            use_conservative_prediction=getattr(config.scheduler, 'use_conservative_prediction', False),
+            conservative_margin=getattr(config.scheduler, 'conservative_margin', 1.3),
+            weight_exponent=weight_exp,
+        )
+        if weight_exp != 1.0:
+            print(f"  Weight exponent: k={weight_exp} (w^{weight_exp} amplification)")
+        if getattr(config.scheduler, 'use_robust_scoring', False):
+            print(f"  Robust scoring: ENABLED (log transform)")
+        if getattr(config.scheduler, 'use_conservative_prediction', False):
+            margin = getattr(config.scheduler, 'conservative_margin', 1.3)
+            print(f"  Conservative prediction: ENABLED (margin={margin:.0%})")
+        if weight_preset:
+            print(f"  weight_preset={weight_preset} (v2 weights)")
+        elif weight_config:
+            print(
+                f"  weight_mode={weight_config.mode.value} (v2 weights), "
+                f"w_max={weight_config.w_max}, p={weight_config.p}, q={weight_config.q}"
+            )
+        else:
+            print(f"  w_max={affect_cfg.w_max}, p={affect_cfg.p}, q={affect_cfg.q} (legacy)")
+
+    elif algorithm == "Weight-Only":
+        # Ablation baseline: Pure affect-based priority (with v2.0 weight support)
+        affect_cfg = config.scheduler.affect_weight
+
+        # Determine whether to use v2 weight config or legacy parameters
+        weight_config = None
+        weight_preset = getattr(affect_cfg, "weight_preset", None)
+        weight_mode = getattr(affect_cfg, "weight_mode", None)
+        mode_value = str(weight_mode).lower() if weight_mode is not None else None
+
+        if weight_preset is None and mode_value:
+            try:
+                mode_enum = WeightMode(mode_value)
+            except ValueError:
+                # Treat unknown modes as preset names (e.g., depression_first_soft)
+                weight_preset = mode_value
+            else:
+                weight_config = WeightConfig(
+                    mode=mode_enum,
+                    w_max=affect_cfg.w_max,
+                    p=affect_cfg.p,
+                    q=affect_cfg.q,
+                    r=getattr(affect_cfg, "r", 1.0),
+                    k_v=getattr(affect_cfg, "k_v", 5.0),
+                    k_a=getattr(affect_cfg, "k_a", 5.0),
+                    tau_v=getattr(affect_cfg, "tau_v", 0.0),
+                    tau_a=getattr(affect_cfg, "tau_a", 0.0),
+                    tau_h=getattr(affect_cfg, "tau_h", 0.0),
+                    gamma_dep=getattr(affect_cfg, "gamma_dep", 1.0),
+                    gamma_panic=getattr(affect_cfg, "gamma_panic", 0.3),
+                )
+
+        scheduler = WeightOnlyScheduler(
+            w_max=affect_cfg.w_max,
+            p=affect_cfg.p,
+            q=affect_cfg.q,
+            use_confidence=affect_cfg.use_confidence,
+            starvation_threshold=config.scheduler.starvation_prevention.threshold,
             weight_config=weight_config,
             weight_preset=weight_preset,
         )
@@ -85,18 +148,6 @@ def create_scheduler(config):
             )
         else:
             print(f"  w_max={affect_cfg.w_max}, p={affect_cfg.p}, q={affect_cfg.q} (legacy)")
-
-    elif algorithm == "Weight-Only":
-        # Ablation baseline: Pure affect-based priority
-        affect_cfg = config.scheduler.affect_weight
-        scheduler = WeightOnlyScheduler(
-            w_max=affect_cfg.w_max,
-            p=affect_cfg.p,
-            q=affect_cfg.q,
-            use_confidence=affect_cfg.use_confidence,
-            starvation_threshold=config.scheduler.starvation_prevention.threshold,
-        )
-        print(f"  w_max={affect_cfg.w_max}, p={affect_cfg.p}, q={affect_cfg.q}")
 
     else:
         raise ValueError(

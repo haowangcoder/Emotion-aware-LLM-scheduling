@@ -17,6 +17,11 @@ Comparison with AW-SSJF:
     - AW-SSJF: Score = S / w (balances efficiency and fairness)
     - Weight-Only: Score = -w (pure fairness, ignores efficiency)
 
+v2.0 Improvements:
+    - Supports multiple weight modes: HARD, SOFT, DUAL_CHANNEL
+    - Soft gating (sigmoid) for noise robustness
+    - Dual-channel: Depression-First + Panic-Second
+
 References:
     - Russell, J. A. (1980). A circumplex model of affect.
 """
@@ -27,6 +32,10 @@ from collections import defaultdict
 from core.scheduler_base import SchedulerBase
 from core.job import Job
 from core.affect_weight import affect_weight
+from core.affect_weight_v2 import (
+    WeightConfig, WeightMode, affect_weight_v2, compute_urgency_v2,
+    get_preset_config
+)
 
 
 class WeightOnlyScheduler(SchedulerBase):
@@ -39,16 +48,30 @@ class WeightOnlyScheduler(SchedulerBase):
     This scheduler demonstrates the extreme case of emotional fairness
     without considering system efficiency.
 
+    v2.0: Now supports multiple weight modes via WeightConfig:
+    - HARD: Original hard gating (v1.0 compatible)
+    - SOFT: Sigmoid soft gating (recommended, noise-robust)
+    - DUAL_CHANNEL: Depression-First + Panic-Second
+
     Args:
         w_max: Maximum affect weight. Default: 2.0.
         p: Exponent for negative valence. Default: 1.0.
         q: Exponent for low arousal. Default: 1.0.
         use_confidence: Whether to apply confidence discount. Default: True.
         starvation_threshold: Absolute time threshold for starvation prevention.
+        weight_config: v2.0 WeightConfig object (overrides w_max, p, q if provided)
+        weight_preset: Name of preset config ('depression_first_soft', etc.)
 
     Example:
+        >>> # Legacy mode (v1.0 compatible)
         >>> scheduler = WeightOnlyScheduler(w_max=2.0)
-        >>> next_job = scheduler.schedule(waiting_queue, current_time=10.0)
+        >>>
+        >>> # v2.0 with preset
+        >>> scheduler = WeightOnlyScheduler(weight_preset='dual_channel_balanced')
+        >>>
+        >>> # v2.0 with custom config
+        >>> config = WeightConfig(mode=WeightMode.DUAL_CHANNEL, gamma_panic=0.3)
+        >>> scheduler = WeightOnlyScheduler(weight_config=config)
     """
 
     def __init__(
@@ -58,8 +81,24 @@ class WeightOnlyScheduler(SchedulerBase):
         q: float = 1.0,
         use_confidence: bool = True,
         starvation_threshold: float = float('inf'),
+        weight_config: Optional[WeightConfig] = None,
+        weight_preset: Optional[str] = None,
     ):
         super().__init__(name="Weight-Only")
+
+        # v2.0 weight configuration (takes precedence over legacy params)
+        if weight_preset is not None:
+            self.weight_config = get_preset_config(weight_preset)
+            self.use_v2_weights = True
+        elif weight_config is not None:
+            self.weight_config = weight_config
+            self.use_v2_weights = True
+        else:
+            # Legacy mode: use original v1.0 weight calculation
+            self.weight_config = None
+            self.use_v2_weights = False
+
+        # Legacy parameters (used when use_v2_weights=False)
         self.w_max = w_max
         self.p = p
         self.q = q
@@ -74,19 +113,39 @@ class WeightOnlyScheduler(SchedulerBase):
         })
 
     def _compute_weight(self, job: Job) -> float:
-        """Compute affect weight for a job."""
+        """
+        Compute affect weight for a job.
+
+        Also updates job.affect_weight and job.urgency to ensure logging
+        reflects the actual values used for scheduling.
+        """
         arousal = getattr(job, 'arousal', 0.0) or 0.0
         valence = getattr(job, 'valence', 0.0) or 0.0
         confidence = getattr(job, 'emotion_confidence', 1.0) if self.use_confidence else 1.0
 
-        return affect_weight(
-            arousal=arousal,
-            valence=valence,
-            confidence=confidence,
-            w_max=self.w_max,
-            p=self.p,
-            q=self.q
-        )
+        if self.use_v2_weights and self.weight_config is not None:
+            # v2.0 weight calculation
+            weight = affect_weight_v2(
+                arousal=arousal,
+                valence=valence,
+                confidence=confidence,
+                config=self.weight_config
+            )
+            # Update job object with v2 computed values for accurate logging
+            urgency = compute_urgency_v2(arousal, valence, self.weight_config)
+            job.affect_weight = weight
+            job.urgency = urgency
+            return weight
+        else:
+            # Legacy v1.0 weight calculation
+            return affect_weight(
+                arousal=arousal,
+                valence=valence,
+                confidence=confidence,
+                w_max=self.w_max,
+                p=self.p,
+                q=self.q
+            )
 
     def schedule(self, waiting_queue: List[Job], current_time: float = 0) -> Optional[Job]:
         """
@@ -157,12 +216,34 @@ class WeightOnlyScheduler(SchedulerBase):
             }
 
         base_stats['quadrant_stats'] = quadrant_stats
-        base_stats['scheduler_params'] = {
-            'w_max': self.w_max,
-            'p': self.p,
-            'q': self.q,
-            'use_confidence': self.use_confidence,
-        }
+
+        # Include weight configuration info
+        if self.use_v2_weights and self.weight_config is not None:
+            base_stats['scheduler_params'] = {
+                'version': 'v2.0',
+                'weight_mode': self.weight_config.mode.value,
+                'w_max': self.weight_config.w_max,
+                'p': self.weight_config.p,
+                'q': self.weight_config.q,
+                'k_v': self.weight_config.k_v,
+                'k_a': self.weight_config.k_a,
+                'use_confidence': self.use_confidence,
+            }
+            if self.weight_config.mode == WeightMode.DUAL_CHANNEL:
+                base_stats['scheduler_params'].update({
+                    'r': self.weight_config.r,
+                    'gamma_dep': self.weight_config.gamma_dep,
+                    'gamma_panic': self.weight_config.gamma_panic,
+                })
+        else:
+            base_stats['scheduler_params'] = {
+                'version': 'v1.0',
+                'weight_mode': 'hard',
+                'w_max': self.w_max,
+                'p': self.p,
+                'q': self.q,
+                'use_confidence': self.use_confidence,
+            }
 
         return base_stats
 
@@ -183,11 +264,38 @@ class WeightOnlyScheduler(SchedulerBase):
 
     def get_config(self) -> Dict:
         """Get scheduler configuration parameters."""
-        return {
+        config = {
             'name': self.name,
-            'w_max': self.w_max,
-            'p': self.p,
-            'q': self.q,
-            'use_confidence': self.use_confidence,
             'starvation_threshold': self.starvation_threshold,
+            'use_confidence': self.use_confidence,
         }
+
+        if self.use_v2_weights and self.weight_config is not None:
+            config.update({
+                'weight_version': 'v2.0',
+                'weight_mode': self.weight_config.mode.value,
+                'w_max': self.weight_config.w_max,
+                'p': self.weight_config.p,
+                'q': self.weight_config.q,
+                'k_v': self.weight_config.k_v,
+                'k_a': self.weight_config.k_a,
+                'tau_v': self.weight_config.tau_v,
+                'tau_a': self.weight_config.tau_a,
+            })
+            if self.weight_config.mode == WeightMode.DUAL_CHANNEL:
+                config.update({
+                    'r': self.weight_config.r,
+                    'tau_h': self.weight_config.tau_h,
+                    'gamma_dep': self.weight_config.gamma_dep,
+                    'gamma_panic': self.weight_config.gamma_panic,
+                })
+        else:
+            config.update({
+                'weight_version': 'v1.0',
+                'weight_mode': 'hard',
+                'w_max': self.w_max,
+                'p': self.p,
+                'q': self.q,
+            })
+
+        return config
