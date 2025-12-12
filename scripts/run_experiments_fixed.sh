@@ -101,7 +101,7 @@ echo "  Generating Visualization Plots"
 echo "========================================================================"
 echo ""
 
-# uv run python analysis/plot_emotion_results.py --runs-dir "$OUTPUT_DIR"
+uv run python analysis/plot_emotion_results.py --runs-dir "$OUTPUT_DIR"
 
 echo ""
 echo "========================================================================"

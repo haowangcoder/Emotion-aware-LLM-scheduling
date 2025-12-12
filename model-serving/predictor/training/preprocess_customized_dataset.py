@@ -77,8 +77,8 @@ def preprocess_dataset(dataset):
         print('Dataset does not contain required columns: model_name, prompt_id, prompt_content, response_length')
         exit()
 
-    # remove all other columns
-    dataset = dataset.select_columns(['model_name', 'prompt_id', 'prompt_content', 'response_length'])
+    # remove all other columns (prompt_id is only for tracking, not needed for training)
+    dataset = dataset.select_columns(['model_name', 'prompt_content', 'response_length'])
 
     if task_type == 0:
         # rename the column name from response_length to num_tokens

@@ -66,19 +66,19 @@ def run_scheduling_loop(
                     new_job.conversation_index = conv_idx
 
                 if verbose:
-                    # Distinguish true BERT predictions from default fallback
+                    # Distinguish true predictions from default fallback
                     is_true_prediction = (
                         hasattr(early_prompt_generator, "is_prediction_available")
                         and early_prompt_generator.is_prediction_available()
                     )
                     if is_true_prediction:
                         print(
-                            f"    BERT predicted: {predicted_time:.3f}s for Job {new_job.job_id}"
+                            f"    Predicted: {predicted_time:.3f}s for Job {new_job.job_id}"
                         )
                     else:
                         print(
                             f"    Using default service time: {predicted_time:.3f}s "
-                            f"(BERT not available) for Job {new_job.job_id}"
+                            f"(predictor not available) for Job {new_job.job_id}"
                         )
 
             waiting_queue.append(new_job)
@@ -383,17 +383,17 @@ def run_scheduling_loop_time_window(
                     new_job.conversation_index = conv_idx
 
                 if verbose:
-                    # Distinguish true BERT predictions from default fallback
+                    # Distinguish true predictions from default fallback
                     is_true_prediction = (
                         hasattr(early_prompt_generator, "is_prediction_available")
                         and early_prompt_generator.is_prediction_available()
                     )
                     if is_true_prediction:
-                        print(f"    BERT predicted: {predicted_time:.3f}s for Job {new_job.job_id}")
+                        print(f"    Predicted: {predicted_time:.3f}s for Job {new_job.job_id}")
                     else:
                         print(
                             f"    Using default service time: {predicted_time:.3f}s "
-                            f"(BERT not available) for Job {new_job.job_id}"
+                            f"(predictor not available) for Job {new_job.job_id}"
                         )
 
             waiting_queue.append(new_job)

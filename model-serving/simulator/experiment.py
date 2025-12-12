@@ -104,18 +104,20 @@ def run_emotion_aware_experiment(args) -> None:
         # Get default service time from length predictor config
         default_service_time = config.length_predictor.default_service_time
 
-        # === Initialize BERT Length Predictor (for early service time prediction) ===
+        # === Initialize Length Predictor (for early service time prediction) ===
         early_prompt_generator = None
         length_estimator = None
 
         if config.length_predictor.enabled:
-            print(f"\nInitializing BERT Length Predictor...")
+            predictor_type = getattr(config.length_predictor, 'predictor_type', 'linear')
+            print(f"\nInitializing Length Predictor ({predictor_type})...")
             print(f"  Model path: {config.length_predictor.model_path}")
 
             from predictor.length_estimator import create_length_estimator
 
             length_estimator = create_length_estimator({
                 'enabled': config.length_predictor.enabled,
+                'predictor_type': predictor_type,
                 'model_path': config.length_predictor.model_path,
                 'model_name': config.length_predictor.model_name,
                 'device': config.length_predictor.device,
@@ -125,9 +127,9 @@ def run_emotion_aware_experiment(args) -> None:
             })
 
             if length_estimator.is_available():
-                print(f"  ✓ BERT predictor loaded successfully")
+                print(f"  ✓ {predictor_type.capitalize()} predictor loaded successfully")
             else:
-                print(f"  ⚠ BERT predictor not available, using default service time")
+                print(f"  ⚠ {predictor_type.capitalize()} predictor not available, using default service time")
 
         if mode == "fixed_jobs":
             # ------------------------------------------------------------------
@@ -220,7 +222,7 @@ def run_emotion_aware_experiment(args) -> None:
         # Initialize LLM handler (LLM-only mode)
         llm_handler = init_llm_handler(config)
 
-        # === Create EarlyPromptGenerator if BERT predictor is available ===
+        # === Create EarlyPromptGenerator if predictor is available ===
         if length_estimator is not None and llm_handler is not None:
             from predictor.early_prompt_generator import EarlyPromptGenerator
 
@@ -232,12 +234,12 @@ def run_emotion_aware_experiment(args) -> None:
             )
             print(f"  ✓ Early prompt generator initialized")
 
-            # Check if trace needs BERT predictions
+            # Check if trace needs predictions
             if job_trace is not None:
                 # Check if trace already has predicted_service_time
                 has_predictions = any('predicted_service_time' in entry for entry in job_trace)
                 if not has_predictions and early_prompt_generator.is_prediction_available():
-                    print(f"\nEnriching trace with BERT predictions...")
+                    print(f"\nEnriching trace with predictions...")
                     for i, entry in enumerate(job_trace):
                         # Create temp job for prediction
                         class TempJob:
@@ -268,7 +270,7 @@ def run_emotion_aware_experiment(args) -> None:
                         if (i + 1) % 100 == 0:
                             print(f"    Processed {i + 1}/{len(job_trace)} jobs")
 
-                    print(f"  ✓ Added BERT predictions to {len(job_trace)} jobs")
+                    print(f"  ✓ Added predictions to {len(job_trace)} jobs")
 
                     # Save updated trace (for time_window mode)
                     if mode == "time_window" and 'trace_file' in locals():
