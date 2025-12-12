@@ -205,6 +205,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use 8-bit quantization (overrides config)",
     )
 
+    # Job config caching (mutually exclusive)
+    job_config_group = parser.add_mutually_exclusive_group()
+    job_config_group.add_argument(
+        "--force_new_job_config",
+        action="store_true",
+        default=None,
+        help="Force generate new job configurations (overrides config.llm.cache.force_new_job_config)",
+    )
+    job_config_group.add_argument(
+        "--use_saved_job_config",
+        action="store_true",
+        default=None,
+        help="Use saved job configurations if available (overrides config.llm.cache.use_saved_job_config)",
+    )
+
     return parser
 
 

@@ -71,12 +71,10 @@ for load in "${SYSTEM_LOADS[@]}"; do
 
     if [[ "$scheduler" == "FCFS" ]]; then
       # First scheduler: Generate new job configs
-      sed -i 's/force_new_job_config:.*/force_new_job_config: true/'  model-serving/config/default.yaml
-      sed -i 's/use_saved_job_config:.*/use_saved_job_config: false/' model-serving/config/default.yaml
+      JOB_CONFIG_ARGS="--force_new_job_config"
     else
       # Subsequent schedulers: Reuse the same job configs for fair comparison
-      sed -i 's/force_new_job_config:.*/force_new_job_config: false/' model-serving/config/default.yaml
-      sed -i 's/use_saved_job_config:.*/use_saved_job_config: true/'  model-serving/config/default.yaml
+      JOB_CONFIG_ARGS="--use_saved_job_config"
     fi
 
     uv run python run_simulation.py \
@@ -87,6 +85,7 @@ for load in "${SYSTEM_LOADS[@]}"; do
       --random_seed "$RANDOM_SEED" \
       --w_max "$W_MAX" \
       --output_dir "$OUTPUT_DIR" \
+      $JOB_CONFIG_ARGS \
       --verbose
 
     echo ">>> $scheduler completed"

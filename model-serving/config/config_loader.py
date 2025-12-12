@@ -354,6 +354,10 @@ class ConfigLoader:
             'device_map': lambda c, v: setattr(c.llm.model, 'device_map', v),
             'dtype': lambda c, v: setattr(c.llm.model, 'dtype', v),
             'load_in_8bit': lambda c, v: setattr(c.llm.model, 'load_in_8bit', v),
+
+            # Job config caching
+            'force_new_job_config': lambda c, v: setattr(c.llm.cache, 'force_new_job_config', v),
+            'use_saved_job_config': lambda c, v: setattr(c.llm.cache, 'use_saved_job_config', v),
         }
 
         for arg_name, setter in cli_mappings.items():
