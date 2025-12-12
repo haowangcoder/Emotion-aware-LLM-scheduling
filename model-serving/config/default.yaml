@@ -30,7 +30,7 @@ workload:
 # ============================================================================
 llm:
   model:
-    name: 'lmsys/vicuna-13b-v1.3'
+    name: 'meta-llama/Meta-Llama-3-8B-Instruct'
     device_map: 'auto'
     dtype: 'auto'
     trust_remote_code: true
@@ -76,19 +76,37 @@ scheduler:
 
   system_load: 0.6               # Target system load (rho)
 
+  # Robust Scoring (for prediction error tolerance)
+  # When enabled, uses log(S+1)/w instead of S/w to reduce sensitivity
+  # to service time prediction errors from BERT model
+  use_robust_scoring: true
+
+  # Conservative Prediction (for underestimation protection)
+  # When enabled, multiplies predicted service time by margin before scoring
+  # This reduces impact of BERT underestimating long responses
+  use_conservative_prediction: true
+  conservative_margin: 1.3           # 1.3 = 30% safety margin
+
+  # Weight Exponent (for amplifying affect weight influence)
+  # Score = S / w^k where k = weight_exponent
+  # k=1: standard WSPT (service time dominates)
+  # k=2: squared weights (recommended, balances S and w influence)
+  # k=3+: stronger weight influence (may hurt efficiency)
+  weight_exponent: 4.0               # 2.0 = squared weights (w² amplification)
+
   # Starvation Prevention
   starvation_prevention:
     threshold: .inf              # Absolute time threshold (inf = disabled)
     coefficient: 3.0             # Relative threshold (multiple of service time)
 
-  # Affect Weight Parameters (Depression-First Strategy)
+  # Affect Weight Parameters (Depression-First + Panic-Second Strategy)
   # v1.0 formula: w = 1 + (w_max - 1) * c * u, where u = max(0,-v)^p * max(0,-a)^q
   # v2.0 adds: SOFT mode (sigmoid gating) and DUAL_CHANNEL (Depression + Panic)
   affect_weight:
-    # Weight mode: 'hard' (v1.0), 'soft' (recommended), 'dual' (Depression + Panic)
+    # Weight mode: 'hard' (v1.0), 'soft' (single channel), 'dual' (Depression + Panic)
     # Or use preset: 'depression_first_hard', 'depression_first_soft',
     #                'dual_channel_balanced', 'dual_channel_depression_heavy'
-    weight_mode: 'soft'          # 'hard', 'soft', 'dual', or preset name
+    weight_mode: 'dual_channel_balanced'          # 'hard', 'soft', 'dual', or preset name
     w_max: 2.0                   # Maximum weight [1.2, 3.0] recommended
     p: 1.0                       # Exponent for negative valence
     q: 1.0                       # Exponent for low arousal
@@ -176,3 +194,22 @@ output:
 # 5. BERT LENGTH PREDICTOR:
 #    Service time = const_latency + predicted_tokens * per_token_latency
 #    Train the model separately using the output-token-len-prediction module.
+#
+# 6. ROBUST SCORING (use_robust_scoring: true):
+#    Uses log(S+1)/w instead of S/w to reduce sensitivity to prediction errors.
+#    Benefits:
+#    - Compresses extreme prediction values (large errors have less impact)
+#    - Short jobs still get priority, but less aggressively
+#    - Mathematical: |log(a) - log(b)| < |a - b| for large values
+#    Example: predicted=1.5s, actual=10s
+#    - Standard: error ratio = 10/1.5 = 6.7x
+#    - Robust: error ratio = log(11)/log(2.5) = 2.6x (much smaller impact)
+#
+# 7. CONSERVATIVE PREDICTION (use_conservative_prediction: true):
+#    Multiplies predicted service time by conservative_margin before scoring.
+#    Benefits:
+#    - Reduces SJF "priority inversion" when BERT underestimates long responses
+#    - Combined with robust scoring provides double protection
+#    Example: conservative_margin=1.3 (30% safety margin)
+#    - Predicted 1.5s -> used as 1.95s for scheduling
+#    - Long jobs get slightly lower priority, reducing queue blocking
