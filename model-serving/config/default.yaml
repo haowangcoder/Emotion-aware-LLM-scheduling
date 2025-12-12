@@ -82,13 +82,29 @@ scheduler:
     coefficient: 3.0             # Relative threshold (multiple of service time)
 
   # Affect Weight Parameters (Depression-First Strategy)
-  # Weight formula: w = 1 + (w_max - 1) * c * u
-  # Urgency formula: u = max(0,-v)^p * max(0,-a)^q
+  # v1.0 formula: w = 1 + (w_max - 1) * c * u, where u = max(0,-v)^p * max(0,-a)^q
+  # v2.0 adds: SOFT mode (sigmoid gating) and DUAL_CHANNEL (Depression + Panic)
   affect_weight:
+    # Weight mode: 'hard' (v1.0), 'soft' (recommended), 'dual' (Depression + Panic)
+    # Or use preset: 'depression_first_hard', 'depression_first_soft',
+    #                'dual_channel_balanced', 'dual_channel_depression_heavy'
+    weight_mode: 'soft'          # 'hard', 'soft', 'dual', or preset name
     w_max: 2.0                   # Maximum weight [1.2, 3.0] recommended
     p: 1.0                       # Exponent for negative valence
     q: 1.0                       # Exponent for low arousal
     use_confidence: true         # Apply confidence discount
+
+    # v2.0 Soft gating parameters (for 'soft' and 'dual' modes)
+    k_v: 5.0                     # Sigmoid steepness for valence
+    k_a: 5.0                     # Sigmoid steepness for arousal
+    tau_v: 0.0                   # Threshold for negative valence
+    tau_a: 0.0                   # Threshold for low arousal
+
+    # v2.0 Dual-channel parameters (for 'dual' mode only)
+    r: 1.0                       # Exponent for high arousal (panic)
+    tau_h: 0.0                   # Threshold for high arousal
+    gamma_dep: 1.0               # Depression channel weight
+    gamma_panic: 0.3             # Panic channel weight (lower = less priority)
 
 # ============================================================================
 # LENGTH PREDICTOR CONFIGURATION (BERT-based)
@@ -131,20 +147,32 @@ output:
 #    - S_i: Predicted service time (from BERT or default)
 #    - w_i: Affect weight (Depression-First)
 #
-# 2. DEPRESSION-FIRST STRATEGY:
+# 2. DEPRESSION-FIRST STRATEGY (v1.0 HARD mode):
 #    Only users with BOTH negative valence AND low arousal get priority boost.
 #    - Excited users (high valence, high arousal): w = 1 (no boost)
 #    - Calm users (high valence, low arousal): w = 1 (no boost)
 #    - Panic users (low valence, high arousal): w = 1 (no boost)
 #    - Depression users (low valence, low arousal): w > 1 (priority boost)
 #
-# 3. RUSSELL QUADRANT SAMPLING:
+# 3. v2.0 WEIGHT MODES:
+#    - HARD: Original hard gating max(0,-x), discontinuous at 0
+#    - SOFT: Sigmoid gating (recommended), smooth and noise-robust
+#      * n = sigmoid(k_v * (-v - tau_v))
+#      * ell = sigmoid(k_a * (-a - tau_a))
+#      * u = n^p * ell^q
+#    - DUAL_CHANNEL: Depression-First + Panic-Second
+#      * u_dep = n^p * ell^q (depression urgency)
+#      * u_panic = n^p * h^r (panic urgency)
+#      * u = gamma_dep * u_dep + gamma_panic * u_panic
+#      * Panic users now get limited priority boost (gamma_panic ~ 0.3)
+#
+# 4. RUSSELL QUADRANT SAMPLING:
 #    Uses stratified sampling by Russell's 4 quadrants for fair comparison:
 #    - excited: V >= 0, A >= 0
 #    - calm: V >= 0, A < 0
 #    - panic: V < 0, A >= 0
 #    - depression: V < 0, A < 0
 #
-# 4. BERT LENGTH PREDICTOR:
+# 5. BERT LENGTH PREDICTOR:
 #    Service time = const_latency + predicted_tokens * per_token_latency
 #    Train the model separately using the output-token-len-prediction module.

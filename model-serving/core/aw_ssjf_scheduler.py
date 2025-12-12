@@ -22,17 +22,26 @@ The Depression-First strategy prioritizes users with:
 This combination targets users in a depressed/sad state who may need
 faster responses to avoid further emotional deterioration.
 
+v2.0 Improvements:
+    - Supports multiple weight modes: HARD, SOFT, DUAL_CHANNEL
+    - Soft gating (sigmoid) for noise robustness
+    - Dual-channel: Depression-First + Panic-Second
+
 References:
     - Smith, W. E. (1956). Various optimizers for single-stage production.
     - Russell, J. A. (1980). A circumplex model of affect.
 """
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 from collections import defaultdict
 
 from core.scheduler_base import SchedulerBase
 from core.job import Job
 from core.affect_weight import affect_weight, compute_urgency
+from core.affect_weight_v2 import (
+    WeightConfig, WeightMode, affect_weight_v2, compute_urgency_v2,
+    get_preset_config, get_detailed_weight_info
+)
 
 
 class AWSSJFScheduler(SchedulerBase):
@@ -48,6 +57,11 @@ class AWSSJFScheduler(SchedulerBase):
     - Only negative valence AND low arousal users get priority boosts
     - Supports confidence discount to prevent "gaming" the system
 
+    v2.0: Now supports multiple weight modes via WeightConfig:
+    - HARD: Original hard gating (v1.0 compatible)
+    - SOFT: Sigmoid soft gating (recommended, noise-robust)
+    - DUAL_CHANNEL: Depression-First + Panic-Second
+
     Args:
         w_max: Maximum affect weight (controls max "queue jumping" power).
                Default: 2.0. Recommended range: [1.2, 3.0].
@@ -56,10 +70,19 @@ class AWSSJFScheduler(SchedulerBase):
         use_confidence: Whether to apply confidence discount. Default: True.
         starvation_threshold: Absolute time threshold for starvation prevention.
         starvation_coefficient: Relative threshold as multiple of service time.
+        weight_config: v2.0 WeightConfig object (overrides w_max, p, q if provided)
+        weight_preset: Name of preset config ('depression_first_soft', etc.)
 
     Example:
+        >>> # Legacy mode (v1.0 compatible)
         >>> scheduler = AWSSJFScheduler(w_max=2.0)
-        >>> next_job = scheduler.schedule(waiting_queue, current_time=10.0)
+        >>>
+        >>> # v2.0 with preset
+        >>> scheduler = AWSSJFScheduler(weight_preset='depression_first_soft')
+        >>>
+        >>> # v2.0 with custom config
+        >>> config = WeightConfig(mode=WeightMode.DUAL_CHANNEL, gamma_panic=0.3)
+        >>> scheduler = AWSSJFScheduler(weight_config=config)
     """
 
     def __init__(
@@ -70,8 +93,24 @@ class AWSSJFScheduler(SchedulerBase):
         use_confidence: bool = True,
         starvation_threshold: float = float('inf'),
         starvation_coefficient: float = 3.0,
+        weight_config: Optional[WeightConfig] = None,
+        weight_preset: Optional[str] = None,
     ):
         super().__init__(name="AW-SSJF")
+
+        # v2.0 weight configuration (takes precedence over legacy params)
+        if weight_preset is not None:
+            self.weight_config = get_preset_config(weight_preset)
+            self.use_v2_weights = True
+        elif weight_config is not None:
+            self.weight_config = weight_config
+            self.use_v2_weights = True
+        else:
+            # Legacy mode: use original v1.0 weight calculation
+            self.weight_config = None
+            self.use_v2_weights = False
+
+        # Legacy parameters (used when use_v2_weights=False)
         self.w_max = w_max
         self.p = p
         self.q = q
@@ -85,6 +124,9 @@ class AWSSJFScheduler(SchedulerBase):
             'total_waiting_time': 0,
             'total_weight': 0.0,
         })
+
+        # v2.0: Track detailed weight info for analysis
+        self.weight_details_log = []
 
     def _get_service_time(self, job: Job) -> float:
         """Get predicted service time from job."""
@@ -101,14 +143,24 @@ class AWSSJFScheduler(SchedulerBase):
         valence = getattr(job, 'valence', 0.0) or 0.0
         confidence = getattr(job, 'emotion_confidence', 1.0) if self.use_confidence else 1.0
 
-        return affect_weight(
-            arousal=arousal,
-            valence=valence,
-            confidence=confidence,
-            w_max=self.w_max,
-            p=self.p,
-            q=self.q
-        )
+        if self.use_v2_weights and self.weight_config is not None:
+            # v2.0 weight calculation
+            return affect_weight_v2(
+                arousal=arousal,
+                valence=valence,
+                confidence=confidence,
+                config=self.weight_config
+            )
+        else:
+            # Legacy v1.0 weight calculation
+            return affect_weight(
+                arousal=arousal,
+                valence=valence,
+                confidence=confidence,
+                w_max=self.w_max,
+                p=self.p,
+                q=self.q
+            )
 
     def _compute_score(self, job: Job) -> float:
         """
@@ -203,12 +255,34 @@ class AWSSJFScheduler(SchedulerBase):
             }
 
         base_stats['quadrant_stats'] = quadrant_stats
-        base_stats['scheduler_params'] = {
-            'w_max': self.w_max,
-            'p': self.p,
-            'q': self.q,
-            'use_confidence': self.use_confidence,
-        }
+
+        # Include weight configuration info
+        if self.use_v2_weights and self.weight_config is not None:
+            base_stats['scheduler_params'] = {
+                'version': 'v2.0',
+                'weight_mode': self.weight_config.mode.value,
+                'w_max': self.weight_config.w_max,
+                'p': self.weight_config.p,
+                'q': self.weight_config.q,
+                'k_v': self.weight_config.k_v,
+                'k_a': self.weight_config.k_a,
+                'use_confidence': self.use_confidence,
+            }
+            if self.weight_config.mode == WeightMode.DUAL_CHANNEL:
+                base_stats['scheduler_params'].update({
+                    'r': self.weight_config.r,
+                    'gamma_dep': self.weight_config.gamma_dep,
+                    'gamma_panic': self.weight_config.gamma_panic,
+                })
+        else:
+            base_stats['scheduler_params'] = {
+                'version': 'v1.0',
+                'weight_mode': 'hard',
+                'w_max': self.w_max,
+                'p': self.p,
+                'q': self.q,
+                'use_confidence': self.use_confidence,
+            }
 
         return base_stats
 
@@ -229,12 +303,39 @@ class AWSSJFScheduler(SchedulerBase):
 
     def get_config(self) -> Dict:
         """Get scheduler configuration parameters."""
-        return {
+        config = {
             'name': self.name,
-            'w_max': self.w_max,
-            'p': self.p,
-            'q': self.q,
-            'use_confidence': self.use_confidence,
             'starvation_threshold': self.starvation_threshold,
             'starvation_coefficient': self.starvation_coefficient,
+            'use_confidence': self.use_confidence,
         }
+
+        if self.use_v2_weights and self.weight_config is not None:
+            config.update({
+                'weight_version': 'v2.0',
+                'weight_mode': self.weight_config.mode.value,
+                'w_max': self.weight_config.w_max,
+                'p': self.weight_config.p,
+                'q': self.weight_config.q,
+                'k_v': self.weight_config.k_v,
+                'k_a': self.weight_config.k_a,
+                'tau_v': self.weight_config.tau_v,
+                'tau_a': self.weight_config.tau_a,
+            })
+            if self.weight_config.mode == WeightMode.DUAL_CHANNEL:
+                config.update({
+                    'r': self.weight_config.r,
+                    'tau_h': self.weight_config.tau_h,
+                    'gamma_dep': self.weight_config.gamma_dep,
+                    'gamma_panic': self.weight_config.gamma_panic,
+                })
+        else:
+            config.update({
+                'weight_version': 'v1.0',
+                'weight_mode': 'hard',
+                'w_max': self.w_max,
+                'p': self.p,
+                'q': self.q,
+            })
+
+        return config

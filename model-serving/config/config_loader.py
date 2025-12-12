@@ -131,10 +131,22 @@ class AffectWeightConfig:
         - ell = max(0, -arousal) is the low arousal intensity
         - c is the emotion recognition confidence
     """
+    weight_mode: str = 'hard'   # 'hard', 'soft', 'dual', or preset name
+    weight_preset: Optional[str] = None  # Optional explicit preset name
     w_max: float = 2.0  # Maximum weight, recommended [1.2, 3.0]
     p: float = 1.0      # Exponent for negative valence
     q: float = 1.0      # Exponent for low arousal
     use_confidence: bool = True  # Apply confidence discount
+    # Soft gating parameters (v2)
+    k_v: float = 5.0
+    k_a: float = 5.0
+    tau_v: float = 0.0
+    tau_a: float = 0.0
+    # Dual-channel parameters (v2)
+    r: float = 1.0
+    tau_h: float = 0.0
+    gamma_dep: float = 1.0
+    gamma_panic: float = 0.3
 
 
 @dataclass
