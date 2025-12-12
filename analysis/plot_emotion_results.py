@@ -762,9 +762,9 @@ def plot_quadrant_comparison_heatmap(dfs: Dict[str, pd.DataFrame],
     num_schedulers = len(schedulers)
 
     # Create subplot grid: one 2x2 heatmap per scheduler
-    cols = min(num_schedulers, 3)
+    cols = min(num_schedulers, 2)
     rows = (num_schedulers + cols - 1) // cols
-    fig, axes = plt.subplots(rows, cols, figsize=(5*cols, 5*rows))
+    fig, axes = plt.subplots(rows, cols, figsize=(6*cols, 5*rows))
 
     if num_schedulers == 1:
         axes = np.array([[axes]])
