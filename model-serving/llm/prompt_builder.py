@@ -33,39 +33,30 @@ class PromptBuilder:
 - Offer comfort and encouragement when appropriate
 No matter what emotion the user expresses, respond with kindness and genuine concern."""
 
-    # Alternative: shorter system prompt
-    CONCISE_SYSTEM_PROMPT = """You are a caring and empathetic assistant. Listen carefully and respond with compassion."""
-
     def __init__(
         self,
         system_prompt: Optional[str] = None,
+        include_system_prompt: bool = True,
         include_emotion_hint: bool = False,
-        enable_emotion_length_control: bool = False,
-        base_response_length: int = 100,
-        alpha: float = 1.0
     ):
         """
         Initialize prompt builder.
 
         Args:
             system_prompt: Custom system prompt (uses default if None)
+            include_system_prompt: Whether to include system prompt in output
             include_emotion_hint: Whether to explicitly mention user's emotion in prompt
-            enable_emotion_length_control: Enable emotion-aware response length control
-            base_response_length: Base response length L_0 in tokens (default: 100)
-            alpha: Scaling factor α for arousal impact on response length (default: 1.0)
         """
         self.system_prompt = system_prompt or self.DEFAULT_SYSTEM_PROMPT
+        self.include_system_prompt = include_system_prompt
         self.include_emotion_hint = include_emotion_hint
-        self.enable_emotion_length_control = enable_emotion_length_control
-        self.base_response_length = base_response_length
-        self.alpha = alpha
 
     def build_prompt(
         self,
         user_context: str,
         emotion: Optional[str] = None,
         conversation_history: Optional[list] = None,
-        arousal: Optional[float] = None
+        arousal: Optional[float] = None  # Kept for API compatibility, but not used
     ) -> str:
         """
         Build a complete prompt for LLM generation.
@@ -75,23 +66,16 @@ No matter what emotion the user expresses, respond with kindness and genuine con
             emotion: Emotion label (e.g., "sad", "excited")
             conversation_history: Optional list of previous turns
                                  Format: [{"role": "user"/"assistant", "content": "..."}]
-            arousal: Arousal value for emotion-aware length control (range: [-1, 1])
+            arousal: Kept for API compatibility (not used)
 
         Returns:
             str: Formatted prompt ready for model input
         """
         prompt_parts = []
 
-        # 1. System instruction
-        system_prompt = self.system_prompt
-
-        # 1.5. Add length instruction based on arousal (if enabled)
-        if self.enable_emotion_length_control and arousal is not None:
-            target_length = self._calculate_target_length(arousal)
-            length_instruction = self._get_length_instruction(target_length)
-            system_prompt = f"{system_prompt}\n{length_instruction}"
-
-        prompt_parts.append(f"System: {system_prompt}")
+        # 1. System instruction (optional)
+        if self.include_system_prompt:
+            prompt_parts.append(f"System: {self.system_prompt}")
 
         # 2. Optional: Add emotion hint
         if self.include_emotion_hint and emotion:
@@ -116,68 +100,7 @@ No matter what emotion the user expresses, respond with kindness and genuine con
         # 5. Assistant prefix (model will continue from here)
         prompt_parts.append("\nAssistant:")
 
-        return "\n".join(prompt_parts)
-
-    def build_simple_prompt(self, user_context: str, emotion: Optional[str] = None) -> str:
-        """
-        Build a simpler prompt without extensive system instructions.
-
-        Good for models that don't need heavy prompting.
-
-        Args:
-            user_context: User's emotional expression
-            emotion: Emotion label (optional)
-
-        Returns:
-            str: Simple formatted prompt
-        """
-        if emotion and self.include_emotion_hint:
-            return f"User (feeling {emotion}): {user_context}\nAssistant:"
-        else:
-            return f"User: {user_context}\nAssistant:"
-
-    def _calculate_target_length(self, arousal: float) -> int:
-        """
-        Calculate target response length based on arousal value.
-
-        Uses formula: L_i = L_0 * (1 + α * a_i)
-
-        Args:
-            arousal: Arousal value in range [-1, 1]
-
-        Returns:
-            int: Target response length in tokens
-        """
-        target_length = self.base_response_length * (1 + self.alpha * arousal)
-        # Ensure positive length, minimum 10 tokens
-        target_length = max(10, int(target_length))
-        return target_length
-
-    def _get_length_instruction(self, target_length: int) -> str:
-        """
-        Generate a natural language length instruction for the prompt.
-
-        Args:
-            target_length: Target response length in tokens
-
-        Returns:
-            str: Length instruction to add to system prompt
-        """
-        # Provide guidance based on token count
-        # Roughly: 1 token ≈ 0.75 words, so we convert to approximate word count
-        approx_words = int(target_length * 0.75)
-
-        if target_length < 40:
-            style = "very brief"
-        elif target_length < 80:
-            style = "concise"
-        elif target_length < 150:
-            style = "moderate"
-        else:
-            style = "detailed"
-
-        instruction = f"Please provide a {style} response of approximately {approx_words} words (around {target_length} tokens)."
-        return instruction
+        return "\n".join(prompt_parts).lstrip("\n")
 
     def _get_emotion_hint(self, emotion: str) -> str:
         """

@@ -8,7 +8,7 @@ def build_parser() -> argparse.ArgumentParser:
     Build argument parser for the simulator CLI.
     """
     parser = argparse.ArgumentParser(
-        description="Emotion-aware LLM Scheduling Runner",
+        description="Affect-Aware LLM Scheduling Runner",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--scheduler",
         type=str,
         default=None,
-        choices=["FCFS", "SSJF-Emotion", "SSJF-Valence", "SSJF-Combined"],
+        choices=["FCFS", "SJF", "SSJF", "AW-SSJF", "Weight-Only"],
         help="Scheduling algorithm (overrides config.scheduler.algorithm)",
     )
     parser.add_argument(
@@ -53,23 +53,37 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Base service time L_0 (overrides config.workload.service_time.base_service_time)",
     )
+
+    # Affect weight configuration (AW-SSJF parameters)
     parser.add_argument(
-        "--alpha",
+        "--w_max",
         type=float,
         default=None,
-        help="Alpha parameter for arousal-service time mapping (overrides config.workload.service_time.alpha)",
+        help="Maximum affect weight (overrides config.scheduler.affect_weight.w_max). Range: [1.2, 3.0]",
     )
     parser.add_argument(
-        "--rho",
+        "--p",
         type=float,
         default=None,
-        help="Emotion correlation strength [0,1] (overrides config.workload.service_time.emotion_correlation). Legacy alias: --rho",
+        help="Negative valence exponent (overrides config.scheduler.affect_weight.p). Default: 1.0",
     )
     parser.add_argument(
-        "--emotion_correlation",
+        "--q",
         type=float,
         default=None,
-        help="Emotion correlation strength [0,1] (overrides config.workload.service_time.emotion_correlation)",
+        help="Low arousal exponent (overrides config.scheduler.affect_weight.q). Default: 1.0",
+    )
+    parser.add_argument(
+        "--use_confidence",
+        action="store_true",
+        default=None,
+        help="Use emotion confidence for weight discounting (overrides config.scheduler.affect_weight.use_confidence)",
+    )
+    parser.add_argument(
+        "--no_confidence",
+        dest="use_confidence",
+        action="store_false",
+        help="Disable emotion confidence discounting",
     )
 
     # Job generation
@@ -118,7 +132,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help=(
-            "Absolute starvation threshold for SSJF "
+            "Absolute starvation threshold for schedulers "
             "(overrides config.scheduler.starvation_prevention.threshold)"
         ),
     )
@@ -127,17 +141,8 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help=(
-            "Relative starvation coefficient for SSJF "
+            "Relative starvation coefficient for schedulers "
             "(overrides config.scheduler.starvation_prevention.coefficient)"
-        ),
-    )
-    parser.add_argument(
-        "--beta",
-        type=float,
-        default=None,
-        help=(
-            "Valence weight beta (overrides config.scheduler.valence_priority.beta). "
-            "Used by SSJF-Valence."
         ),
     )
 
@@ -198,6 +203,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         default=None,
         help="Use 8-bit quantization (overrides config)",
+    )
+
+    # Job config caching (mutually exclusive)
+    job_config_group = parser.add_mutually_exclusive_group()
+    job_config_group.add_argument(
+        "--force_new_job_config",
+        action="store_true",
+        default=None,
+        help="Force generate new job configurations (overrides config.llm.cache.force_new_job_config)",
+    )
+    job_config_group.add_argument(
+        "--use_saved_job_config",
+        action="store_true",
+        default=None,
+        help="Use saved job configurations if available (overrides config.llm.cache.use_saved_job_config)",
     )
 
     return parser

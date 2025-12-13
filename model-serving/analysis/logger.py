@@ -96,9 +96,11 @@ class EmotionAwareLogger:
             'job_id': job.job_id,
             'emotion_label': job.emotion_label,
             'arousal': job.arousal,
-            'emotion_class': job.emotion_class,
             'valence': getattr(job, 'valence', None),
-            'valence_class': getattr(job, 'valence_class', None),
+            'russell_quadrant': getattr(job, 'russell_quadrant', None),
+            'affect_weight': getattr(job, 'affect_weight', None),
+            'urgency': getattr(job, 'urgency', None),
+            'emotion_confidence': getattr(job, 'emotion_confidence', None),
             'arrival_time': job.arrival_time,
             'predicted_serving_time': job.execution_duration,
             'actual_serving_time': job.actual_execution_duration,
@@ -294,18 +296,26 @@ class EmotionAwareLogger:
             }
         summary['per_emotion_class_metrics'] = per_class_serializable
 
+        # Per-Russell-quadrant metrics
+        quadrant_metrics = self._calculate_per_quadrant_metrics(completed_jobs)
+        summary['per_quadrant_metrics'] = quadrant_metrics
+
+        # Affect-weighted JCT (AW-JCT)
+        weighted_jcts = []
+        weights = []
+        for job in completed_jobs:
+            if job.completion_time is not None and job.arrival_time is not None:
+                jct = job.completion_time - job.arrival_time
+                weight = getattr(job, 'affect_weight', 1.0)
+                weighted_jcts.append(weight * jct)
+                weights.append(weight)
+        if weights:
+            summary['overall_metrics']['aw_jct'] = float(sum(weighted_jcts) / sum(weights))
+            summary['overall_metrics']['total_affect_weight'] = float(sum(weights))
+            summary['overall_metrics']['avg_affect_weight'] = float(np.mean(weights))
+
         # Fairness analysis
         fairness_analysis = analyze_fairness_comprehensive(completed_jobs)
-
-        # Optional Phase II valence-weighted fairness
-        valence_beta = self.experiment_metadata.get("valence_beta")
-        valence_fairness = None
-        if valence_beta is not None:
-            from analysis.fairness_metrics import calculate_valence_fairness
-
-            valence_fairness = calculate_valence_fairness(
-                completed_jobs, beta=valence_beta, metric="waiting_time"
-            )
 
         # Convert to serializable format
         fairness_serializable = {}
@@ -318,11 +328,6 @@ class EmotionAwareLogger:
                 }
             else:
                 fairness_serializable[key] = value
-        if valence_fairness:
-            fairness_serializable["valence_fairness"] = {
-                k: float(v) if isinstance(v, (np.floating, np.integer)) else v
-                for k, v in valence_fairness.items()
-            }
         summary['fairness_analysis'] = fairness_serializable
 
         # Generic sanitizer to ensure strict JSON (convert NaN/Infinity to strings)
@@ -426,6 +431,58 @@ class EmotionAwareLogger:
         """Clear all logged data"""
         self.job_logs = []
         self.experiment_metadata = {}
+
+    def _calculate_per_quadrant_metrics(self, completed_jobs: List[Job]) -> Dict:
+        """
+        Calculate per-Russell-quadrant metrics.
+
+        Args:
+            completed_jobs: List of completed Job objects
+
+        Returns:
+            Dictionary with metrics per quadrant
+        """
+        quadrant_jobs = {
+            'excited': [],
+            'calm': [],
+            'panic': [],
+            'depression': [],
+        }
+
+        for job in completed_jobs:
+            quadrant = getattr(job, 'russell_quadrant', None)
+            if quadrant in quadrant_jobs:
+                quadrant_jobs[quadrant].append(job)
+
+        metrics = {}
+        for quadrant, jobs in quadrant_jobs.items():
+            if jobs:
+                wait_times = [j.waiting_duration for j in jobs if j.waiting_duration is not None]
+                jcts = [j.completion_time - j.arrival_time for j in jobs
+                        if j.completion_time is not None and j.arrival_time is not None]
+                weights = [getattr(j, 'affect_weight', 1.0) for j in jobs]
+
+                metrics[quadrant] = {
+                    'count': len(jobs),
+                    'avg_waiting_time': float(np.mean(wait_times)) if wait_times else 0,
+                    'p50_waiting_time': float(np.percentile(wait_times, 50)) if wait_times else 0,
+                    'p99_waiting_time': float(np.percentile(wait_times, 99)) if wait_times else 0,
+                    'avg_jct': float(np.mean(jcts)) if jcts else 0,
+                    'p99_jct': float(np.percentile(jcts, 99)) if jcts else 0,
+                    'avg_affect_weight': float(np.mean(weights)) if weights else 1.0,
+                }
+            else:
+                metrics[quadrant] = {
+                    'count': 0,
+                    'avg_waiting_time': 0,
+                    'p50_waiting_time': 0,
+                    'p99_waiting_time': 0,
+                    'avg_jct': 0,
+                    'p99_jct': 0,
+                    'avg_affect_weight': 1.0,
+                }
+
+        return metrics
 
 
 # Example usage and testing

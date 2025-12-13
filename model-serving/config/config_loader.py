@@ -1,8 +1,13 @@
 """
-Configuration Loader for Emotion-aware LLM Scheduling System.
+Configuration Loader for Affect-Aware LLM Scheduling System.
 
 Provides YAML-based hierarchical configuration with environment variable
 and CLI argument override support.
+
+New in AW-SSJF Refactor:
+    - AffectWeightConfig: Depression-First weight parameters
+    - LengthPredictorConfig: BERT-based length prediction settings
+    - Removed: alpha, emotion_correlation, ValencePriorityConfig
 """
 import os
 import yaml
@@ -18,12 +23,9 @@ from dataclasses import dataclass, field, fields
 
 @dataclass
 class ServiceTimeConfig:
-    """Service time mapping configuration."""
+    """Service time configuration (simplified)."""
     base_service_time: float = 2.0
-    alpha: float = 0.5
-    emotion_correlation: float = 1.0  # Previously 'rho' - renamed to avoid confusion with system_load
     min_service_time: float = 0.1
-    mapping_function: str = 'linear'
 
 
 @dataclass
@@ -36,9 +38,10 @@ class ArrivalConfig:
 class EmotionConfig:
     """Emotion parameters configuration."""
     arousal_noise_std: float = 0.0
+    valence_noise_std: float = 0.0
     enable_emotion_aware: bool = True
     use_stratified_sampling: bool = True
-    class_distribution: str = 'uniform'  # 'uniform' or dict with 9-class distribution
+    quadrant_distribution: str = 'uniform'  # 'uniform' or dict
 
 
 @dataclass
@@ -70,20 +73,11 @@ class GenerationConfig:
 
 
 @dataclass
-class EmotionLengthControlConfig:
-    """Emotion-aware response length control."""
-    enabled: bool = True
-    base_response_length: int = 100
-    # Note: alpha is synchronized from workload.service_time.alpha
-
-
-@dataclass
 class PromptConfig:
-    """Prompt configuration."""
+    """Prompt configuration (simplified)."""
     include_system_prompt: bool = True
     include_emotion_hint: bool = False
     max_conversation_turns: int = 2
-    emotion_length_control: EmotionLengthControlConfig = field(default_factory=EmotionLengthControlConfig)
 
 
 @dataclass
@@ -124,20 +118,68 @@ class StarvationPreventionConfig:
 
 
 @dataclass
-class ValencePriorityConfig:
-    """Valence-priority configuration for SSJF-Valence scheduler."""
-    beta: float = 0.0
-    min_positive_weight: float = 0.1
-    class_weights: dict = field(default_factory=dict)
+class AffectWeightConfig:
+    """
+    Affect weight configuration for Depression-First scheduling.
+
+    The affect weight is computed as:
+        w = 1 + (w_max - 1) * c * u
+
+    where:
+        - u = n^p * ell^q is the urgency (depression intensity)
+        - n = max(0, -valence) is the unpleasant intensity
+        - ell = max(0, -arousal) is the low arousal intensity
+        - c is the emotion recognition confidence
+    """
+    weight_mode: str = 'hard'   # 'hard', 'soft', 'dual', or preset name
+    weight_preset: Optional[str] = None  # Optional explicit preset name
+    w_max: float = 2.0  # Maximum weight, recommended [1.2, 3.0]
+    p: float = 1.0      # Exponent for negative valence
+    q: float = 1.0      # Exponent for low arousal
+    use_confidence: bool = True  # Apply confidence discount
+    # Soft gating parameters (v2)
+    k_v: float = 5.0
+    k_a: float = 5.0
+    tau_v: float = 0.0
+    tau_a: float = 0.0
+    # Dual-channel parameters (v2)
+    r: float = 1.0
+    tau_h: float = 0.0
+    gamma_dep: float = 1.0
+    gamma_panic: float = 0.3
 
 
 @dataclass
 class SchedulerConfig:
     """Scheduler configuration."""
-    algorithm: str = 'FCFS'
+    algorithm: str = 'FCFS'  # FCFS, SSJF, SJF, Weight-Only, AW-SSJF
     system_load: float = 0.6
+    use_robust_scoring: bool = False  # Use log(S+1)/w instead of S/w for prediction error tolerance
+    use_conservative_prediction: bool = False  # Multiply predicted S by margin to reduce underestimation
+    conservative_margin: float = 1.3  # Safety margin multiplier (1.3 = 30% increase)
+    weight_exponent: float = 1.0  # Exponent k for w^k: 1=standard, 2=squared (amplifies weight influence)
     starvation_prevention: StarvationPreventionConfig = field(default_factory=StarvationPreventionConfig)
-    valence_priority: ValencePriorityConfig = field(default_factory=ValencePriorityConfig)
+    affect_weight: AffectWeightConfig = field(default_factory=AffectWeightConfig)
+
+
+@dataclass
+class LengthPredictorConfig:
+    """
+    BERT bucket predictor configuration.
+
+    Uses classification into bins with expected value method:
+        T_mean = sum(q_i * m_i)
+        S = const_latency + T_mean * per_token_latency
+    """
+    enabled: bool = False  # Disabled by default (requires trained model)
+    model_path: str = 'predictor/models/bert_bucket'  # HuggingFace model directory
+    bin_edges_path: str = 'predictor/models/bin_edges.npy'  # Bin edges file
+    model_name: str = 'distilbert-base-uncased'
+    device: str = 'cuda'
+    num_bins: int = 5  # Number of classification bins
+    per_token_latency: float = 0.02  # c_1: Latency per generated token (seconds)
+    const_latency: float = 0.1       # c_0: Constant latency overhead (seconds)
+    default_service_time: float = 2.0  # Fallback when predictor unavailable
 
 
 @dataclass
@@ -147,18 +189,11 @@ class DatasetConfig:
 
 
 @dataclass
-# class ExperimentConfig:
-#     """Experiment configuration for fixed-jobs mode"""
-#     num_jobs: int = 100  # Number of jobs to generate and run
-#     random_seed: Optional[int] = None
-#     fairness_metric: str = 'waiting_time'
-#     calculate_fairness: bool = True
-
 class ExperimentConfig:
-    """Experiment configuration"""
-    mode: str = 'fixed_jobs'  # Experiment mode: 'fixed_jobs' or 'time_window'
-    num_jobs: int = 100  # Number of jobs (for fixed_jobs) or trace size (for time_window)
-    simulation_duration: float = 300.0  # Simulation duration for time_window mode (seconds)
+    """Experiment configuration."""
+    mode: str = 'fixed_jobs'  # 'fixed_jobs' or 'time_window'
+    num_jobs: int = 100
+    simulation_duration: float = 300.0
     random_seed: Optional[int] = None
     fairness_metric: str = 'waiting_time'
     calculate_fairness: bool = True
@@ -177,6 +212,7 @@ class Config:
     workload: WorkloadConfig = field(default_factory=WorkloadConfig)
     llm: LLMConfig = field(default_factory=LLMConfig)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
+    length_predictor: LengthPredictorConfig = field(default_factory=LengthPredictorConfig)
     dataset: DatasetConfig = field(default_factory=DatasetConfig)
     experiment: ExperimentConfig = field(default_factory=ExperimentConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
@@ -246,21 +282,9 @@ class ConfigLoader:
     def _apply_env_overrides(config: Config) -> None:
         """Apply environment variable overrides to configuration."""
         env_mappings = [
-            # Backward compatibility with old env var names (lower precedence)
-            # New-style env vars below will override these if both are set.
-            ('ALPHA_ENV', lambda c, v: setattr(c.workload.service_time, 'alpha', float(v))),
-            ('BASE_SERVICE_TIME_ENV', lambda c, v: setattr(c.workload.service_time, 'base_service_time', float(v))),
-            ('RHO_ENV', lambda c, v: setattr(c.workload.service_time, 'emotion_correlation', float(v))),  # Legacy env var
-            ('LLM_MODEL_NAME_ENV', lambda c, v: setattr(c.llm.model, 'name', v)),
-            ('LLM_DEVICE_MAP_ENV', lambda c, v: setattr(c.llm.model, 'device_map', v)),
-            ('EMOTION_DATASET_PATH_ENV', lambda c, v: setattr(c.dataset, 'emotion_dataset_path', v)),
-
             # Workload
             ('WORKLOAD_SERVICE_TIME_BASE_SERVICE_TIME', lambda c, v: setattr(c.workload.service_time, 'base_service_time', float(v))),
-            ('WORKLOAD_SERVICE_TIME_ALPHA', lambda c, v: setattr(c.workload.service_time, 'alpha', float(v))),
-            ('WORKLOAD_SERVICE_TIME_EMOTION_CORRELATION', lambda c, v: setattr(c.workload.service_time, 'emotion_correlation', float(v))),
             ('WORKLOAD_SERVICE_TIME_MIN_SERVICE_TIME', lambda c, v: setattr(c.workload.service_time, 'min_service_time', float(v))),
-            ('WORKLOAD_SERVICE_TIME_MAPPING_FUNCTION', lambda c, v: setattr(c.workload.service_time, 'mapping_function', v)),
             ('WORKLOAD_ARRIVAL_BASE_ARRIVAL_RATE', lambda c, v: setattr(c.workload.arrival, 'base_arrival_rate', float(v))),
             ('WORKLOAD_EMOTION_AROUSAL_NOISE_STD', lambda c, v: setattr(c.workload.emotion, 'arousal_noise_std', float(v))),
             ('WORKLOAD_EMOTION_ENABLE_EMOTION_AWARE', lambda c, v: setattr(c.workload.emotion, 'enable_emotion_aware', v.lower() == 'true')),
@@ -274,29 +298,25 @@ class ConfigLoader:
             # LLM Generation
             ('LLM_GENERATION_MAX_NEW_TOKENS', lambda c, v: setattr(c.llm.generation, 'max_new_tokens', int(v))),
             ('LLM_GENERATION_TEMPERATURE', lambda c, v: setattr(c.llm.generation, 'temperature', float(v))),
-            ('LLM_GENERATION_TOP_P', lambda c, v: setattr(c.llm.generation, 'top_p', float(v))),
-            ('LLM_GENERATION_DO_SAMPLE', lambda c, v: setattr(c.llm.generation, 'do_sample', v.lower() == 'true')),
-            ('LLM_GENERATION_REPETITION_PENALTY', lambda c, v: setattr(c.llm.generation, 'repetition_penalty', float(v))),
-
-            # LLM Prompt
-            ('LLM_PROMPT_INCLUDE_SYSTEM_PROMPT', lambda c, v: setattr(c.llm.prompt, 'include_system_prompt', v.lower() == 'true')),
-            ('LLM_PROMPT_INCLUDE_EMOTION_HINT', lambda c, v: setattr(c.llm.prompt, 'include_emotion_hint', v.lower() == 'true')),
-            ('LLM_PROMPT_MAX_CONVERSATION_TURNS', lambda c, v: setattr(c.llm.prompt, 'max_conversation_turns', int(v))),
-            ('LLM_PROMPT_EMOTION_LENGTH_CONTROL_ENABLED', lambda c, v: setattr(c.llm.prompt.emotion_length_control, 'enabled', v.lower() == 'true')),
-            ('LLM_PROMPT_EMOTION_LENGTH_CONTROL_BASE_RESPONSE_LENGTH', lambda c, v: setattr(c.llm.prompt.emotion_length_control, 'base_response_length', int(v))),
-
-            # LLM Cache
-            ('LLM_CACHE_USE_RESPONSE_CACHE', lambda c, v: setattr(c.llm.cache, 'use_response_cache', v.lower() == 'true')),
-            ('LLM_CACHE_CACHE_DIR', lambda c, v: setattr(c.llm.cache, 'cache_dir', v)),
-            ('LLM_CACHE_FORCE_REGENERATE', lambda c, v: setattr(c.llm.cache, 'force_regenerate', v.lower() == 'true')),
 
             # Scheduler
             ('SCHEDULER_ALGORITHM', lambda c, v: setattr(c.scheduler, 'algorithm', v)),
             ('SCHEDULER_SYSTEM_LOAD', lambda c, v: setattr(c.scheduler, 'system_load', float(v))),
             ('SCHEDULER_STARVATION_PREVENTION_THRESHOLD', lambda c, v: setattr(c.scheduler.starvation_prevention, 'threshold', float(v))),
             ('SCHEDULER_STARVATION_PREVENTION_COEFFICIENT', lambda c, v: setattr(c.scheduler.starvation_prevention, 'coefficient', float(v))),
-            ('SCHEDULER_VALENCE_PRIORITY_BETA', lambda c, v: setattr(c.scheduler.valence_priority, 'beta', float(v))),
-            ('SCHEDULER_VALENCE_PRIORITY_MIN_POSITIVE_WEIGHT', lambda c, v: setattr(c.scheduler.valence_priority, 'min_positive_weight', float(v))),
+
+            # Affect Weight
+            ('SCHEDULER_AFFECT_WEIGHT_W_MAX', lambda c, v: setattr(c.scheduler.affect_weight, 'w_max', float(v))),
+            ('SCHEDULER_AFFECT_WEIGHT_P', lambda c, v: setattr(c.scheduler.affect_weight, 'p', float(v))),
+            ('SCHEDULER_AFFECT_WEIGHT_Q', lambda c, v: setattr(c.scheduler.affect_weight, 'q', float(v))),
+            ('SCHEDULER_AFFECT_WEIGHT_USE_CONFIDENCE', lambda c, v: setattr(c.scheduler.affect_weight, 'use_confidence', v.lower() == 'true')),
+
+            # Length Predictor
+            ('LENGTH_PREDICTOR_ENABLED', lambda c, v: setattr(c.length_predictor, 'enabled', v.lower() == 'true')),
+            ('LENGTH_PREDICTOR_MODEL_PATH', lambda c, v: setattr(c.length_predictor, 'model_path', v)),
+            ('LENGTH_PREDICTOR_BIN_EDGES_PATH', lambda c, v: setattr(c.length_predictor, 'bin_edges_path', v)),
+            ('LENGTH_PREDICTOR_DEVICE', lambda c, v: setattr(c.length_predictor, 'device', v)),
+            ('LENGTH_PREDICTOR_DEFAULT_SERVICE_TIME', lambda c, v: setattr(c.length_predictor, 'default_service_time', float(v))),
 
             # Dataset
             ('DATASET_EMOTION_DATASET_PATH', lambda c, v: setattr(c.dataset, 'emotion_dataset_path', v)),
@@ -328,19 +348,33 @@ class ConfigLoader:
         cli_mappings = {
             'scheduler': lambda c, v: setattr(c.scheduler, 'algorithm', v),
             'num_jobs': lambda c, v: setattr(c.experiment, 'num_jobs', v),
-            'mode': lambda c, v: setattr(c.experiment, 'mode', v), 
+            'mode': lambda c, v: setattr(c.experiment, 'mode', v),
             'simulation_duration': lambda c, v: setattr(c.experiment, 'simulation_duration', v),
             'system_load': lambda c, v: setattr(c.scheduler, 'system_load', v),
             'base_service_time': lambda c, v: setattr(c.workload.service_time, 'base_service_time', v),
-            'alpha': lambda c, v: setattr(c.workload.service_time, 'alpha', v),
-            'rho': lambda c, v: setattr(c.workload.service_time, 'emotion_correlation', v),  # Legacy CLI arg
-            'emotion_correlation': lambda c, v: setattr(c.workload.service_time, 'emotion_correlation', v),
             'enable_emotion': lambda c, v: setattr(c.workload.emotion, 'enable_emotion_aware', v),
             'arousal_noise': lambda c, v: setattr(c.workload.emotion, 'arousal_noise_std', v),
             'random_seed': lambda c, v: setattr(c.experiment, 'random_seed', v),
             'starvation_threshold': lambda c, v: setattr(c.scheduler.starvation_prevention, 'threshold', v),
             'starvation_coefficient': lambda c, v: setattr(c.scheduler.starvation_prevention, 'coefficient', v),
-            'beta': lambda c, v: setattr(c.scheduler.valence_priority, 'beta', v),
+            'use_robust_scoring': lambda c, v: setattr(c.scheduler, 'use_robust_scoring', v),
+            'use_conservative_prediction': lambda c, v: setattr(c.scheduler, 'use_conservative_prediction', v),
+            'conservative_margin': lambda c, v: setattr(c.scheduler, 'conservative_margin', v),
+            'weight_exponent': lambda c, v: setattr(c.scheduler, 'weight_exponent', v),
+
+            # Affect weight parameters
+            'w_max': lambda c, v: setattr(c.scheduler.affect_weight, 'w_max', v),
+            'p': lambda c, v: setattr(c.scheduler.affect_weight, 'p', v),
+            'q': lambda c, v: setattr(c.scheduler.affect_weight, 'q', v),
+            'use_confidence': lambda c, v: setattr(c.scheduler.affect_weight, 'use_confidence', v),
+
+            # Length predictor
+            'enable_predictor': lambda c, v: setattr(c.length_predictor, 'enabled', v),
+            'predictor_model_path': lambda c, v: setattr(c.length_predictor, 'model_path', v),
+            'predictor_bin_edges_path': lambda c, v: setattr(c.length_predictor, 'bin_edges_path', v),
+            'default_service_time': lambda c, v: setattr(c.length_predictor, 'default_service_time', v),
+
+            # Output and misc
             'output_dir': lambda c, v: setattr(c.output, 'results_dir', v),
             'verbose': lambda c, v: setattr(c.output, 'verbose', v),
             'model_name': lambda c, v: setattr(c.llm.model, 'name', v),
@@ -350,6 +384,10 @@ class ConfigLoader:
             'device_map': lambda c, v: setattr(c.llm.model, 'device_map', v),
             'dtype': lambda c, v: setattr(c.llm.model, 'dtype', v),
             'load_in_8bit': lambda c, v: setattr(c.llm.model, 'load_in_8bit', v),
+
+            # Job config caching
+            'force_new_job_config': lambda c, v: setattr(c.llm.cache, 'force_new_job_config', v),
+            'use_saved_job_config': lambda c, v: setattr(c.llm.cache, 'use_saved_job_config', v),
         }
 
         for arg_name, setter in cli_mappings.items():
@@ -362,11 +400,6 @@ class ConfigLoader:
     @staticmethod
     def _validate_config(config: Config) -> None:
         """Validate configuration and issue warnings for potential issues."""
-        # Check alpha synchronization
-        alpha = config.workload.service_time.alpha
-        if not (0 < alpha <= 1.0):
-            warnings.warn(f"Alpha value {alpha} is outside typical range (0, 1.0]")
-
         # Check system load
         if not (0 < config.scheduler.system_load < 1):
             warnings.warn(f"System load {config.scheduler.system_load} should be in range (0, 1)")
@@ -375,11 +408,16 @@ class ConfigLoader:
         if config.workload.service_time.base_service_time <= 0:
             raise ValueError("base_service_time must be positive")
 
-        # Info: Alpha is synchronized
+        # Check affect weight parameters
+        if config.scheduler.affect_weight.w_max < 1.0:
+            warnings.warn(f"w_max={config.scheduler.affect_weight.w_max} should be >= 1.0")
+
+        # Info output
         if config.output.verbose:
-            print(f"[Config] Alpha parameter synchronized: {alpha}")
-            print(f"         - Service time mapping: S_i = {config.workload.service_time.base_service_time} * (1 + {alpha} * a_i)")
-            print(f"         - Response length: L_i = {config.llm.prompt.emotion_length_control.base_response_length} * (1 + {alpha} * a_i)")
+            print(f"[Config] Scheduler: {config.scheduler.algorithm}")
+            print(f"         Affect Weight: w_max={config.scheduler.affect_weight.w_max}, "
+                  f"p={config.scheduler.affect_weight.p}, q={config.scheduler.affect_weight.q}")
+            print(f"         Length Predictor: {'enabled' if config.length_predictor.enabled else 'disabled'}")
 
     @classmethod
     def load(cls, config_path: Optional[Path] = None, cli_args: Optional[Dict[str, Any]] = None) -> Config:
@@ -431,10 +469,9 @@ class ConfigLoader:
 
 def load_config(config_path: Optional[Path] = None, cli_args: Optional[Dict[str, Any]] = None) -> Config:
     """Convenience function to load configuration."""
-    # ============================================
-    # Patch cache paths so they follow output_dir
-    # ============================================
     config = ConfigLoader.load(config_path, cli_args)
+
+    # Patch cache paths to follow output_dir
     output_dir = config.output.results_dir
     cache_base = os.path.join(output_dir, "cache")
 
@@ -446,10 +483,26 @@ def load_config(config_path: Optional[Path] = None, cli_args: Optional[Dict[str,
     return config
 
 
-def get_alpha(config: Config) -> float:
-    """
-    Get the synchronized alpha parameter.
+def get_affect_weight_params(config: Config) -> Dict[str, Any]:
+    """Get affect weight parameters as dictionary."""
+    return {
+        'w_max': config.scheduler.affect_weight.w_max,
+        'p': config.scheduler.affect_weight.p,
+        'q': config.scheduler.affect_weight.q,
+        'use_confidence': config.scheduler.affect_weight.use_confidence,
+    }
 
-    This is used for both service time mapping and LLM response length control.
-    """
-    return config.workload.service_time.alpha
+
+def get_length_predictor_config(config: Config) -> Dict[str, Any]:
+    """Get length predictor configuration as dictionary."""
+    return {
+        'enabled': config.length_predictor.enabled,
+        'model_path': config.length_predictor.model_path,
+        'bin_edges_path': config.length_predictor.bin_edges_path,
+        'model_name': config.length_predictor.model_name,
+        'device': config.length_predictor.device,
+        'num_bins': config.length_predictor.num_bins,
+        'per_token_latency': config.length_predictor.per_token_latency,
+        'const_latency': config.length_predictor.const_latency,
+        'default_service_time': config.length_predictor.default_service_time,
+    }

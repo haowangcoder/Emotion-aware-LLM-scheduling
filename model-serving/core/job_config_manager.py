@@ -58,10 +58,14 @@ class JobConfigManager:
                 "emotion": getattr(job, 'emotion_label', None),
                 "arousal": getattr(job, 'arousal', None),
                 "valence": getattr(job, 'valence', None),
-                "valence_class": getattr(job, 'valence_class', None),
+                "russell_quadrant": getattr(job, 'russell_quadrant', None),
+                "affect_weight": getattr(job, 'affect_weight', None),
+                "urgency": getattr(job, 'urgency', None),
+                "emotion_confidence": getattr(job, 'emotion_confidence', None),
                 "conversation_index": getattr(job, 'conversation_index', None),
                 "arrival_time": job.arrival_time,
                 "service_time": job.execution_duration,
+                "predicted_service_time": getattr(job, 'predicted_service_time', None),
             }
 
             # Add optional fields if they exist

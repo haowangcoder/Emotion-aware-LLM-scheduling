@@ -3,7 +3,6 @@ from typing import List, Optional, Tuple
 
 from core.job import Job
 from core.job_config_manager import JobConfigManager
-from workload.service_time_mapper import ServiceTimeConfig
 from workload.task_generator import create_emotion_aware_jobs
 from core.emotion import EmotionConfig
 
@@ -20,7 +19,6 @@ def build_job_config_manager(config) -> Tuple[JobConfigManager, str]:
 def load_pre_generated_jobs(
     config,
     emotion_config: EmotionConfig,
-    service_config: ServiceTimeConfig,
     arrival_rate: float,
 ) -> Tuple[Optional[List[Job]], bool, bool]:
     """
@@ -51,7 +49,7 @@ def load_pre_generated_jobs(
                 num_jobs=len(job_configs),
                 arrival_rate=arrival_rate,
                 emotion_config=emotion_config,
-                service_time_config=service_config,
+                default_service_time=config.length_predictor.default_service_time,
                 enable_emotion=config.workload.emotion.enable_emotion_aware,
                 job_configs=job_configs,
                 random_seed=None,  # Don't reset seed here, already set above
@@ -72,7 +70,6 @@ def save_job_config_if_needed(
     config,
     completed_jobs: List[Job],
     arrival_rate: float,
-    alpha: float,
     pre_generated_jobs: Optional[List[Job]],
     force_new: bool,
 ) -> None:
@@ -84,6 +81,7 @@ def save_job_config_if_needed(
     if pre_generated_jobs is None or force_new:
         print(f"\nSaving job configuration for future reproducibility...")
 
+        affect_cfg = config.scheduler.affect_weight
         job_config_metadata = {
             "experiment_mode": "fixed_jobs",
             "num_jobs": len(completed_jobs),
@@ -91,10 +89,14 @@ def save_job_config_if_needed(
             "system_load": config.scheduler.system_load,
             "random_seed": config.experiment.random_seed,
             "base_service_time": config.workload.service_time.base_service_time,
-            "alpha": alpha,
-            "emotion_correlation": config.workload.service_time.emotion_correlation,
+            "default_service_time": config.length_predictor.default_service_time,
             "enable_emotion_aware": config.workload.emotion.enable_emotion_aware,
             "model_name": config.llm.model.name,
+            # Affect weight parameters
+            "w_max": affect_cfg.w_max,
+            "p": affect_cfg.p,
+            "q": affect_cfg.q,
+            "use_confidence": affect_cfg.use_confidence,
         }
 
         job_config_manager.save_job_configs(

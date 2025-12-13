@@ -1,14 +1,31 @@
 """
-Configuration package for emotion-aware LLM scheduling.
+Configuration package for Affect-Aware LLM Scheduling.
 
 Use the YAML-based configuration loader:
 
-    from config.config_loader import load_config, get_alpha
+    from config.config_loader import load_config
 
-The legacy Python config modules (base.py, llm_config.py, scheduler_config.py,
-workload_config.py) have been removed.
+New in AW-SSJF Refactor:
+    - AffectWeightConfig: Depression-First weight parameters
+    - LengthPredictorConfig: BERT-based length prediction settings
+    - get_affect_weight_params(): Get affect weight parameters
+    - get_length_predictor_config(): Get length predictor configuration
 """
 
-from .config_loader import load_config, get_alpha  # Convenience re-export
+from .config_loader import (
+    load_config,
+    get_affect_weight_params,
+    get_length_predictor_config,
+    Config,
+    AffectWeightConfig,
+    LengthPredictorConfig,
+)
 
-__all__ = ["load_config", "get_alpha"]
+__all__ = [
+    "load_config",
+    "get_affect_weight_params",
+    "get_length_predictor_config",
+    "Config",
+    "AffectWeightConfig",
+    "LengthPredictorConfig",
+]

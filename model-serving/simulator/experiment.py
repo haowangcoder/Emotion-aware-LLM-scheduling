@@ -5,7 +5,6 @@ from datetime import datetime
 import numpy as np
 
 from core.emotion import EmotionConfig
-from workload.service_time_mapper import ServiceTimeConfig
 from workload.task_generator import create_emotion_aware_jobs
 
 from .job_config import load_pre_generated_jobs, save_job_config_if_needed
@@ -33,10 +32,10 @@ class TeeLogger:
 
 def run_emotion_aware_experiment(args) -> None:
     """
-    Run a complete emotion-aware scheduling experiment with fixed job count.
+    Run a complete affect-aware scheduling experiment.
     """
     # Load hierarchical configuration (YAML → env → CLI)
-    from config.config_loader import load_config, get_alpha  # Local import to avoid circulars
+    from config.config_loader import load_config, get_affect_weight_params
 
     cli_args = {k: v for k, v in vars(args).items() if v is not None}
     config = load_config(cli_args=cli_args)
@@ -55,20 +54,13 @@ def run_emotion_aware_experiment(args) -> None:
         print("=" * 80)
         mode = config.experiment.mode
         mode_display = "Fixed-Jobs" if mode == "fixed_jobs" else "Time-Window"
-        print(f"Emotion-aware LLM Scheduling Simulator ({mode_display} Mode)")
+        print(f"Affect-Aware LLM Scheduling Simulator ({mode_display} Mode)")
         print("=" * 80)
         print(f"Log file: {log_path}")
 
         # Create configurations using loaded config
-        alpha = get_alpha(config)
         emotion_config = EmotionConfig(
             arousal_noise_std=config.workload.emotion.arousal_noise_std
-        )
-        service_config = ServiceTimeConfig(
-            base_service_time=config.workload.service_time.base_service_time,
-            alpha=alpha,
-            emotion_correlation=config.workload.service_time.emotion_correlation,
-            min_service_time=config.workload.service_time.min_service_time,
         )
 
         # Get experiment parameters
@@ -78,8 +70,9 @@ def run_emotion_aware_experiment(args) -> None:
 
         print(f"\nExperiment Configuration:")
         print(f"  Scheduler: {config.scheduler.algorithm}")
-        if config.scheduler.algorithm == "SSJF-Valence":
-            print(f"  Valence beta (π_i = 1 + β(-v_i)): {config.scheduler.valence_priority.beta}")
+        if config.scheduler.algorithm in ("AW-SSJF", "Weight-Only"):
+            affect_cfg = config.scheduler.affect_weight
+            print(f"  Affect Weight: w_max={affect_cfg.w_max}, p={affect_cfg.p}, q={affect_cfg.q}")
         print(f"  Experiment mode: {mode}")
 
         if mode == "fixed_jobs":
@@ -90,7 +83,6 @@ def run_emotion_aware_experiment(args) -> None:
 
         print(f"  System load (ρ): {config.scheduler.system_load}")
         print(f"  Base service time (L_0): {config.workload.service_time.base_service_time}")
-        print(f"  Alpha (α): {alpha}")
 
         # Calculate arrival rate from system_load
         expected_service_time = config.workload.service_time.base_service_time
@@ -109,6 +101,36 @@ def run_emotion_aware_experiment(args) -> None:
         # Generate or load job trace
         from workload.task_generator import generate_job_trace, create_jobs_from_trace
 
+        # Get default service time from length predictor config
+        default_service_time = config.length_predictor.default_service_time
+
+        # === Initialize Length Predictor (for early service time prediction) ===
+        early_prompt_generator = None
+        length_estimator = None
+
+        if config.length_predictor.enabled:
+            print(f"\nInitializing BERT Bucket Predictor...")
+            print(f"  Model path: {config.length_predictor.model_path}")
+            print(f"  Bin edges: {config.length_predictor.bin_edges_path}")
+
+            from predictor.length_estimator import create_length_estimator
+
+            length_estimator = create_length_estimator({
+                'enabled': config.length_predictor.enabled,
+                'model_path': config.length_predictor.model_path,
+                'bin_edges_path': config.length_predictor.bin_edges_path,
+                'model_name': config.length_predictor.model_name,
+                'device': config.length_predictor.device,
+                'per_token_latency': config.length_predictor.per_token_latency,
+                'const_latency': config.length_predictor.const_latency,
+                'default_service_time': config.length_predictor.default_service_time,
+            })
+
+            if length_estimator.is_available():
+                print(f"  ✓ BERT bucket predictor loaded successfully")
+            else:
+                print(f"  ⚠ Predictor not available, using default service time")
+
         if mode == "fixed_jobs":
             # ------------------------------------------------------------------
             # Fixed-jobs mode: keep the original JobConfigManager behaviour.
@@ -116,7 +138,6 @@ def run_emotion_aware_experiment(args) -> None:
             pre_generated_jobs, _use_saved, force_new = load_pre_generated_jobs(
                 config=config,
                 emotion_config=emotion_config,
-                service_config=service_config,
                 arrival_rate=arrival_rate,
             )
 
@@ -132,11 +153,10 @@ def run_emotion_aware_experiment(args) -> None:
                     num_jobs=trace_size,
                     arrival_rate=arrival_rate,
                     emotion_config=emotion_config,
-                    service_time_config=service_config,
+                    default_service_time=default_service_time,
                     enable_emotion=config.workload.emotion.enable_emotion_aware,
                     random_seed=None,  # Seed already set globally
                     use_stratified_sampling=config.workload.emotion.use_stratified_sampling,
-                    class_distribution=config.workload.emotion.class_distribution,
                 )
 
                 # Convert trace dicts to Job objects for the fixed-jobs runner
@@ -149,8 +169,8 @@ def run_emotion_aware_experiment(args) -> None:
         else:  # mode == "time_window"
             # ------------------------------------------------------------------
             # Time-window mode:
-            # Use a persistent JSON trace so that all schedulers (FCFS,
-            # SSJF-Emotion, etc.) see exactly the same arrival pattern.
+            # Use a persistent JSON trace so that all schedulers see the same
+            # arrival pattern.
             # ------------------------------------------------------------------
             cache_dir = os.path.join(output_dir, "cache")
             os.makedirs(cache_dir, exist_ok=True)
@@ -164,33 +184,80 @@ def run_emotion_aware_experiment(args) -> None:
             loaded_from_cache = False
             force_new = False  # Not used in this mode
 
+            # Metadata used to validate cache correctness across runs
+            trace_size = int(num_jobs * 2)  # ensure enough arrivals for the window
+            trace_metadata = {
+                "num_jobs": num_jobs,
+                "trace_size": trace_size,
+                "simulation_duration": simulation_duration,
+                "arrival_rate": arrival_rate,
+                "system_load": config.scheduler.system_load,
+                "base_service_time": config.workload.service_time.base_service_time,
+                "default_service_time": default_service_time,
+                "enable_emotion": config.workload.emotion.enable_emotion_aware,
+                "use_stratified_sampling": config.workload.emotion.use_stratified_sampling,
+                "random_seed": config.experiment.random_seed,
+            }
+
+            def _load_time_window_trace(path):
+                with open(path, "r") as f:
+                    data = json.load(f)
+                if isinstance(data, dict) and "trace" in data:
+                    return data.get("trace", []), data.get("metadata", {})
+                return data, {}
+
+            def _trace_matches(cached_meta, expected_meta):
+                if not cached_meta:
+                    return False
+                for key, val in expected_meta.items():
+                    if cached_meta.get(key) != val:
+                        return False
+                return True
+
+            def _save_time_window_trace(path, trace, metadata):
+                with open(path, "w") as f:
+                    json.dump({"metadata": metadata, "trace": trace}, f, indent=2)
+
+            cache_valid = False
+
             if os.path.exists(trace_file):
-                # Reuse an existing trace (e.g., generated by the first scheduler run)
-                if config.output.verbose:
-                    print(f"\nLoading time-window job trace from: {trace_file}")
-                with open(trace_file, "r") as f:
-                    job_trace = json.load(f)
-                print(f"  ✓ Loaded trace with {len(job_trace)} jobs")
-            else:
-                # No trace yet: generate and save one
+                cached_trace, cached_meta = _load_time_window_trace(trace_file)
+                cache_valid = _trace_matches(cached_meta, trace_metadata)
+
+                if cache_valid:
+                    job_trace = cached_trace
+                    trace_metadata = cached_meta
+                    loaded_from_cache = True
+                    if config.output.verbose:
+                        print(f"\nLoading time-window job trace from: {trace_file}")
+                    print(f"  ✓ Loaded trace with {len(job_trace)} jobs")
+                else:
+                    print(
+                        "\nCached time-window trace does not match current config; regenerating..."
+                    )
+                    if config.output.verbose and cached_meta:
+                        for key in trace_metadata:
+                            if cached_meta.get(key) != trace_metadata[key]:
+                                print(
+                                    f"    {key}: cached={cached_meta.get(key)} "
+                                    f"current={trace_metadata[key]}"
+                                )
+
+            if job_trace is None:
+                # No trace yet or cache invalid: generate and save one
                 print(f"\nGenerating job trace (time_window mode)...")
 
-                # Use 2x jobs to ensure the time window has enough arrivals
-                trace_size = int(num_jobs * 2)
                 job_trace = generate_job_trace(
                     num_jobs=trace_size,
                     arrival_rate=arrival_rate,
                     emotion_config=emotion_config,
-                    service_time_config=service_config,
+                    default_service_time=default_service_time,
                     enable_emotion=config.workload.emotion.enable_emotion_aware,
                     random_seed=None,  # Seed already set globally
                     use_stratified_sampling=config.workload.emotion.use_stratified_sampling,
-                    class_distribution=config.workload.emotion.class_distribution,
                 )
 
-                # 保存到 output_dir/cache/ 下
-                with open(trace_file, "w") as f:
-                    json.dump(job_trace, f, indent=2)
+                _save_time_window_trace(trace_file, job_trace, trace_metadata)
 
                 print(
                     f"  ✓ Generated trace with {len(job_trace)} jobs "
@@ -201,7 +268,67 @@ def run_emotion_aware_experiment(args) -> None:
         scheduler = create_scheduler(config)
 
         # Initialize LLM handler (LLM-only mode)
-        llm_handler = init_llm_handler(config, alpha)
+        llm_handler = init_llm_handler(config)
+
+        # === Create EarlyPromptGenerator if predictor is available ===
+        if length_estimator is not None and llm_handler is not None:
+            from predictor.early_prompt_generator import EarlyPromptGenerator
+
+            early_prompt_generator = EarlyPromptGenerator(
+                dataset_loader=llm_handler.dataset_loader,
+                prompt_builder=llm_handler.prompt_builder,
+                length_estimator=length_estimator,
+                default_service_time=default_service_time,
+            )
+            print(f"  ✓ Early prompt generator initialized")
+
+            # Check if trace needs predictions
+            if job_trace is not None:
+                # Check if trace already has predicted_service_time
+                has_predictions = any('predicted_service_time' in entry for entry in job_trace)
+                if not has_predictions and early_prompt_generator.is_prediction_available():
+                    print(f"\nEnriching trace with predictions...")
+                    for i, entry in enumerate(job_trace):
+                        # Create temp job for prediction
+                        class TempJob:
+                            def __init__(self, emotion, arousal, valence, job_id, conv_idx):
+                                self.emotion_label = emotion
+                                self.arousal = arousal
+                                self.valence = valence
+                                self.job_id = job_id
+                                self.conversation_index = conv_idx
+
+                            def get_emotion_label(self):
+                                return self.emotion_label
+
+                            def get_arousal(self):
+                                return self.arousal
+
+                        temp_job = TempJob(
+                            entry['emotion'],
+                            entry['arousal'],
+                            entry['valence'],
+                            entry['job_id'],
+                            entry.get('conversation_index')
+                        )
+                        prompt, predicted_time, conv_idx = early_prompt_generator.generate_prompt_and_predict(temp_job)
+                        entry['predicted_service_time'] = float(predicted_time)
+                        entry['conversation_index'] = conv_idx
+
+                        if (i + 1) % 100 == 0:
+                            print(f"    Processed {i + 1}/{len(job_trace)} jobs")
+
+                    print(f"  ✓ Added predictions to {len(job_trace)} jobs")
+
+                    # Save updated trace (for time_window mode)
+                    if mode == "time_window" and 'trace_file' in locals():
+                        with open(trace_file, "w") as f:
+                            json.dump(
+                                {"metadata": trace_metadata, "trace": job_trace},
+                                f,
+                                indent=2,
+                            )
+                        print(f"  ✓ Saved updated trace with predictions")
 
         # Run scheduling based on mode
         print(f"\nRunning scheduling ({mode} mode)...")
@@ -213,10 +340,11 @@ def run_emotion_aware_experiment(args) -> None:
                 verbose=config.output.verbose,
                 llm_handler=llm_handler,
                 llm_skip_on_error=config.llm.error_handling.skip_on_error,
+                early_prompt_generator=early_prompt_generator,
             )
         else:  # time_window
             from simulator.loop import run_scheduling_loop_time_window
-            
+
             completed_jobs, run_metrics = run_scheduling_loop_time_window(
                 scheduler=scheduler,
                 job_trace=job_trace,
@@ -225,6 +353,7 @@ def run_emotion_aware_experiment(args) -> None:
                 verbose=config.output.verbose,
                 llm_handler=llm_handler,
                 llm_skip_on_error=config.llm.error_handling.skip_on_error,
+                early_prompt_generator=early_prompt_generator,
             )
 
         # Save cache if LLM was used
@@ -237,7 +366,6 @@ def run_emotion_aware_experiment(args) -> None:
                 config=config,
                 completed_jobs=completed_jobs,
                 arrival_rate=arrival_rate,
-                alpha=alpha,
                 pre_generated_jobs=pre_generated_jobs if loaded_from_cache else None,
                 force_new=force_new,
             )

@@ -6,8 +6,16 @@
 dataset
 __pycache__
 
-results/multi_seed_runs
-results/starvation_sweep
-results/publication_plots
+results
 
 /Docs
+
+*.log
+
+*.pth
+
+/slurm
+
+model-serving/predictor/training/data
+model-serving/predictor/training/metrics
+model-serving/predictor/models

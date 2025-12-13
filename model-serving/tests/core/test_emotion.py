@@ -29,8 +29,9 @@ def test_emotion():
     print(f"\nSample Emotions (n=10):")
     samples = sample_emotions_batch(10, config)
     for i, (emotion, arousal) in enumerate(samples, 1):
-        category = config.classify_arousal(arousal)
-        print(f"  {i}. {emotion:15s} | Arousal: {arousal:5.2f} | Category: {category}")
+        valence = config.get_valence(emotion)
+        quadrant = config.classify_russell_quadrant(arousal, valence)
+        print(f"  {i}. {emotion:15s} | Arousal: {arousal:5.2f} | Quadrant: {quadrant}")
 
     # Test with noise
     print(f"\nTesting arousal with noise (std=0.1):")
