@@ -158,6 +158,12 @@ class SchedulerConfig:
     use_conservative_prediction: bool = False  # Multiply predicted S by margin to reduce underestimation
     conservative_margin: float = 1.3  # Safety margin multiplier (1.3 = 30% increase)
     weight_exponent: float = 1.0  # Exponent k for w^k: 1=standard, 2=squared (amplifies weight influence)
+    # Adaptive k (Online Control) parameters
+    adaptive_k: bool = False  # Enable dynamic k adjustment based on queue length
+    adaptive_k_min: float = 1.0  # Minimum k value
+    adaptive_k_max: float = 4.0  # Maximum k value
+    adaptive_k_high_threshold: int = 10  # Queue length threshold to increase k
+    adaptive_k_low_threshold: int = 3  # Queue length threshold to decrease k
     starvation_prevention: StarvationPreventionConfig = field(default_factory=StarvationPreventionConfig)
     affect_weight: AffectWeightConfig = field(default_factory=AffectWeightConfig)
 
@@ -180,6 +186,9 @@ class LengthPredictorConfig:
     per_token_latency: float = 0.02  # c_1: Latency per generated token (seconds)
     const_latency: float = 0.1       # c_0: Constant latency overhead (seconds)
     default_service_time: float = 2.0  # Fallback when predictor unavailable
+    # A2 defense experiment modes
+    use_oracle: bool = False  # Use actual service time (oracle mode)
+    disabled: bool = False    # Disable predictor entirely
 
 
 @dataclass
@@ -367,12 +376,25 @@ class ConfigLoader:
             'p': lambda c, v: setattr(c.scheduler.affect_weight, 'p', v),
             'q': lambda c, v: setattr(c.scheduler.affect_weight, 'q', v),
             'use_confidence': lambda c, v: setattr(c.scheduler.affect_weight, 'use_confidence', v),
+            'gamma_panic': lambda c, v: setattr(c.scheduler.affect_weight, 'gamma_panic', v),
+            'gamma_dep': lambda c, v: setattr(c.scheduler.affect_weight, 'gamma_dep', v),
+            'weight_mode': lambda c, v: setattr(c.scheduler.affect_weight, 'weight_mode', v),
+
+            # Adaptive k (Online Control) parameters
+            'adaptive_k': lambda c, v: setattr(c.scheduler, 'adaptive_k', v),
+            'adaptive_k_min': lambda c, v: setattr(c.scheduler, 'adaptive_k_min', v),
+            'adaptive_k_max': lambda c, v: setattr(c.scheduler, 'adaptive_k_max', v),
+            'adaptive_k_high_threshold': lambda c, v: setattr(c.scheduler, 'adaptive_k_high_threshold', v),
+            'adaptive_k_low_threshold': lambda c, v: setattr(c.scheduler, 'adaptive_k_low_threshold', v),
 
             # Length predictor
             'enable_predictor': lambda c, v: setattr(c.length_predictor, 'enabled', v),
             'predictor_model_path': lambda c, v: setattr(c.length_predictor, 'model_path', v),
             'predictor_bin_edges_path': lambda c, v: setattr(c.length_predictor, 'bin_edges_path', v),
             'default_service_time': lambda c, v: setattr(c.length_predictor, 'default_service_time', v),
+            # A2 defense experiment - predictor modes
+            'use_oracle_service_time': lambda c, v: setattr(c.length_predictor, 'use_oracle', v),
+            'disable_predictor': lambda c, v: setattr(c.length_predictor, 'disabled', v),
 
             # Output and misc
             'output_dir': lambda c, v: setattr(c.output, 'results_dir', v),

@@ -108,7 +108,11 @@ def run_emotion_aware_experiment(args) -> None:
         early_prompt_generator = None
         length_estimator = None
 
-        if config.length_predictor.enabled:
+        predictor_disabled = getattr(config.length_predictor, 'disabled', False)
+
+        if predictor_disabled:
+            print("\nLength predictor disabled via flag; skipping initialization.")
+        elif config.length_predictor.enabled:
             print(f"\nInitializing BERT Bucket Predictor...")
             print(f"  Model path: {config.length_predictor.model_path}")
             print(f"  Bin edges: {config.length_predictor.bin_edges_path}")
@@ -267,6 +271,14 @@ def run_emotion_aware_experiment(args) -> None:
         # Create scheduler
         scheduler = create_scheduler(config)
 
+        # Create adaptive k controller if enabled (Exp-4 Online Control)
+        adaptive_k_controller = None
+        if getattr(config.scheduler, 'adaptive_k', False):
+            from core.adaptive_k_controller import create_controller_from_config
+            adaptive_k_controller = create_controller_from_config(config.scheduler)
+            if adaptive_k_controller is not None:
+                print(f"  ✓ Adaptive k controller enabled (k: {config.scheduler.adaptive_k_min}-{config.scheduler.adaptive_k_max})")
+
         # Initialize LLM handler (LLM-only mode)
         llm_handler = init_llm_handler(config)
 
@@ -330,6 +342,16 @@ def run_emotion_aware_experiment(args) -> None:
                             )
                         print(f"  ✓ Saved updated trace with predictions")
 
+        # Determine predictor mode (A2 defense experiment)
+        if config.length_predictor.use_oracle:
+            predictor_mode = 'oracle'
+            print(f"  Predictor mode: ORACLE (using actual service times)")
+        elif config.length_predictor.disabled:
+            predictor_mode = 'disabled'
+            print(f"  Predictor mode: DISABLED (using default service time)")
+        else:
+            predictor_mode = 'predicted'
+
         # Run scheduling based on mode
         print(f"\nRunning scheduling ({mode} mode)...")
 
@@ -341,6 +363,9 @@ def run_emotion_aware_experiment(args) -> None:
                 llm_handler=llm_handler,
                 llm_skip_on_error=config.llm.error_handling.skip_on_error,
                 early_prompt_generator=early_prompt_generator,
+                adaptive_k_controller=adaptive_k_controller,
+                predictor_mode=predictor_mode,
+                default_service_time=default_service_time,
             )
         else:  # time_window
             from simulator.loop import run_scheduling_loop_time_window
@@ -354,6 +379,9 @@ def run_emotion_aware_experiment(args) -> None:
                 llm_handler=llm_handler,
                 llm_skip_on_error=config.llm.error_handling.skip_on_error,
                 early_prompt_generator=early_prompt_generator,
+                adaptive_k_controller=adaptive_k_controller,
+                predictor_mode=predictor_mode,
+                default_service_time=default_service_time,
             )
 
         # Save cache if LLM was used
@@ -382,6 +410,19 @@ def run_emotion_aware_experiment(args) -> None:
             run_metrics=run_metrics,
             arrival_rate=arrival_rate,
         )
+
+        # Save adaptive k controller trajectory if enabled
+        if adaptive_k_controller is not None:
+            trajectory_path = os.path.join(output_dir, "adaptive_k_trajectory.json")
+            adaptive_k_controller.save_trajectory(trajectory_path)
+            print(f"\nAdaptive k trajectory saved to: {trajectory_path}")
+
+            # Print summary statistics
+            stats = adaptive_k_controller.get_statistics()
+            print(f"  k transitions: {stats['num_k_transitions']}")
+            print(f"  k values used: {stats['k_values_used']}")
+            print(f"  final k: {stats['final_k']}")
+            print(f"  avg queue length: {stats['avg_queue_length']:.2f}")
 
     finally:
         # Restore stdout and close log file

@@ -86,6 +86,65 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable emotion confidence discounting",
     )
 
+    # v2.0 Weight parameters
+    parser.add_argument(
+        "--weight_exponent",
+        type=float,
+        default=None,
+        help="Exponent k for w^k in scoring formula Score=S/w^k (overrides config.scheduler.weight_exponent)",
+    )
+    parser.add_argument(
+        "--gamma_panic",
+        type=float,
+        default=None,
+        help="Panic channel weight for DUAL_CHANNEL mode (overrides config.scheduler.affect_weight.gamma_panic)",
+    )
+    parser.add_argument(
+        "--gamma_dep",
+        type=float,
+        default=None,
+        help="Depression channel weight (overrides config.scheduler.affect_weight.gamma_dep)",
+    )
+    parser.add_argument(
+        "--weight_mode",
+        type=str,
+        default=None,
+        choices=["hard", "soft", "dual"],
+        help="Weight computation mode (overrides config.scheduler.affect_weight.weight_mode)",
+    )
+
+    # Adaptive k (Online Control) parameters
+    parser.add_argument(
+        "--adaptive_k",
+        action="store_true",
+        default=None,
+        help="Enable adaptive k control based on queue length (Exp-4 Online Control)",
+    )
+    parser.add_argument(
+        "--adaptive_k_min",
+        type=float,
+        default=None,
+        help="Minimum k value for adaptive control (overrides config.scheduler.adaptive_k_min)",
+    )
+    parser.add_argument(
+        "--adaptive_k_max",
+        type=float,
+        default=None,
+        help="Maximum k value for adaptive control (overrides config.scheduler.adaptive_k_max)",
+    )
+    parser.add_argument(
+        "--adaptive_k_high_threshold",
+        type=int,
+        default=None,
+        help="Queue length threshold to increase k (overrides config.scheduler.adaptive_k_high_threshold)",
+    )
+    parser.add_argument(
+        "--adaptive_k_low_threshold",
+        type=int,
+        default=None,
+        help="Queue length threshold to decrease k (overrides config.scheduler.adaptive_k_low_threshold)",
+    )
+
     # Job generation
     emotion_group = parser.add_mutually_exclusive_group()
     emotion_group.add_argument(
@@ -203,6 +262,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         default=None,
         help="Use 8-bit quantization (overrides config)",
+    )
+
+    # Predictor mode (for A2 defense experiment)
+    predictor_group = parser.add_mutually_exclusive_group()
+    predictor_group.add_argument(
+        "--use_oracle_service_time",
+        action="store_true",
+        default=None,
+        help="Use actual (oracle) service time instead of predicted (for A2 experiment)",
+    )
+    predictor_group.add_argument(
+        "--disable_predictor",
+        action="store_true",
+        default=None,
+        help="Disable BERT predictor, use default service time (for A2 experiment)",
     )
 
     # Job config caching (mutually exclusive)

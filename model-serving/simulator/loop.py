@@ -12,6 +12,9 @@ def run_scheduling_loop(
     llm_handler=None,
     llm_skip_on_error: bool = True,
     early_prompt_generator=None,
+    adaptive_k_controller=None,
+    predictor_mode: str = 'predicted',
+    default_service_time: float = 2.0,
 ) -> Tuple[List[Job], dict]:
     """
     Run fixed-num_jobs scheduling loop.
@@ -26,6 +29,9 @@ def run_scheduling_loop(
         llm_handler: Optional LLM handler for real inference
         llm_skip_on_error: Whether to skip failed jobs or abort
         early_prompt_generator: Optional EarlyPromptGenerator for BERT prediction
+        adaptive_k_controller: Optional AdaptiveKController for dynamic k adjustment
+        predictor_mode: 'predicted' (BERT), 'oracle' (actual), or 'disabled' (default)
+        default_service_time: Fallback service time when predictor disabled
 
     Returns:
         Tuple of (completed_jobs, metrics)
@@ -53,9 +59,19 @@ def run_scheduling_loop(
         while next_index < total_jobs and jobs[next_index].arrival_time <= current_time:
             new_job = jobs[next_index]
 
+            # Handle predictor modes (A2 defense experiment)
+            if predictor_mode == 'oracle':
+                # Use actual service time as "predicted" (oracle mode)
+                new_job.predicted_service_time = new_job.execution_duration
+            elif predictor_mode == 'disabled':
+                # Use default service time (predictor disabled)
+                new_job.predicted_service_time = default_service_time
+                new_job.execution_duration = default_service_time
+
             # === Early prompt generation and BERT prediction ===
             # Check if job already has predicted_service_time (from trace)
-            if new_job.predicted_service_time is None and early_prompt_generator is not None:
+            # Skip prediction in oracle or disabled modes
+            elif new_job.predicted_service_time is None and early_prompt_generator is not None:
                 prompt, predicted_time, conv_idx = early_prompt_generator.generate_prompt_and_predict(new_job)
                 new_job.set_prompt(prompt)
                 new_job.set_conversation_context(prompt)
@@ -99,6 +115,12 @@ def run_scheduling_loop(
         # If queue is empty and no more jobs, we're done
         if not waiting_queue:
             break
+
+        # Update k if adaptive control is enabled (Exp-4 Online Control)
+        if adaptive_k_controller is not None and hasattr(scheduler, 'weight_exponent'):
+            queue_len = len(waiting_queue)
+            new_k = adaptive_k_controller.get_k(queue_len, current_time)
+            scheduler.weight_exponent = new_k
 
         # Schedule next job
         selected_job = scheduler.schedule(waiting_queue, current_time=current_time)
@@ -286,6 +308,9 @@ def run_scheduling_loop_time_window(
     llm_handler=None,
     llm_skip_on_error: bool = True,
     early_prompt_generator=None,
+    adaptive_k_controller=None,
+    predictor_mode: str = 'predicted',
+    default_service_time: float = 2.0,
 ) -> Tuple[List[Job], dict]:
     """
     Run time-window scheduling loop with pre-generated trace.
@@ -298,10 +323,13 @@ def run_scheduling_loop_time_window(
         job_trace: Pre-generated job trace (list of dicts)
         simulation_duration: Time window duration (seconds)
         emotion_config: EmotionConfig for arousal classification
+        predictor_mode: 'predicted' (BERT), 'oracle' (actual), or 'disabled' (default)
+        default_service_time: Fallback service time when predictor disabled
         verbose: Print progress
         llm_handler: Optional LLM handler
         llm_skip_on_error: Skip failed jobs
         early_prompt_generator: Optional EarlyPromptGenerator for BERT prediction
+        adaptive_k_controller: Optional AdaptiveKController for dynamic k adjustment
 
     Returns:
         Tuple of (completed_jobs, metrics)
@@ -346,13 +374,22 @@ def run_scheduling_loop_time_window(
             predicted_service_time = job_config.get('predicted_service_time')
             prompt_from_trace = job_config.get('prompt')
             conversation_index = job_config.get('conversation_index')
+            actual_service_time = job_config['service_time']
+
+            # Handle predictor modes (A2 defense experiment)
+            if predictor_mode == 'oracle':
+                # Use actual service time as "predicted" (oracle mode)
+                predicted_service_time = actual_service_time
+            elif predictor_mode == 'disabled':
+                # Use default service time (predictor disabled)
+                predicted_service_time = default_service_time
 
             new_job = Job(
                 job_id=job_config['job_id'],
                 # Prefer BERT-predicted service time if available
                 execution_duration=predicted_service_time
                 if predicted_service_time is not None
-                else job_config['service_time'],
+                else actual_service_time,
                 arrival_time=job_config['arrival_time'],
                 emotion_label=job_config['emotion'],
                 arousal=arousal,
@@ -372,7 +409,10 @@ def run_scheduling_loop_time_window(
 
             # === Early prompt generation and BERT prediction ===
             # Only if not already in trace and generator available
-            if new_job.predicted_service_time is None and early_prompt_generator is not None:
+            # Skip prediction in oracle or disabled modes
+            if (predictor_mode == 'predicted' and
+                new_job.predicted_service_time is None and
+                early_prompt_generator is not None):
                 prompt, predicted_time, conv_idx = early_prompt_generator.generate_prompt_and_predict(new_job)
                 new_job.set_prompt(prompt)
                 new_job.set_conversation_context(prompt)
@@ -416,10 +456,16 @@ def run_scheduling_loop_time_window(
             else:
                 # No more jobs
                 break
-        
+
+        # Update k if adaptive control is enabled (Exp-4 Online Control)
+        if adaptive_k_controller is not None and hasattr(scheduler, 'weight_exponent'):
+            queue_len = len(waiting_queue)
+            new_k = adaptive_k_controller.get_k(queue_len, current_time)
+            scheduler.weight_exponent = new_k
+
         # Schedule next job
         selected_job = scheduler.schedule(waiting_queue, current_time=current_time)
-        
+
         if selected_job is None:
             print(f"Warning: Scheduler returned None at time {current_time}")
             break
