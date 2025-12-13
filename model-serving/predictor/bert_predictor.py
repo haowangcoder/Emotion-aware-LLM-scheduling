@@ -1,201 +1,128 @@
 """
-BERT-based Length Predictor for LLM Output Tokens.
+BERT Bucket Predictor for LLM Output Token Length.
 
-This module provides a BERT regression model to predict the expected output
-token length of an LLM response given the input prompt. The predicted length
-is used to estimate service time for scheduling decisions.
+Uses classification into bins with expected value method to predict
+the number of output tokens. The expected token count is computed as:
 
-Migrated from: LLM-serving-with-proxy-models/output-token-len-prediction/latency_prediction.py
+    T_mean = sum(q_i * m_i)
 
-Model Architecture:
-    User Query -> BERT Encoder -> [CLS] token -> Linear layers -> Predicted token count
+where q_i is the softmax probability for bin i, and m_i is the bin midpoint.
 
-Supported prediction tasks:
-    - Regression (task_type=0): Directly predict output token count (0-512)
-    - Binary classification (task_type=1): Predict if length exceeds median
-    - Multi-class classification (task_type=2): Predict percentile bucket
+Service time is then computed as:
+    S = const_latency + T_mean * per_token_latency
 """
 
 from typing import List, Optional
+import numpy as np
 import torch
-import torch.nn as nn
-from transformers import AutoConfig, AutoTokenizer, BertModel
-
-
-class BertRegressionModel(nn.Module):
-    """
-    BERT-based regression model for output token length prediction.
-
-    Uses the [CLS] token representation from BERT followed by linear layers
-    to predict the expected number of output tokens.
-
-    Args:
-        model_name: HuggingFace model name (default: 'bert-base-uncased')
-        hidden_dim: Hidden dimension for linear layers (default: 128)
-        freeze_bert: Whether to freeze BERT weights (default: True for inference)
-    """
-
-    def __init__(
-        self,
-        model_name: str = 'bert-base-uncased',
-        hidden_dim: int = 128,
-        freeze_bert: bool = True
-    ):
-        super().__init__()
-        self.config = AutoConfig.from_pretrained(model_name)
-        self.bert = BertModel.from_pretrained(model_name)
-
-        # Freeze BERT weights for inference
-        if freeze_bert:
-            for param in self.bert.parameters():
-                param.requires_grad = False
-
-        # Output layers: [CLS] -> hidden_dim -> hidden_dim -> 1
-        self.cls = nn.Linear(self.config.hidden_size, hidden_dim)
-        self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, 1)
-
-    def forward(
-        self,
-        input_ids: torch.Tensor,
-        attention_mask: torch.Tensor
-    ) -> torch.Tensor:
-        """
-        Forward pass to predict output token count.
-
-        Args:
-            input_ids: Tokenized input IDs [batch_size, seq_len]
-            attention_mask: Attention mask [batch_size, seq_len]
-
-        Returns:
-            Predicted token count [batch_size]
-        """
-        # Get BERT outputs
-        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-
-        # Extract [CLS] token representation (first token)
-        # outputs.last_hidden_state: [batch_size, sequence_size, hidden_size]
-        logits = outputs.last_hidden_state[:, 0, :]
-
-        # Pass through linear layers
-        output = self.relu(self.cls(logits))
-        output = self.relu(self.fc1(output))
-        output = self.fc2(output).squeeze(-1)
-
-        return output
+import torch.nn.functional as F
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 
 class BertPredictor:
     """
-    BERT-based length predictor wrapper.
+    BERT-based bucket predictor using expected value method.
 
-    Handles model loading, tokenization, and inference for predicting
-    LLM output token counts and service times.
+    Instead of direct regression, this model:
+    1. Classifies input into token count bins
+    2. Computes expected token count from probability distribution
+    3. Converts to service time using linear formula
 
     Args:
-        model_path: Path to trained model weights (.pth file)
-        model_name: HuggingFace model name (default: 'bert-base-uncased')
-        device: Device to run inference on ('cuda' or 'cpu')
-        per_token_latency: Latency per generated token in seconds (default: 0.02)
-        const_latency: Constant latency overhead in seconds (default: 0.1)
-        hidden_dim: Hidden dimension for the model (default: 128)
+        model_path: Path to HuggingFace model directory
+        bin_edges_path: Path to bin_edges.npy file
+        device: Device for inference ('cuda' or 'cpu')
+        per_token_latency: Latency per generated token (c_1)
+        const_latency: Constant latency overhead (c_0)
+        model_name: HuggingFace model name for tokenizer
 
     Example:
-        >>> predictor = BertPredictor(model_path='models/bert_regression.pth')
+        >>> predictor = BertPredictor(
+        ...     model_path='models/bert_bucket',
+        ...     bin_edges_path='models/bin_edges.npy'
+        ... )
         >>> tokens = predictor.predict_tokens("What is machine learning?")
         >>> service_time = predictor.predict_service_time("What is machine learning?")
     """
 
     def __init__(
         self,
-        model_path: Optional[str] = None,
-        model_name: str = 'bert-base-uncased',
+        model_path: str,
+        bin_edges_path: str,
         device: str = 'cuda',
         per_token_latency: float = 0.02,
         const_latency: float = 0.1,
-        hidden_dim: int = 128
+        model_name: str = 'distilbert-base-uncased'
     ):
         self.device = torch.device(device if torch.cuda.is_available() else 'cpu')
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.per_token_latency = per_token_latency
         self.const_latency = const_latency
 
-        # Initialize model
-        self.model = BertRegressionModel(
-            model_name=model_name,
-            hidden_dim=hidden_dim,
-            freeze_bert=True
-        )
+        # Load tokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-        # Load trained weights if provided
-        if model_path:
-            self.model.load_state_dict(
-                torch.load(model_path, map_location=self.device)
-            )
+        # Load bin edges and compute midpoints
+        self.bin_edges = np.load(bin_edges_path)
+        self.num_bins = len(self.bin_edges) - 1
 
-        self.model.to(self.device)
+        # Compute bin midpoints: m_i = (e_i + e_{i+1}) / 2
+        self.bin_midpoints = torch.tensor([
+            (self.bin_edges[i] + self.bin_edges[i + 1]) / 2
+            for i in range(self.num_bins)
+        ], dtype=torch.float32, device=self.device)
+
+        # Load classification model
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            model_path,
+            num_labels=self.num_bins
+        ).to(self.device)
         self.model.eval()
 
-    def _truncate_tail(self, inputs: dict, max_length: int = 512) -> dict:
+    def predict_distribution(self, prompt: str) -> torch.Tensor:
         """
-        Truncate inputs to keep the LAST max_length tokens (tail truncation).
-
-        This matches the training data preprocessing in preprocess_dataset.py
-        which uses: example['input_ids'] = example['input_ids'][-512:]
-
-        Args:
-            inputs: Tokenizer outputs with input_ids, attention_mask, etc.
-            max_length: Maximum sequence length
-
-        Returns:
-            Truncated inputs
-        """
-        seq_len = inputs['input_ids'].shape[-1]
-        if seq_len > max_length:
-            for key in inputs:
-                if inputs[key].dim() == 1:
-                    inputs[key] = inputs[key][-max_length:]
-                else:
-                    inputs[key] = inputs[key][:, -max_length:]
-        return inputs
-
-    def predict_tokens(self, prompt: str) -> float:
-        """
-        Predict output token count for a single prompt.
+        Predict probability distribution over bins.
 
         Args:
             prompt: Input prompt text
 
         Returns:
-            Predicted number of output tokens
+            Softmax probabilities [num_bins]
         """
-        # Tokenize without truncation first
         inputs = self.tokenizer(
             prompt,
-            return_tensors='pt',
-            truncation=False,
-            padding=True
-        )
-        # Apply tail truncation to match training preprocessing
-        inputs = self._truncate_tail(inputs, max_length=512)
-        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            truncation=True,
+            padding='max_length',
+            max_length=512,
+            return_tensors='pt'
+        ).to(self.device)
 
         with torch.no_grad():
-            predicted_tokens = self.model(
-                input_ids=inputs['input_ids'],
-                attention_mask=inputs['attention_mask']
-            )
+            logits = self.model(**inputs).logits
+            probs = F.softmax(logits, dim=-1)
 
-        # Ensure non-negative prediction
-        return max(0.0, predicted_tokens.item())
+        return probs.squeeze(0)  # [num_bins]
+
+    def predict_tokens(self, prompt: str) -> float:
+        """
+        Predict expected token count using probability-weighted midpoints.
+
+        T_mean = sum(q_i * m_i)
+
+        Args:
+            prompt: Input prompt text
+
+        Returns:
+            Expected number of output tokens
+        """
+        probs = self.predict_distribution(prompt)  # [num_bins]
+        expected_tokens = torch.dot(probs, self.bin_midpoints).item()
+        return max(0.0, expected_tokens)
 
     def predict_service_time(self, prompt: str) -> float:
         """
-        Predict service time (latency) for a single prompt.
+        Predict service time from expected token count.
 
-        Service time is computed as:
-            service_time = const_latency + predicted_tokens * per_token_latency
+        S = c_0 + T_mean * c_1
 
         Args:
             prompt: Input prompt text
@@ -203,15 +130,12 @@ class BertPredictor:
         Returns:
             Predicted service time in seconds
         """
-        predicted_tokens = self.predict_tokens(prompt)
-        return self.const_latency + predicted_tokens * self.per_token_latency
+        expected_tokens = self.predict_tokens(prompt)
+        return self.const_latency + expected_tokens * self.per_token_latency
 
     def predict_batch(self, prompts: List[str]) -> List[float]:
         """
-        Batch prediction for multiple prompts.
-
-        More efficient than calling predict_service_time multiple times
-        as it processes all prompts in a single forward pass.
+        Batch prediction of service times.
 
         Args:
             prompts: List of input prompt texts
@@ -221,18 +145,11 @@ class BertPredictor:
         """
         if not prompts:
             return []
-
-        # Process each prompt individually to apply tail truncation
-        # (batch processing with variable-length tail truncation is complex)
-        service_times = []
-        for prompt in prompts:
-            service_times.append(self.predict_service_time(prompt))
-
-        return service_times
+        return [self.predict_service_time(p) for p in prompts]
 
     def predict_tokens_batch(self, prompts: List[str]) -> List[float]:
         """
-        Batch prediction of token counts for multiple prompts.
+        Batch prediction of token counts.
 
         Args:
             prompts: List of input prompt texts
@@ -242,10 +159,47 @@ class BertPredictor:
         """
         if not prompts:
             return []
+        return [self.predict_tokens(p) for p in prompts]
 
-        # Process each prompt individually to apply tail truncation
-        token_counts = []
-        for prompt in prompts:
-            token_counts.append(self.predict_tokens(prompt))
+    def predict_bin(self, prompt: str) -> int:
+        """
+        Predict most likely bin (for evaluation/debugging).
 
-        return token_counts
+        Args:
+            prompt: Input prompt text
+
+        Returns:
+            Predicted bin index (argmax)
+        """
+        probs = self.predict_distribution(prompt)
+        return probs.argmax().item()
+
+    def get_bin_range(self, bin_idx: int) -> tuple:
+        """
+        Get token range for a specific bin.
+
+        Args:
+            bin_idx: Bin index
+
+        Returns:
+            Tuple of (low, high) token counts
+        """
+        low = int(self.bin_edges[bin_idx])
+        high = int(self.bin_edges[bin_idx + 1])
+        return (low, high)
+
+    def get_info(self) -> dict:
+        """
+        Get predictor configuration info.
+
+        Returns:
+            Dictionary with configuration details
+        """
+        return {
+            'num_bins': self.num_bins,
+            'bin_edges': self.bin_edges.tolist(),
+            'bin_midpoints': self.bin_midpoints.cpu().tolist(),
+            'per_token_latency': self.per_token_latency,
+            'const_latency': self.const_latency,
+            'device': str(self.device),
+        }

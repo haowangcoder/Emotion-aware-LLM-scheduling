@@ -79,12 +79,12 @@ scheduler:
   # Robust Scoring (for prediction error tolerance)
   # When enabled, uses log(S+1)/w instead of S/w to reduce sensitivity
   # to service time prediction errors from BERT model
-  use_robust_scoring: true
+  use_robust_scoring: false
 
   # Conservative Prediction (for underestimation protection)
   # When enabled, multiplies predicted service time by margin before scoring
   # This reduces impact of BERT underestimating long responses
-  use_conservative_prediction: true
+  use_conservative_prediction: false
   conservative_margin: 1.3           # 1.3 = 30% safety margin
 
   # Weight Exponent (for amplifying affect weight influence)
@@ -125,15 +125,19 @@ scheduler:
     gamma_panic: 0.3             # Panic channel weight (lower = less priority)
 
 # ============================================================================
-# LENGTH PREDICTOR CONFIGURATION (BERT-based)
+# LENGTH PREDICTOR CONFIGURATION (BERT Bucket Classification)
 # ============================================================================
+# Uses expected value method: T_mean = sum(q_i * m_i)
+# Service time: S = const_latency + T_mean * per_token_latency
 length_predictor:
-  enabled: true                 # Disabled by default (requires trained model)
-  model_path: 'predictor/models/bert_regression.pth'
-  model_name: 'bert-base-uncased'
+  enabled: true                  # Enable BERT bucket predictor
+  model_path: 'predictor/models/bert_bucket'  # HuggingFace model directory
+  bin_edges_path: 'predictor/models/bin_edges.npy'  # Bin edges file
+  model_name: 'distilbert-base-uncased'
   device: 'cuda'
-  per_token_latency: 0.02        # Latency per generated token (seconds)
-  const_latency: 0.1             # Constant latency overhead (seconds)
+  num_bins: 5                    # Number of classification bins
+  per_token_latency: 0.02        # c_1: Latency per generated token (seconds)
+  const_latency: 0.1             # c_0: Constant latency overhead (seconds)
   default_service_time: 2.0      # Fallback when predictor unavailable
 
 # ============================================================================
@@ -191,9 +195,11 @@ output:
 #    - panic: V < 0, A >= 0
 #    - depression: V < 0, A < 0
 #
-# 5. BERT LENGTH PREDICTOR:
-#    Service time = const_latency + predicted_tokens * per_token_latency
-#    Train the model separately using the output-token-len-prediction module.
+# 5. BERT BUCKET LENGTH PREDICTOR:
+#    Uses classification into bins + expected value method:
+#    - T_mean = sum(q_i * m_i) where q_i is softmax prob, m_i is bin midpoint
+#    - Service time = const_latency + T_mean * per_token_latency
+#    Train using predictor/training scripts (prepare_data.py, train.py).
 #
 # 6. ROBUST SCORING (use_robust_scoring: true):
 #    Uses log(S+1)/w instead of S/w to reduce sensitivity to prediction errors.

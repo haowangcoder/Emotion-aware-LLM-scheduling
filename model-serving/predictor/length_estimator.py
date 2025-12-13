@@ -2,45 +2,48 @@
 Unified Length Estimation Interface for Service Time Prediction.
 
 This module provides a unified interface for predicting LLM output length
-and service time, supporting multiple prediction modes:
-    1. BERT model prediction (recommended)
-    2. Pre-computed values from CSV/cache
-    3. Default fallback values
+and service time using BERT bucket classification with expected value method.
 
-The length estimator abstracts away the underlying prediction method,
-allowing the scheduler to work with any prediction source.
+The predictor:
+1. Classifies input into token count bins
+2. Computes expected token count: T_mean = sum(q_i * m_i)
+3. Converts to service time: S = c_0 + T_mean * c_1
 """
 
 from typing import List, Optional, Dict
 import os
+import warnings
 
 
 class LengthEstimator:
     """
     Unified interface for length and service time prediction.
 
-    Supports multiple prediction modes:
-        - BERT model: Uses trained BERT regression model
-        - Default: Returns constant default service time
+    Uses BERT bucket predictor with expected value method for accurate
+    service time estimation.
 
     Args:
-        model_path: Path to trained BERT model weights (optional)
-        model_name: HuggingFace model name (default: 'bert-base-uncased')
+        model_path: Path to HuggingFace model directory
+        bin_edges_path: Path to bin_edges.npy file
+        model_name: HuggingFace model name (default: 'distilbert-base-uncased')
         device: Device for inference ('cuda' or 'cpu')
-        per_token_latency: Latency per generated token in seconds
-        const_latency: Constant latency overhead in seconds
+        per_token_latency: Latency per generated token (c_1)
+        const_latency: Constant latency overhead (c_0)
         default_service_time: Fallback service time when predictor unavailable
 
     Example:
-        >>> estimator = LengthEstimator(model_path='models/bert_regression.pth')
+        >>> estimator = LengthEstimator(
+        ...     model_path='models/bert_bucket',
+        ...     bin_edges_path='models/bin_edges.npy'
+        ... )
         >>> service_time = estimator.predict("What is machine learning?")
-        >>> print(f"Predicted service time: {service_time:.2f}s")
     """
 
     def __init__(
         self,
         model_path: Optional[str] = None,
-        model_name: str = 'bert-base-uncased',
+        bin_edges_path: Optional[str] = None,
+        model_name: str = 'distilbert-base-uncased',
         device: str = 'cuda',
         per_token_latency: float = 0.02,
         const_latency: float = 0.1,
@@ -51,46 +54,68 @@ class LengthEstimator:
         self.const_latency = const_latency
         self.predictor = None
         self._model_path = model_path
+        self._bin_edges_path = bin_edges_path
 
-        # Resolve relative model path in a robust way:
-        # 1) As given (relative to current working directory)
-        # 2) Relative to the package root (model-serving/)
-        resolved_path = None
-        if model_path:
-            if os.path.isabs(model_path):
-                resolved_path = model_path if os.path.exists(model_path) else None
-            else:
-                # Try relative to current working directory first
-                if os.path.exists(model_path):
-                    resolved_path = model_path
-                else:
-                    # Then try relative to the model-serving package root
-                    package_root = os.path.dirname(os.path.dirname(__file__))
-                    candidate = os.path.join(package_root, model_path)
-                    if os.path.exists(candidate):
-                        resolved_path = candidate
+        # Resolve paths
+        resolved_model_path = self._resolve_path(model_path)
+        resolved_bin_edges_path = self._resolve_path(bin_edges_path)
 
-        # Initialize BERT predictor if a valid model path was found
-        if resolved_path:
+        # Initialize BERT predictor if valid paths found
+        if resolved_model_path and resolved_bin_edges_path:
             try:
                 from predictor.bert_predictor import BertPredictor
                 self.predictor = BertPredictor(
-                    model_path=resolved_path,
+                    model_path=resolved_model_path,
+                    bin_edges_path=resolved_bin_edges_path,
                     model_name=model_name,
                     device=device,
                     per_token_latency=per_token_latency,
                     const_latency=const_latency
                 )
             except Exception as e:
-                import warnings
                 warnings.warn(
                     f"Failed to initialize BERT predictor: {e}. "
                     f"Using default service time: {default_service_time}"
                 )
                 self.predictor = None
+        elif model_path and not resolved_bin_edges_path:
+            warnings.warn(
+                f"bin_edges_path not found or not provided. "
+                f"Using default service time: {default_service_time}"
+            )
 
-        # Store the resolved path (if any) for introspection
-        self._model_path = resolved_path
+        # Store resolved paths for introspection
+        self._model_path = resolved_model_path
+        self._bin_edges_path = resolved_bin_edges_path
+
+    def _resolve_path(self, path: Optional[str]) -> Optional[str]:
+        """
+        Resolve a path, checking multiple locations.
+
+        Args:
+            path: Path to resolve (can be relative or absolute)
+
+        Returns:
+            Resolved absolute path, or None if not found
+        """
+        if not path:
+            return None
+
+        # Try as-is first
+        if os.path.isabs(path):
+            return path if os.path.exists(path) else None
+
+        # Try relative to current working directory
+        if os.path.exists(path):
+            return os.path.abspath(path)
+
+        # Try relative to model-serving package root
+        package_root = os.path.dirname(os.path.dirname(__file__))
+        candidate = os.path.join(package_root, path)
+        if os.path.exists(candidate):
+            return candidate
+
+        return None
 
     def predict(self, prompt: str) -> float:
         """
@@ -175,13 +200,18 @@ class LengthEstimator:
         Returns:
             Dictionary with configuration details
         """
-        return {
+        info = {
             'predictor_available': self.is_available(),
             'model_path': self._model_path,
+            'bin_edges_path': self._bin_edges_path,
             'default_service_time': self.default_service_time,
             'per_token_latency': self.per_token_latency,
             'const_latency': self.const_latency,
         }
+        # Add predictor-specific info if available
+        if self.predictor is not None:
+            info.update(self.predictor.get_info())
+        return info
 
 
 def create_length_estimator(config: dict) -> LengthEstimator:
@@ -191,11 +221,12 @@ def create_length_estimator(config: dict) -> LengthEstimator:
     Args:
         config: Dictionary with length_predictor configuration:
             - enabled: bool, whether to use BERT predictor
-            - model_path: str, path to model weights
+            - model_path: str, path to HuggingFace model directory
+            - bin_edges_path: str, path to bin_edges.npy
             - model_name: str, HuggingFace model name
             - device: str, 'cuda' or 'cpu'
-            - per_token_latency: float
-            - const_latency: float
+            - per_token_latency: float (c_1)
+            - const_latency: float (c_0)
             - default_service_time: float
 
     Returns:
@@ -204,6 +235,7 @@ def create_length_estimator(config: dict) -> LengthEstimator:
     if not config.get('enabled', False):
         return LengthEstimator(
             model_path=None,
+            bin_edges_path=None,
             default_service_time=config.get('default_service_time', 2.0),
             per_token_latency=config.get('per_token_latency', 0.02),
             const_latency=config.get('const_latency', 0.1)
@@ -211,7 +243,8 @@ def create_length_estimator(config: dict) -> LengthEstimator:
 
     return LengthEstimator(
         model_path=config.get('model_path'),
-        model_name=config.get('model_name', 'bert-base-uncased'),
+        bin_edges_path=config.get('bin_edges_path'),
+        model_name=config.get('model_name', 'distilbert-base-uncased'),
         device=config.get('device', 'cuda'),
         per_token_latency=config.get('per_token_latency', 0.02),
         const_latency=config.get('const_latency', 0.1),

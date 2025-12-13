@@ -109,16 +109,16 @@ def run_emotion_aware_experiment(args) -> None:
         length_estimator = None
 
         if config.length_predictor.enabled:
-            predictor_type = getattr(config.length_predictor, 'predictor_type', 'linear')
-            print(f"\nInitializing Length Predictor ({predictor_type})...")
+            print(f"\nInitializing BERT Bucket Predictor...")
             print(f"  Model path: {config.length_predictor.model_path}")
+            print(f"  Bin edges: {config.length_predictor.bin_edges_path}")
 
             from predictor.length_estimator import create_length_estimator
 
             length_estimator = create_length_estimator({
                 'enabled': config.length_predictor.enabled,
-                'predictor_type': predictor_type,
                 'model_path': config.length_predictor.model_path,
+                'bin_edges_path': config.length_predictor.bin_edges_path,
                 'model_name': config.length_predictor.model_name,
                 'device': config.length_predictor.device,
                 'per_token_latency': config.length_predictor.per_token_latency,
@@ -127,9 +127,9 @@ def run_emotion_aware_experiment(args) -> None:
             })
 
             if length_estimator.is_available():
-                print(f"  ✓ {predictor_type.capitalize()} predictor loaded successfully")
+                print(f"  ✓ BERT bucket predictor loaded successfully")
             else:
-                print(f"  ⚠ {predictor_type.capitalize()} predictor not available, using default service time")
+                print(f"  ⚠ Predictor not available, using default service time")
 
         if mode == "fixed_jobs":
             # ------------------------------------------------------------------

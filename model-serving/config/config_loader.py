@@ -164,13 +164,21 @@ class SchedulerConfig:
 
 @dataclass
 class LengthPredictorConfig:
-    """BERT-based length predictor configuration."""
+    """
+    BERT bucket predictor configuration.
+
+    Uses classification into bins with expected value method:
+        T_mean = sum(q_i * m_i)
+        S = const_latency + T_mean * per_token_latency
+    """
     enabled: bool = False  # Disabled by default (requires trained model)
-    model_path: str = 'predictor/models/bert_regression.pth'
-    model_name: str = 'bert-base-uncased'
+    model_path: str = 'predictor/models/bert_bucket'  # HuggingFace model directory
+    bin_edges_path: str = 'predictor/models/bin_edges.npy'  # Bin edges file
+    model_name: str = 'distilbert-base-uncased'
     device: str = 'cuda'
-    per_token_latency: float = 0.02  # Latency per generated token (seconds)
-    const_latency: float = 0.1       # Constant latency overhead (seconds)
+    num_bins: int = 5  # Number of classification bins
+    per_token_latency: float = 0.02  # c_1: Latency per generated token (seconds)
+    const_latency: float = 0.1       # c_0: Constant latency overhead (seconds)
     default_service_time: float = 2.0  # Fallback when predictor unavailable
 
 
@@ -306,6 +314,7 @@ class ConfigLoader:
             # Length Predictor
             ('LENGTH_PREDICTOR_ENABLED', lambda c, v: setattr(c.length_predictor, 'enabled', v.lower() == 'true')),
             ('LENGTH_PREDICTOR_MODEL_PATH', lambda c, v: setattr(c.length_predictor, 'model_path', v)),
+            ('LENGTH_PREDICTOR_BIN_EDGES_PATH', lambda c, v: setattr(c.length_predictor, 'bin_edges_path', v)),
             ('LENGTH_PREDICTOR_DEVICE', lambda c, v: setattr(c.length_predictor, 'device', v)),
             ('LENGTH_PREDICTOR_DEFAULT_SERVICE_TIME', lambda c, v: setattr(c.length_predictor, 'default_service_time', float(v))),
 
@@ -362,6 +371,7 @@ class ConfigLoader:
             # Length predictor
             'enable_predictor': lambda c, v: setattr(c.length_predictor, 'enabled', v),
             'predictor_model_path': lambda c, v: setattr(c.length_predictor, 'model_path', v),
+            'predictor_bin_edges_path': lambda c, v: setattr(c.length_predictor, 'bin_edges_path', v),
             'default_service_time': lambda c, v: setattr(c.length_predictor, 'default_service_time', v),
 
             # Output and misc
@@ -488,8 +498,10 @@ def get_length_predictor_config(config: Config) -> Dict[str, Any]:
     return {
         'enabled': config.length_predictor.enabled,
         'model_path': config.length_predictor.model_path,
+        'bin_edges_path': config.length_predictor.bin_edges_path,
         'model_name': config.length_predictor.model_name,
         'device': config.length_predictor.device,
+        'num_bins': config.length_predictor.num_bins,
         'per_token_latency': config.length_predictor.per_token_latency,
         'const_latency': config.length_predictor.const_latency,
         'default_service_time': config.length_predictor.default_service_time,
