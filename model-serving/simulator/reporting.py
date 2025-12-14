@@ -228,9 +228,15 @@ def save_results(
     else:
         exp_suffix = f"{int(config.experiment.simulation_duration)}s_load{config.scheduler.system_load:.2f}_window"
 
+    # Include weight_exponent (k) in filename for AW-SSJF to distinguish k=2 vs k=4
+    scheduler_name = config.scheduler.algorithm
+    if scheduler_name == "AW-SSJF":
+        k = config.scheduler.weight_exponent
+        scheduler_name = f"AW-SSJF_k{int(k)}"
+
     logger = EmotionAwareLogger(
         output_dir=output_dir,
-        experiment_name=f"{config.scheduler.algorithm}_{exp_suffix}",
+        experiment_name=f"{scheduler_name}_{exp_suffix}",
     )
 
     # Set metadata with experiment mode

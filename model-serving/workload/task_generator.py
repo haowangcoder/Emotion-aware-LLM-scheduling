@@ -219,6 +219,92 @@ def _generate_arrival_times(num_jobs: int, arrival_rate: float) -> np.ndarray:
     return arrival_times
 
 
+def _generate_arrival_times_mmpp(
+    num_jobs: int,
+    lambda_high: float,
+    lambda_low: float,
+    alpha: float,
+    beta: float,
+    random_seed: int = None
+) -> np.ndarray:
+    """
+    Generate arrival times using two-state Markov Modulated Poisson Process (MMPP).
+
+    The MMPP models bursty traffic with:
+    - HIGH state: burst period with rate lambda_high
+    - LOW state: normal period with rate lambda_low
+    - State transitions follow exponential holding times
+
+    State diagram:
+                    beta
+        +------+  --------->  +------+
+        |  LOW |              | HIGH |
+        | (λ_L)|  <---------  | (λ_H)|
+        +------+     alpha    +------+
+
+    Args:
+        num_jobs: Number of arrival times to generate
+        lambda_high: Arrival rate in HIGH (burst) state
+        lambda_low: Arrival rate in LOW (normal) state
+        alpha: Transition rate from HIGH to LOW (mean burst duration = 1/alpha)
+        beta: Transition rate from LOW to HIGH (mean normal duration = 1/beta)
+        random_seed: Optional random seed for reproducibility
+
+    Returns:
+        Array of arrival times
+    """
+    if random_seed is not None:
+        np.random.seed(random_seed)
+
+    # Stationary distribution for initial state: pi_HIGH = beta / (alpha + beta)
+    pi_high = beta / (alpha + beta)
+
+    # Initialize state: 1=HIGH, 0=LOW
+    state = 1 if np.random.random() < pi_high else 0
+
+    arrivals = []
+    current_time = 0.0
+
+    # Sample initial sojourn (holding) time for current state
+    if state == 1:  # HIGH state
+        remaining_sojourn = np.random.exponential(1.0 / alpha)
+    else:  # LOW state
+        remaining_sojourn = np.random.exponential(1.0 / beta)
+
+    while len(arrivals) < num_jobs:
+        # Current arrival rate based on state
+        lambda_current = lambda_high if state == 1 else lambda_low
+
+        # Sample inter-arrival time from current state
+        inter_arrival = np.random.exponential(1.0 / lambda_current)
+
+        # Handle state transitions during inter-arrival period
+        while inter_arrival > remaining_sojourn:
+            # Advance time to state change
+            current_time += remaining_sojourn
+            inter_arrival -= remaining_sojourn
+
+            # Toggle state: 1 -> 0 or 0 -> 1
+            state = 1 - state
+
+            # Sample new sojourn time for the new state
+            if state == 1:  # Entered HIGH state
+                remaining_sojourn = np.random.exponential(1.0 / alpha)
+            else:  # Entered LOW state
+                remaining_sojourn = np.random.exponential(1.0 / beta)
+
+            # Re-sample inter-arrival time from new state (memoryless property)
+            lambda_current = lambda_high if state == 1 else lambda_low
+            inter_arrival = np.random.exponential(1.0 / lambda_current)
+
+        # Arrival happens before state change
+        current_time += inter_arrival
+        remaining_sojourn -= inter_arrival
+        arrivals.append(current_time)
+
+    return np.array(arrivals)
+
+
 def get_emotion_aware_statistics(job_list: List[Job]) -> Dict:
     """
     Calculate statistics about emotion-aware job generation.
@@ -285,6 +371,12 @@ def generate_job_trace(
     q: float = 1.0,
     early_prompt_generator=None,
     save_prompts: bool = False,
+    # MMPP parameters for bursty traffic
+    mmpp_enabled: bool = False,
+    mmpp_lambda_high: float = 2.0,
+    mmpp_lambda_low: float = 0.3,
+    mmpp_alpha: float = 0.15,
+    mmpp_beta: float = 0.05,
 ) -> List[Dict]:
     """
     Generate a complete job trace for reproducible experiments across schedulers.
@@ -293,7 +385,7 @@ def generate_job_trace(
 
     Args:
         num_jobs: Number of jobs to generate
-        arrival_rate: Arrival rate (lambda) for Poisson process
+        arrival_rate: Arrival rate (lambda) for Poisson process (used when mmpp_enabled=False)
         emotion_config: EmotionConfig object
         default_service_time: Default service time for jobs
         enable_emotion: Whether to enable emotion-aware features
@@ -305,6 +397,11 @@ def generate_job_trace(
         w_max: Maximum affect weight
         p: Exponent for negative valence
         q: Exponent for low arousal
+        mmpp_enabled: Whether to use MMPP (bursty traffic) instead of Poisson
+        mmpp_lambda_high: MMPP high state arrival rate
+        mmpp_lambda_low: MMPP low state arrival rate
+        mmpp_alpha: MMPP HIGH->LOW transition rate
+        mmpp_beta: MMPP LOW->HIGH transition rate
 
     Returns:
         List of job configuration dictionaries
@@ -318,8 +415,22 @@ def generate_job_trace(
         import random
         random.seed(random_seed)
 
-    # Generate arrival times
-    arrival_times = _generate_arrival_times(num_jobs, arrival_rate)
+    # Generate arrival times (Poisson or MMPP)
+    if mmpp_enabled:
+        print(f"  Using MMPP arrival process:")
+        print(f"    lambda_high={mmpp_lambda_high}, lambda_low={mmpp_lambda_low}")
+        print(f"    alpha={mmpp_alpha} (mean burst={1/mmpp_alpha:.1f}s), beta={mmpp_beta} (mean normal={1/mmpp_beta:.1f}s)")
+        print(f"    burst intensity={mmpp_lambda_high/mmpp_lambda_low:.1f}x")
+        arrival_times = _generate_arrival_times_mmpp(
+            num_jobs=num_jobs,
+            lambda_high=mmpp_lambda_high,
+            lambda_low=mmpp_lambda_low,
+            alpha=mmpp_alpha,
+            beta=mmpp_beta,
+            random_seed=None  # Already set above
+        )
+    else:
+        arrival_times = _generate_arrival_times(num_jobs, arrival_rate)
 
     # Generate emotions with Russell quadrant stratification
     if enable_emotion:

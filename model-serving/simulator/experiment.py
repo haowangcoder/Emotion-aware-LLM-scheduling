@@ -90,6 +90,16 @@ def run_emotion_aware_experiment(args) -> None:
 
         print(f"  Calculated arrival rate (λ): {arrival_rate:.3f} req/sec")
 
+        # MMPP configuration
+        mmpp_config = config.workload.mmpp
+        if mmpp_config.enabled:
+            print(f"\n  MMPP (burst traffic) enabled:")
+            print(f"    lambda_high: {mmpp_config.lambda_high}")
+            print(f"    lambda_low: {mmpp_config.lambda_low}")
+            print(f"    alpha: {mmpp_config.alpha} (mean burst duration: {1/mmpp_config.alpha:.1f}s)")
+            print(f"    beta: {mmpp_config.beta} (mean normal duration: {1/mmpp_config.beta:.1f}s)")
+            print(f"    burst intensity: {mmpp_config.lambda_high/mmpp_config.lambda_low:.1f}x")
+
         # Set random seed if provided (for reproducible job generation)
         if config.experiment.random_seed is not None:
             np.random.seed(config.experiment.random_seed)
@@ -161,6 +171,12 @@ def run_emotion_aware_experiment(args) -> None:
                     enable_emotion=config.workload.emotion.enable_emotion_aware,
                     random_seed=None,  # Seed already set globally
                     use_stratified_sampling=config.workload.emotion.use_stratified_sampling,
+                    # MMPP parameters
+                    mmpp_enabled=mmpp_config.enabled,
+                    mmpp_lambda_high=mmpp_config.lambda_high,
+                    mmpp_lambda_low=mmpp_config.lambda_low,
+                    mmpp_alpha=mmpp_config.alpha,
+                    mmpp_beta=mmpp_config.beta,
                 )
 
                 # Convert trace dicts to Job objects for the fixed-jobs runner
@@ -259,6 +275,12 @@ def run_emotion_aware_experiment(args) -> None:
                     enable_emotion=config.workload.emotion.enable_emotion_aware,
                     random_seed=None,  # Seed already set globally
                     use_stratified_sampling=config.workload.emotion.use_stratified_sampling,
+                    # MMPP parameters
+                    mmpp_enabled=mmpp_config.enabled,
+                    mmpp_lambda_high=mmpp_config.lambda_high,
+                    mmpp_lambda_low=mmpp_config.lambda_low,
+                    mmpp_alpha=mmpp_config.alpha,
+                    mmpp_beta=mmpp_config.beta,
                 )
 
                 _save_time_window_trace(trace_file, job_trace, trace_metadata)

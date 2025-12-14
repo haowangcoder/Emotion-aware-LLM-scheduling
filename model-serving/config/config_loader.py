@@ -45,11 +45,29 @@ class EmotionConfig:
 
 
 @dataclass
+class MMPPConfig:
+    """
+    MMPP (Markov Modulated Poisson Process) configuration for bursty traffic.
+
+    Two-state model:
+    - HIGH state: burst period with rate lambda_high
+    - LOW state: normal period with rate lambda_low
+    - State transitions follow exponential holding times
+    """
+    enabled: bool = False              # Enable MMPP (vs standard Poisson)
+    lambda_high: float = 2.0           # High state arrival rate
+    lambda_low: float = 0.3            # Low state arrival rate
+    alpha: float = 0.15                # HIGH->LOW transition rate (mean burst = 1/alpha)
+    beta: float = 0.05                 # LOW->HIGH transition rate (mean normal = 1/beta)
+
+
+@dataclass
 class WorkloadConfig:
     """Workload generation configuration."""
     service_time: ServiceTimeConfig = field(default_factory=ServiceTimeConfig)
     arrival: ArrivalConfig = field(default_factory=ArrivalConfig)
     emotion: EmotionConfig = field(default_factory=EmotionConfig)
+    mmpp: MMPPConfig = field(default_factory=MMPPConfig)
 
 
 @dataclass
@@ -410,6 +428,13 @@ class ConfigLoader:
             # Job config caching
             'force_new_job_config': lambda c, v: setattr(c.llm.cache, 'force_new_job_config', v),
             'use_saved_job_config': lambda c, v: setattr(c.llm.cache, 'use_saved_job_config', v),
+
+            # MMPP (burst traffic) parameters
+            'mmpp_enabled': lambda c, v: setattr(c.workload.mmpp, 'enabled', v),
+            'mmpp_lambda_high': lambda c, v: setattr(c.workload.mmpp, 'lambda_high', v),
+            'mmpp_lambda_low': lambda c, v: setattr(c.workload.mmpp, 'lambda_low', v),
+            'mmpp_alpha': lambda c, v: setattr(c.workload.mmpp, 'alpha', v),
+            'mmpp_beta': lambda c, v: setattr(c.workload.mmpp, 'beta', v),
         }
 
         for arg_name, setter in cli_mappings.items():

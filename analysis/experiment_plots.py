@@ -439,8 +439,19 @@ def plot_online_control_timeseries(
     ax2 = axes[1]
     if k_history:
         times, k_values = zip(*k_history)
+        times = list(times)
+        k_values = list(k_values)
+
+        # Extend k line to end of experiment (use load_history end time)
+        if load_history:
+            end_time = load_history[-1][0]
+            if times[-1] < end_time:
+                times.append(end_time)
+                k_values.append(k_values[-1])  # Keep last k value
+
         ax2.step(times, k_values, where='post', linewidth=2, color='purple')
-        ax2.scatter(times, k_values, color='purple', s=50, zorder=5)
+        # Only scatter original points (not the virtual end point)
+        ax2.scatter(times[:-1], k_values[:-1], color='purple', s=50, zorder=5)
     ax2.set_ylabel('k (weight_exponent)', fontsize=11)
     ax2.set_ylim(0.5, 4.5)
     ax2.grid(True, alpha=0.3)

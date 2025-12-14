@@ -216,7 +216,7 @@ def plot_online_control_timeseries(
     ax1.axhline(y=controller.config.low_threshold, color='green', linestyle='--', alpha=0.5, label='Low threshold')
     ax1.set_ylabel('Queue Length', fontsize=11)
     ax1.set_title('Online Control: Load Signal, k(t), and Depression Wait', fontsize=13)
-    ax1.legend(loc='upper right')
+    ax1.legend(loc='upper left')
     ax1.grid(True, alpha=0.3)
 
     # Shade burst phases
@@ -228,9 +228,18 @@ def plot_online_control_timeseries(
     ax2 = axes[1]
     if trajectory['k_history']:
         k_times, k_values = zip(*trajectory['k_history'])
+        k_times = list(k_times)
+        k_values = list(k_values)
+
+        # Extend k line to end of experiment (use load_history end time)
+        if load_times and k_times[-1] < load_times[-1]:
+            k_times.append(load_times[-1])
+            k_values.append(k_values[-1])  # Keep last k value
+
         # Create step plot
         ax2.step(k_times, k_values, where='post', linewidth=2, color='purple')
-        ax2.scatter(k_times, k_values, color='purple', s=50, zorder=5)
+        # Only scatter original points (not the virtual end point)
+        ax2.scatter(k_times[:-1], k_values[:-1], color='purple', s=50, zorder=5)
     ax2.set_ylabel('k (weight_exponent)', fontsize=11)
     ax2.set_ylim(controller.config.k_min - 0.5, controller.config.k_max + 0.5)
     ax2.grid(True, alpha=0.3)
@@ -244,12 +253,13 @@ def plot_online_control_timeseries(
     ax3 = axes[2]
     if depression_waits:
         dep_times, dep_values = zip(*depression_waits)
-        ax3.plot(dep_times, dep_values, 'r-', linewidth=1, alpha=0.7)
+        ax3.plot(dep_times, dep_values, 'r-', linewidth=1, alpha=0.5, label='Per-job wait')
         # Add rolling average
         window = min(20, len(dep_values) // 5)
         if window > 1:
             rolling_avg = pd.Series(dep_values).rolling(window=window, min_periods=1).mean()
-            ax3.plot(dep_times, rolling_avg, 'r-', linewidth=2, label='Rolling avg')
+            ax3.plot(dep_times, rolling_avg, 'darkred', linewidth=2, label='Rolling avg')
+        ax3.legend(loc='upper left')
     ax3.set_xlabel('Time (seconds)', fontsize=11)
     ax3.set_ylabel('Depression Wait (s)', fontsize=11)
     ax3.grid(True, alpha=0.3)
@@ -432,10 +442,17 @@ def extract_depression_wait_timeseries(csv_data: pd.DataFrame) -> List[Tuple[flo
         return []
 
     # Filter for depression jobs
-    if 'emotion_label' in csv_data.columns:
+    # Check various possible column names for quadrant
+    quadrant_col = None
+    for col in ['russell_quadrant', 'quadrant', 'emotion_quadrant']:
+        if col in csv_data.columns:
+            quadrant_col = col
+            break
+
+    if quadrant_col:
+        dep_data = csv_data[csv_data[quadrant_col].str.lower() == 'depression']
+    elif 'emotion_label' in csv_data.columns:
         dep_data = csv_data[csv_data['emotion_label'].str.lower().str.contains('depress', na=False)]
-    elif 'quadrant' in csv_data.columns:
-        dep_data = csv_data[csv_data['quadrant'].str.lower() == 'depression']
     else:
         return []
 
@@ -443,10 +460,19 @@ def extract_depression_wait_timeseries(csv_data: pd.DataFrame) -> List[Tuple[flo
         return []
 
     # Get time and waiting time columns
-    time_col = 'completion_time' if 'completion_time' in dep_data.columns else 'end_time'
-    wait_col = 'waiting_time' if 'waiting_time' in dep_data.columns else 'wait_time'
+    time_col = None
+    for col in ['finish_time', 'completion_time', 'end_time']:
+        if col in dep_data.columns:
+            time_col = col
+            break
 
-    if time_col not in dep_data.columns or wait_col not in dep_data.columns:
+    wait_col = None
+    for col in ['waiting_time', 'wait_time']:
+        if col in dep_data.columns:
+            wait_col = col
+            break
+
+    if time_col is None or wait_col is None:
         return []
 
     dep_data = dep_data.sort_values(time_col)

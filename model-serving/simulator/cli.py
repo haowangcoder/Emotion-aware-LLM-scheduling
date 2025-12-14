@@ -294,6 +294,38 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use saved job configurations if available (overrides config.llm.cache.use_saved_job_config)",
     )
 
+    # MMPP (burst traffic) parameters
+    parser.add_argument(
+        "--mmpp_enabled",
+        action="store_true",
+        default=None,
+        help="Enable MMPP (Markov Modulated Poisson Process) for bursty traffic",
+    )
+    parser.add_argument(
+        "--mmpp_lambda_high",
+        type=float,
+        default=None,
+        help="MMPP high state arrival rate (burst period)",
+    )
+    parser.add_argument(
+        "--mmpp_lambda_low",
+        type=float,
+        default=None,
+        help="MMPP low state arrival rate (normal period)",
+    )
+    parser.add_argument(
+        "--mmpp_alpha",
+        type=float,
+        default=None,
+        help="MMPP HIGH->LOW transition rate (mean burst duration = 1/alpha)",
+    )
+    parser.add_argument(
+        "--mmpp_beta",
+        type=float,
+        default=None,
+        help="MMPP LOW->HIGH transition rate (mean normal duration = 1/beta)",
+    )
+
     return parser
 
 
