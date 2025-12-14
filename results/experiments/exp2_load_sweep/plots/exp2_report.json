@@ -1,0 +1,79 @@
+{
+  "experiment": "exp2_load_sweep",
+  "purpose": "Demonstrate results across different load levels",
+  "parameters": {
+    "load_values": [
+      0.5,
+      0.7,
+      0.9,
+      1.0,
+      1.2
+    ],
+    "schedulers": [
+      "AW-SSJF_k4",
+      "SJF"
+    ]
+  },
+  "results_by_load": {
+    "0.5": {
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 5.073072281871008,
+        "p99_waiting_time": 19.988987351475586,
+        "depression_wait": 2.3759017953282684
+      },
+      "SJF": {
+        "avg_waiting_time": 4.206217226777244,
+        "p99_waiting_time": 40.92570413822231,
+        "depression_wait": 4.06494864314855
+      }
+    },
+    "0.7": {
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 13.389227122549368,
+        "p99_waiting_time": 54.729833866511626,
+        "depression_wait": 8.37136618708391
+      },
+      "SJF": {
+        "avg_waiting_time": 11.513347998742413,
+        "p99_waiting_time": 84.74633262224367,
+        "depression_wait": 13.034833570468612
+      }
+    },
+    "0.9": {
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 25.378667300496673,
+        "p99_waiting_time": 150.964700567467,
+        "depression_wait": 10.229921259817974
+      },
+      "SJF": {
+        "avg_waiting_time": 23.428425162587736,
+        "p99_waiting_time": 132.0018771765063,
+        "depression_wait": 24.612143590388193
+      }
+    },
+    "1.0": {
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 30.308135233775044,
+        "p99_waiting_time": 153.53514404440787,
+        "depression_wait": 9.19391667682131
+      },
+      "SJF": {
+        "avg_waiting_time": 28.710335598841578,
+        "p99_waiting_time": 134.50182242537406,
+        "depression_wait": 32.26705975371798
+      }
+    },
+    "1.2": {
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 40.02872765860465,
+        "p99_waiting_time": 158.17285194668392,
+        "depression_wait": 9.54611211016192
+      },
+      "SJF": {
+        "avg_waiting_time": 38.312390478467016,
+        "p99_waiting_time": 155.43081517102584,
+        "depression_wait": 41.90138924314989
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "experiment": "A3_emotion_noise_robustness",
+  "purpose": "Test robustness to emotion classification noise",
+  "noise_levels_tested": [
+    0.0,
+    0.1,
+    0.2,
+    0.3,
+    0.5
+  ],
+  "results": [
+    {
+      "noise_level": 0.0,
+      "avg_waiting_time": 25.60792234495697,
+      "aw_jct": 24.980409068468674,
+      "depression_wait": 10.65973099702348,
+      "jain_index": null
+    },
+    {
+      "noise_level": 0.1,
+      "avg_waiting_time": 23.967422719188672,
+      "aw_jct": 23.171177415035288,
+      "depression_wait": 7.275688662932687,
+      "jain_index": null
+    },
+    {
+      "noise_level": 0.2,
+      "avg_waiting_time": 25.119878633209215,
+      "aw_jct": 23.974884598802348,
+      "depression_wait": 6.663673272536569,
+      "jain_index": null
+    },
+    {
+      "noise_level": 0.3,
+      "avg_waiting_time": 27.942371256538376,
+      "aw_jct": 26.35136326152117,
+      "depression_wait": 7.235246386931711,
+      "jain_index": null
+    },
+    {
+      "noise_level": 0.5,
+      "avg_waiting_time": 25.100765211769087,
+      "aw_jct": 23.995906081130002,
+      "depression_wait": 7.757380702899271,
+      "jain_index": null
+    }
+  ],
+  "tolerance_threshold": null,
+  "finding": "System tolerates up to high noise before >10% degradation"
+}

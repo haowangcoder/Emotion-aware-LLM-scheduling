@@ -1,0 +1,40 @@
+{
+  "experiment": "exp3_gamma_sweep",
+  "purpose": "Demonstrate DUAL_CHANNEL gamma_panic effect",
+  "gamma_values": [
+    0.0,
+    0.15,
+    0.3,
+    0.5
+  ],
+  "quadrant_waits": {
+    "0.0": {
+      "depression": 7.964447989401715,
+      "panic": 34.077873388277574,
+      "excited": 30.78807020578796,
+      "calm": 30.394846833340306
+    },
+    "0.15": {
+      "depression": 8.865748741564648,
+      "panic": 14.734312942968888,
+      "excited": 36.13702145014221,
+      "calm": 32.94003648816742
+    },
+    "0.3": {
+      "depression": 9.015747775969404,
+      "panic": 12.527364662634415,
+      "excited": 37.76603948269302,
+      "calm": 40.459247983090066
+    },
+    "0.5": {
+      "depression": 9.924265100893873,
+      "panic": 10.106678441511672,
+      "excited": 38.052193836311645,
+      "calm": 42.530641437164924
+    }
+  },
+  "findings": {
+    "depression_stable": 1.0,
+    "panic_improvement": 23.971194946765902
+  }
+}

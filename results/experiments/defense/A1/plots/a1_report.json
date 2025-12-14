@@ -1,0 +1,142 @@
+{
+  "experiment": "A1_starvation_prevention",
+  "purpose": "Fix P99 tail latency without sacrificing Depression priority",
+  "configurations_tested": 16,
+  "results": [
+    {
+      "threshold": Infinity,
+      "coefficient": 2.0,
+      "p99_waiting_time": 150.50293065045574,
+      "avg_waiting_time": 24.521680631790737,
+      "depression_wait": 6.53943000071992,
+      "score": 157.04236065117567
+    },
+    {
+      "threshold": 60.0,
+      "coefficient": 4.0,
+      "p99_waiting_time": 69.76400276158833,
+      "avg_waiting_time": 27.575108235631557,
+      "depression_wait": 16.42504143947114,
+      "score": 86.18904420105947
+    },
+    {
+      "threshold": 60.0,
+      "coefficient": 5.0,
+      "p99_waiting_time": 67.3519804952004,
+      "avg_waiting_time": 27.498885666881176,
+      "depression_wait": 19.90438254111757,
+      "score": 87.25636303631796
+    },
+    {
+      "threshold": 60.0,
+      "coefficient": 2.0,
+      "p99_waiting_time": 70.35009149721088,
+      "avg_waiting_time": 27.58864897445259,
+      "depression_wait": 15.947069003519909,
+      "score": 86.2971605007308
+    },
+    {
+      "threshold": Infinity,
+      "coefficient": 3.0,
+      "p99_waiting_time": 153.3922638747523,
+      "avg_waiting_time": 26.47046495929775,
+      "depression_wait": 8.774352457461255,
+      "score": 162.16661633221355
+    },
+    {
+      "threshold": 30.0,
+      "coefficient": 3.0,
+      "p99_waiting_time": 54.32816181580449,
+      "avg_waiting_time": 28.629588815126986,
+      "depression_wait": 30.947685589728252,
+      "score": 85.27584740553274
+    },
+    {
+      "threshold": 120.0,
+      "coefficient": 5.0,
+      "p99_waiting_time": 121.12900618050804,
+      "avg_waiting_time": 24.591528617892838,
+      "depression_wait": 13.557232298788923,
+      "score": 134.68623847929697
+    },
+    {
+      "threshold": 120.0,
+      "coefficient": 2.0,
+      "p99_waiting_time": 121.84728210748192,
+      "avg_waiting_time": 26.736265566502187,
+      "depression_wait": 8.944362153944866,
+      "score": 130.79164426142677
+    },
+    {
+      "threshold": 30.0,
+      "coefficient": 5.0,
+      "p99_waiting_time": 53.798035055798536,
+      "avg_waiting_time": 28.466231640730474,
+      "depression_wait": 31.428275778231516,
+      "score": 85.22631083403004
+    },
+    {
+      "threshold": 120.0,
+      "coefficient": 3.0,
+      "p99_waiting_time": 122.37636884258983,
+      "avg_waiting_time": 26.384585278783412,
+      "depression_wait": 10.074230399069684,
+      "score": 132.45059924165952
+    },
+    {
+      "threshold": 30.0,
+      "coefficient": 2.0,
+      "p99_waiting_time": 53.40859063307668,
+      "avg_waiting_time": 28.17691093340931,
+      "depression_wait": 30.306016364035504,
+      "score": 83.71460699711218
+    },
+    {
+      "threshold": 120.0,
+      "coefficient": 4.0,
+      "p99_waiting_time": 122.10854729861911,
+      "avg_waiting_time": 26.22736305252132,
+      "depression_wait": 10.577921559748548,
+      "score": 132.68646885836768
+    },
+    {
+      "threshold": Infinity,
+      "coefficient": 5.0,
+      "p99_waiting_time": 150.2374691722224,
+      "avg_waiting_time": 24.0621811087471,
+      "depression_wait": 13.190989270148176,
+      "score": 163.42845844237058
+    },
+    {
+      "threshold": 30.0,
+      "coefficient": 4.0,
+      "p99_waiting_time": 55.86895052592183,
+      "avg_waiting_time": 29.268490910087205,
+      "depression_wait": 31.896734681067365,
+      "score": 87.76568520698919
+    },
+    {
+      "threshold": Infinity,
+      "coefficient": 4.0,
+      "p99_waiting_time": 152.05457823727824,
+      "avg_waiting_time": 25.441045087133027,
+      "depression_wait": 10.160610856947796,
+      "score": 162.21518909422602
+    },
+    {
+      "threshold": 60.0,
+      "coefficient": 3.0,
+      "p99_waiting_time": 67.01604127620244,
+      "avg_waiting_time": 27.03391363576469,
+      "depression_wait": 16.026804354128735,
+      "score": 83.04284563033119
+    }
+  ],
+  "best_configuration": {
+    "threshold": 60.0,
+    "coefficient": 3.0,
+    "p99_waiting_time": 67.01604127620244,
+    "depression_wait": 16.026804354128735
+  },
+  "finding": "Best trade-off: threshold=60.0, coef=3.0"
+}

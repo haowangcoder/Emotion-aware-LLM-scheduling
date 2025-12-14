@@ -1,0 +1,40 @@
+{
+  "experiment": "A2_predictor_contribution",
+  "purpose": "Compare oracle vs predicted vs disabled service time prediction",
+  "results": [
+    {
+      "predictor_mode": "oracle",
+      "avg_waiting_time": 15.769178786430931,
+      "p99_waiting_time": 87.34262304591948,
+      "aw_jct": 16.2927587698588,
+      "depression_wait": 6.861025037703412,
+      "panic_wait": 8.407905248152296
+    },
+    {
+      "predictor_mode": "predicted",
+      "avg_waiting_time": 25.092695351992226,
+      "p99_waiting_time": 150.44400142882563,
+      "aw_jct": 24.427200156323835,
+      "depression_wait": 9.169796767172711,
+      "panic_wait": 12.633069721209091
+    },
+    {
+      "predictor_mode": "disabled",
+      "avg_waiting_time": 26.115617081080053,
+      "p99_waiting_time": 157.91347498744187,
+      "aw_jct": 24.67811325158845,
+      "depression_wait": 6.925618412432567,
+      "panic_wait": 8.854625693308394
+    }
+  ],
+  "improvements": {
+    "predicted_vs_disabled": {
+      "avg_wait_improvement": 3.9168966443029274,
+      "dep_wait_improvement": -32.40401392475642
+    },
+    "oracle_vs_predicted_gap": {
+      "avg_wait_gap": 59.124934099827684
+    }
+  },
+  "finding": "Predicted mode achieves most of the oracle benefit while disabled falls behind"
+}

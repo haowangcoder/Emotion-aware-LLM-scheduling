@@ -1,0 +1,151 @@
+{
+  "experiment": "exp5_queueing_model",
+  "purpose": "Validate predictive models for waiting time",
+  "mg1_model": {
+    "loads": [
+      0.5,
+      0.7,
+      0.9,
+      1.0,
+      1.2
+    ],
+    "actual_waits": [
+      5.073072281871008,
+      13.389227122549368,
+      25.378667300496673,
+      30.308135233775044,
+      40.02872765860465
+    ],
+    "predicted_waits": [
+      3.135618409079323,
+      19.56869702248627,
+      null,
+      null,
+      null
+    ],
+    "arrival_rates": [
+      0.25,
+      0.35,
+      0.45,
+      0.5,
+      0.6
+    ],
+    "rho_effective": [
+      0.6597681771218776,
+      0.9236754479706286,
+      1.1875827188193797,
+      1.3195363542437553,
+      1.5834436250925064
+    ],
+    "expected_service_time": [
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0
+    ],
+    "mean_service_time": 2.6390727084875105,
+    "var_service_time": 1.5699925766864435,
+    "residuals": [
+      1.9374538727916852,
+      -6.179469899936901,
+      null,
+      null,
+      null
+    ],
+    "mean_absolute_error": 4.058461886364293,
+    "fcfs_sample_path_predicted_waits": [
+      5.609773213062452,
+      14.54626117396767,
+      29.24093488708553,
+      34.77758280183402,
+      44.213717477535276
+    ],
+    "fcfs_sample_path_mae": 2.842087991237641,
+    "fcfs_monte_carlo_predicted_waits": [
+      2.9560655464711414,
+      9.106798258811372,
+      21.716990509207676,
+      28.468345743648914,
+      40.01936234957011
+    ],
+    "fcfs_monte_carlo_mae": 2.3820534379175067,
+    "notes": [
+      "M/G/1 steady-state expectation is only defined for rho<1 (unstable points are null).",
+      "If exp2 uses few jobs (e.g., 80) and a single seed, sample variance can make any expectation look 'off'.",
+      "FCFS baselines are included to show finite-horizon behavior and reduce dependence on arbitrary caps."
+    ]
+  },
+  "regression_model": {
+    "mae": 10.77040234524353,
+    "r2": 0.31751427953388,
+    "target_transform": "log1p",
+    "poly_features": true,
+    "alpha": 1.0,
+    "feature_names": [
+      "system_load",
+      "arrival_rate",
+      "predicted_serving_time",
+      "affect_weight",
+      "queue_len_at_arrival",
+      "num_in_system_at_arrival",
+      "pred_workload_at_arrival",
+      "predicted_serving_time*queue_len_at_arrival",
+      "predicted_serving_time*num_in_system_at_arrival",
+      "pred_workload_at_arrival*predicted_serving_time",
+      "pred_workload_at_arrival*num_in_system_at_arrival",
+      "pred_workload_at_arrival*queue_len_at_arrival",
+      "pred_workload_at_arrival^2",
+      "num_in_system_at_arrival^2",
+      "queue_len_at_arrival^2"
+    ],
+    "coefficients": {
+      "system_load": 0.18926046538590466,
+      "arrival_rate": 0.3785209307715818,
+      "predicted_serving_time": 0.2960176295825537,
+      "affect_weight": -1.6259099095061154,
+      "queue_len_at_arrival": -0.11262413276866297,
+      "num_in_system_at_arrival": 0.29498078832542074,
+      "pred_workload_at_arrival": 0.020926500781898543,
+      "predicted_serving_time*queue_len_at_arrival": -0.048989688895581585,
+      "predicted_serving_time*num_in_system_at_arrival": 0.06893899693248132,
+      "pred_workload_at_arrival*predicted_serving_time": -0.006936242174586473,
+      "pred_workload_at_arrival*num_in_system_at_arrival": -0.00039132300705052066,
+      "pred_workload_at_arrival*queue_len_at_arrival": -0.0004544274383748177,
+      "pred_workload_at_arrival^2": -8.114997444608988e-05,
+      "num_in_system_at_arrival^2": -0.001832721258960729,
+      "queue_len_at_arrival^2": -0.002427002317482341
+    },
+    "intercept": 2.074811070839447,
+    "n_samples": 400,
+    "n_train": 320,
+    "n_test": 80
+  },
+  "random_forest_model": {
+    "mae": 5.696281771055773,
+    "r2": 0.806416827607935,
+    "n_estimators": 200,
+    "max_depth": 15,
+    "feature_names": [
+      "system_load",
+      "arrival_rate",
+      "predicted_serving_time",
+      "affect_weight",
+      "queue_len_at_arrival",
+      "num_in_system_at_arrival",
+      "pred_workload_at_arrival"
+    ],
+    "feature_importances": {
+      "system_load": 0.07554666026997003,
+      "arrival_rate": 0.07786917495296236,
+      "predicted_serving_time": 0.1940628891068284,
+      "affect_weight": 0.28948003344812073,
+      "queue_len_at_arrival": 0.10149724307953795,
+      "num_in_system_at_arrival": 0.09952660582460919,
+      "pred_workload_at_arrival": 0.1620173933179715
+    },
+    "n_samples": 400,
+    "n_train": 320,
+    "n_test": 80
+  }
+}

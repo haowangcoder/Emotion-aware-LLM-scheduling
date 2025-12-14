@@ -1,0 +1,65 @@
+{
+  "experiment": "exp1_k_sweep",
+  "purpose": "Demonstrate controllable trade-off via weight_exponent (k)",
+  "parameters": {
+    "k_values": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "fixed": {
+      "w_max": 2.0,
+      "gamma_panic": 0.3,
+      "system_load": 0.9
+    }
+  },
+  "results": {
+    "1": {
+      "avg_waiting_time": 23.050100522790526,
+      "p95_waiting_time": 99.80559572152245,
+      "p99_waiting_time": 144.92554747317527,
+      "aw_jct": 23.97503591733113,
+      "depression_wait": 12.836857190070049,
+      "depression_p99": 60.91356888495741,
+      "jain_index": 0.9367188882007617,
+      "depression_vs_others": 0.48524258358424505
+    },
+    "2": {
+      "avg_waiting_time": 23.44052962914524,
+      "p95_waiting_time": 108.58365535565258,
+      "p99_waiting_time": 151.69558471177317,
+      "aw_jct": 23.544326642566574,
+      "depression_wait": 10.217799606261151,
+      "depression_p99": 34.688067433465115,
+      "jain_index": 0.848654146217776,
+      "depression_vs_others": 0.3669118285791303
+    },
+    "3": {
+      "avg_waiting_time": 24.556484165344806,
+      "p95_waiting_time": 107.31225812264324,
+      "p99_waiting_time": 150.49602433655954,
+      "aw_jct": 24.163565990481576,
+      "depression_wait": 8.450562694010632,
+      "depression_p99": 22.181623513133268,
+      "jain_index": 0.801809430646217,
+      "depression_vs_others": 0.2823902253110823
+    },
+    "4": {
+      "avg_waiting_time": 25.798029860411265,
+      "p95_waiting_time": 109.1460484845245,
+      "p99_waiting_time": 152.23357178424098,
+      "aw_jct": 25.14058557304797,
+      "depression_wait": 9.766708483633893,
+      "depression_p99": 29.522371372807616,
+      "jain_index": 0.7683741010985086,
+      "depression_vs_others": 0.313620514487972
+    }
+  },
+  "findings": {
+    "best_efficiency_k": 1,
+    "best_depression_k": 3,
+    "best_aw_jct_k": 2,
+    "recommended_k": 2
+  }
+}

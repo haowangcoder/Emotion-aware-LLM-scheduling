@@ -1,0 +1,129 @@
+{
+  "experiment": "exp7_burst_traffic",
+  "purpose": "Validate AW-SSJF robustness under bursty MMPP traffic",
+  "burst_configurations": {
+    "mild": {
+      "lambda_high": 1.5,
+      "lambda_low": 0.5,
+      "alpha": 0.2,
+      "beta": 0.1,
+      "intensity": 3.0,
+      "description": "Normal diurnal variation"
+    },
+    "moderate": {
+      "lambda_high": 2.0,
+      "lambda_low": 0.3,
+      "alpha": 0.15,
+      "beta": 0.05,
+      "intensity": 6.7,
+      "description": "Peak hours vs off-peak"
+    },
+    "severe": {
+      "lambda_high": 3.0,
+      "lambda_low": 0.2,
+      "alpha": 0.1,
+      "beta": 0.03,
+      "intensity": 15.0,
+      "description": "Flash crowd / viral event"
+    }
+  },
+  "results_by_burst": {
+    "mild": {
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 57.281505296373616,
+        "p99_waiting_time": 193.08495703004652,
+        "depression_wait": 9.25892938932405,
+        "panic_wait": 35.440334777743246,
+        "aw_jct": 51.44138789220475
+      },
+      "AW-SSJF_k2": {
+        "avg_waiting_time": 53.346267333174,
+        "p99_waiting_time": 186.64838716695837,
+        "depression_wait": 8.939165376033644,
+        "panic_wait": 52.65228689184847,
+        "aw_jct": 49.43367741029921
+      },
+      "FCFS": {
+        "avg_waiting_time": 56.97705891385104,
+        "p99_waiting_time": 129.54060994308418,
+        "depression_wait": 49.2868804772757,
+        "panic_wait": 54.42309430113497,
+        "aw_jct": 59.710003943766424
+      },
+      "SJF": {
+        "avg_waiting_time": 48.7080694605353,
+        "p99_waiting_time": 201.31357166661965,
+        "depression_wait": 41.52621972402559,
+        "panic_wait": 83.31011688223543,
+        "aw_jct": 51.189368644449154
+      }
+    },
+    "moderate": {
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 28.31253389268084,
+        "p99_waiting_time": 111.48808160407792,
+        "depression_wait": 5.889880988137865,
+        "panic_wait": 11.622560658342673,
+        "aw_jct": 26.643370345191506
+      },
+      "AW-SSJF_k2": {
+        "avg_waiting_time": 26.865116268684105,
+        "p99_waiting_time": 108.42747914057671,
+        "depression_wait": 5.793253933923387,
+        "panic_wait": 19.431191220171286,
+        "aw_jct": 26.026360014358737
+      },
+      "FCFS": {
+        "avg_waiting_time": 27.501940423537917,
+        "p99_waiting_time": 84.08672372248186,
+        "depression_wait": 27.253731123941087,
+        "panic_wait": 24.799226755983664,
+        "aw_jct": 29.95795101356821
+      },
+      "SJF": {
+        "avg_waiting_time": 22.777355937053393,
+        "p99_waiting_time": 130.40350841995823,
+        "depression_wait": 21.284421069162036,
+        "panic_wait": 31.84839281547768,
+        "aw_jct": 25.45146346080818
+      }
+    },
+    "severe": {
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 25.799902551763488,
+        "p99_waiting_time": 103.86886578451151,
+        "depression_wait": 7.277267893762578,
+        "panic_wait": 21.23317246323859,
+        "aw_jct": 25.319380727897762
+      },
+      "AW-SSJF_k2": {
+        "avg_waiting_time": 25.28230290710254,
+        "p99_waiting_time": 106.2814639989037,
+        "depression_wait": 9.296683415384281,
+        "panic_wait": 27.035652293026796,
+        "aw_jct": 25.60759388750819
+      },
+      "FCFS": {
+        "avg_waiting_time": 23.59897616445346,
+        "p99_waiting_time": 100.44307313006472,
+        "depression_wait": 25.521837023706425,
+        "panic_wait": 25.58460647469794,
+        "aw_jct": 26.44411506586419
+      },
+      "SJF": {
+        "avg_waiting_time": 21.535655365579554,
+        "p99_waiting_time": 109.91871018874694,
+        "depression_wait": 26.331247385950075,
+        "panic_wait": 25.283797053158633,
+        "aw_jct": 24.27025736175877
+      }
+    }
+  },
+  "findings": {
+    "depression_speedup_severe": 3.6182874906280227,
+    "FCFS_degradation_ratio": 0.4141838244079072,
+    "SJF_degradation_ratio": 0.44213732147664714,
+    "AW-SSJF_k2_degradation_ratio": 0.4739282459858339,
+    "AW-SSJF_k4_degradation_ratio": 0.45040545667009263
+  }
+}
