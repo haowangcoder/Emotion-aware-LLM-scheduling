@@ -6,45 +6,38 @@ An affect-aware GPU task scheduling system for LLM inference workloads that impl
 
 This project implements a novel scheduling framework that:
 
-- **BERT-based Length Prediction**: Uses a BERT proxy model to predict LLM output token length (service time)
-- **Depression-First Strategy**: Prioritizes users with negative emotional states (low valence + low arousal)
-- **WSPT Scheduling**: Implements Weighted Shortest Processing Time rule: `Score = S / w`
-- **Russell Quadrant Analysis**: Evaluates fairness across four emotional quadrants (excited, calm, panic, depression)
+- **BERT Bucket Length Prediction**: Uses a BERT bucket classifier + expected value to estimate output length → service time
+- **Affect Weighting**: Depression-First urgency (v1 hard gating) plus optional v2 soft/dual-channel variants
+- **WSPT-Style Scheduling**: Scores jobs with `Score = S / w^k` (k = `weight_exponent`, configurable)
+- **Fairness Analysis**: Reports per-Russell-quadrant latency and Jain fairness indices
+- **Experiment Modes**: Fixed job count (`fixed_jobs`) and throughput-in-window (`time_window`), plus optional bursty arrivals (MMPP)
 
 ### Key Design Principles
 
 | Component | Design |
 |-----------|--------|
-| **Service Time** | BERT proxy model prediction (content-based) |
+| **Service Time** | Prompt-based length→time prediction (content-based) |
 | **Emotion Role** | Affects scheduling weight (priority) |
-| **Scheduling** | Unified WSPT framework |
-| **Fairness Goal** | Depression-First prioritization |
+| **Scheduling** | `S / w^k` with optional robustness knobs |
+| **Fairness Goal** | Prioritize vulnerable users without collapsing throughput |
 
 ## Quick Start
 
-**Run with FCFS baseline:**
+Note: `run_simulation.py` runs real HuggingFace model inference (and may download weights on first run).
+
+**Run with FCFS baseline (fixed-jobs mode):**
 ```bash
-uv run python run_simulation.py --scheduler FCFS --num_jobs 50 --verbose
+uv run python run_simulation.py --mode fixed_jobs --scheduler FCFS --num_jobs 50 --output_dir results/quickstart --force_new_job_config
 ```
 
-**Run AW-SSJF scheduler (main algorithm):**
+**Run AW-SSJF scheduler on the same saved workload (apples-to-apples):**
 ```bash
-uv run python run_simulation.py --scheduler AW-SSJF --num_jobs 50 --w_max 2.0
+uv run python run_simulation.py --mode fixed_jobs --scheduler AW-SSJF --num_jobs 50 --w_max 2.0 --weight_exponent 4 --output_dir results/quickstart --use_saved_job_config
 ```
 
-**Compare schedulers:**
+**Time-window throughput mode:**
 ```bash
-# FCFS baseline
-uv run python run_simulation.py --scheduler FCFS --num_jobs 100 --random_seed 42 --output_dir results/
-
-# SJF (pure shortest-job-first, equivalent to w_max=1)
-uv run python run_simulation.py --scheduler SJF --num_jobs 100 --output_dir results/
-
-# AW-SSJF (affect-weighted)
-uv run python run_simulation.py --scheduler AW-SSJF --num_jobs 100 --w_max 2.0 --output_dir results/
-
-# Weight-Only (pure affect priority, ignores service time)
-uv run python run_simulation.py --scheduler Weight-Only --num_jobs 100 --w_max 2.0 --output_dir results/
+uv run python run_simulation.py --mode time_window --scheduler AW-SSJF --simulation_duration 120 --num_jobs 80 --output_dir results/quickstart_time_window
 ```
 
 ## Table of Contents
@@ -87,6 +80,8 @@ uv sync
 
 ### 3. Additional Setup
 
+**Python Version**: This repo targets Python **3.12** (see `.python-version`).
+
 **HuggingFace Authentication** (required for gated models like LLaMA):
 ```bash
 uv run huggingface-cli login
@@ -95,12 +90,14 @@ uv run huggingface-cli login
 **Download EmpatheticDialogues Dataset:**
 
 ```bash
-# Download and extract
+# Download and extract (expects CSVs at dataset/train.csv, dataset/valid.csv, dataset/test.csv)
+mkdir -p dataset
 wget https://dl.fbaipublicfiles.com/parlai/empatheticdialogues/empatheticdialogues.tar.gz
-tar -xzf empatheticdialogues.tar.gz -C dataset/
+tar -xzf empatheticdialogues.tar.gz
+mv empatheticdialogues/*.csv dataset/
 
 # Verify
-ls dataset/empatheticdialogues/
+ls dataset/
 # Expected: train.csv, valid.csv, test.csv
 ```
 
@@ -122,7 +119,7 @@ ls dataset/empatheticdialogues/
 │        │                  │                  │                  │          │
 │        │            ┌─────┴─────┐      ┌─────┴─────┐      ┌─────┴─────┐    │
 │        │            │ arousal   │      │ predicted │      │  Score =  │    │
-│        │            │ valence   │      │ service   │      │   S / w   │    │
+│        │            │ valence   │      │ service   │      │ S / w^k  │    │
 │        │            │ quadrant  │      │ time (Ŝ)  │      │           │    │
 │        │            └───────────┘      └───────────┘      └───────────┘    │
 │        │                  │                                     │          │
@@ -159,18 +156,22 @@ Emotion-aware-LLM-scheduling/
 │   ├── core/                   # Core scheduling logic
 │   │   ├── job.py              # Job data structure
 │   │   ├── emotion.py          # Emotion sampling & Russell quadrants
-│   │   ├── affect_weight.py    # Depression-First weight calculation
+│   │   ├── affect_weight.py    # Depression-First weight calculation (v1)
+│   │   ├── affect_weight_v2.py # Soft/dual-channel weights + presets (v2)
 │   │   ├── scheduler_base.py   # Base scheduler & FCFS/SJF
 │   │   ├── aw_ssjf_scheduler.py    # AW-SSJF scheduler (main)
-│   │   └── weight_only_scheduler.py # Weight-Only scheduler (ablation)
+│   │   ├── weight_only_scheduler.py # Weight-Only scheduler (ablation)
+│   │   └── adaptive_k_controller.py # Online k control (optional)
 │   │
 │   ├── predictor/              # BERT length prediction
 │   │   ├── bert_predictor.py   # BERT model wrapper
-│   │   └── length_estimator.py # Unified prediction interface
+│   │   ├── length_estimator.py # Unified prediction interface
+│   │   └── early_prompt_generator.py # Prompt + early prediction
 │   │
 │   ├── llm/                    # LLM integration
 │   │   ├── engine.py           # Model loading & generation
 │   │   ├── dataset_loader.py   # Dataset loading
+│   │   ├── inference_handler.py # LLM execution + caching
 │   │   ├── prompt_builder.py   # Prompt construction
 │   │   └── response_cache.py   # Response caching
 │   │
@@ -187,6 +188,11 @@ Emotion-aware-LLM-scheduling/
 │       ├── fairness_metrics.py # Fairness calculations
 │       └── logger.py           # Logging utilities
 │
+├── scripts/                    # Experiment runner scripts (bash)
+├── experiments/                # Experiment sweep + aggregation scripts (Python)
+├── analysis/                   # Plotting scripts (Python)
+├── slurm/                      # Slurm jobs (optional)
+├── tools/                      # NRC-VAD extraction utilities
 └── results/                    # Experiment outputs
 ```
 
@@ -196,14 +202,16 @@ Emotion-aware-LLM-scheduling/
 
 ### 1. BERT Length Prediction
 
-Service time is predicted by a BERT proxy model (content-based, emotion-independent):
+Service time is predicted by a BERT bucket predictor (content-based, emotion-independent):
 
 ```
-Service Time = const_latency + predicted_tokens × per_token_latency
+T_mean = Σ(q_i × m_i)                    # expected output token length
+Service Time = const_latency + T_mean × per_token_latency
 ```
 
 Where:
-- `predicted_tokens`: BERT regression model output (0-512 tokens)
+- `q_i`: predicted probability of token-length bin i (bucket classifier)
+- `m_i`: midpoint of bin i (from `model-serving/predictor/models/bin_edges.npy`)
 - `per_token_latency`: Time per generated token (default: 0.02s)
 - `const_latency`: Fixed overhead (default: 0.1s)
 
@@ -230,17 +238,20 @@ Where:
 
 **Key Property**: Only users with BOTH negative valence AND low arousal get priority boost.
 
+**v2.0 (optional)**: The scheduler also supports soft gating (`soft`) and dual-channel weighting (`dual`) that can give limited priority to the panic quadrant via `gamma_panic` (see `model-serving/core/affect_weight_v2.py`).
+
 ### 3. WSPT Scheduling Rule
 
 Jobs are sorted by WSPT score (lower = higher priority):
 
 ```
-Score_i = S_i / w_i
+Score_i = S_i / w_i^k
 ```
 
 Where:
 - `S_i`: Predicted service time (from BERT)
 - `w_i`: Affect weight (from Depression-First formula)
+- `k`: Weight exponent (`scheduler.weight_exponent`) to tune fairness/throughput trade-off
 
 ### 4. Russell Quadrant Classification
 
@@ -250,7 +261,7 @@ Emotions are classified into four quadrants based on valence and arousal:
 |----------|---------|---------|------------------|----------------|
 | **Excited** | ≥ 0 | ≥ 0 | excited, joyful, surprised | None (w=1) |
 | **Calm** | ≥ 0 | < 0 | hopeful, grateful, content | None (w=1) |
-| **Panic** | < 0 | ≥ 0 | terrified, anxious, angry | None (w=1) |
+| **Panic** | < 0 | ≥ 0 | terrified, anxious, angry | None in v1 hard gating; optional boost in v2 dual-channel |
 | **Depression** | < 0 | < 0 | sad, lonely, disappointed | Yes (w>1) |
 
 ---
@@ -265,11 +276,22 @@ scheduler:
   algorithm: 'FCFS'  # FCFS | SJF | SSJF | AW-SSJF | Weight-Only
   system_load: 0.6
 
-  # Affect Weight Parameters (Depression-First)
+  # AW-SSJF scoring: Score = S / w^k
+  weight_exponent: 4.0
+
+  # Optional robustness knobs (AW-SSJF)
+  use_robust_scoring: false            # Score = log(S+1) / w^k
+  use_conservative_prediction: false   # S := margin * S before scoring
+  conservative_margin: 1.3
+
+  # Affect Weight Parameters
   affect_weight:
+    # Can be 'hard' | 'soft' | 'dual' or a preset name (see core/affect_weight_v2.py)
+    weight_mode: 'dual_channel_balanced'
     w_max: 2.0         # Maximum weight [1.2, 3.0] recommended
     p: 1.0             # Negative valence exponent
     q: 1.0             # Low arousal exponent
+    gamma_panic: 0.3   # Dual-channel only
     use_confidence: true
 
   # Starvation Prevention
@@ -277,12 +299,14 @@ scheduler:
     threshold: .inf
     coefficient: 3.0
 
-# BERT Length Predictor
+# BERT Bucket Length Predictor
 length_predictor:
-  enabled: false       # Disabled by default (requires trained model)
-  model_path: 'predictor/models/bert_regression.pth'
-  model_name: 'bert-base-uncased'
+  enabled: true
+  model_path: 'predictor/models/bert_bucket'        # HuggingFace model directory
+  bin_edges_path: 'predictor/models/bin_edges.npy'  # Bin edges
+  model_name: 'distilbert-base-uncased'
   device: 'cuda'
+  num_bins: 5
   per_token_latency: 0.02
   const_latency: 0.1
   default_service_time: 2.0
@@ -297,6 +321,12 @@ workload:
     enable_emotion_aware: true
     use_stratified_sampling: true
     quadrant_distribution: uniform  # Balanced across 4 quadrants
+
+dataset:
+  emotion_dataset_path: './dataset'
+
+output:
+  results_dir: 'results/llm_runs/'
 ```
 
 ### Command-Line Arguments
@@ -304,28 +334,60 @@ workload:
 ```bash
 uv run python run_simulation.py \
   --scheduler AW-SSJF \
+  --mode fixed_jobs \
   --num_jobs 100 \
   --w_max 2.0 \
+  --weight_exponent 4 \
   --p 1.0 \
   --q 1.0 \
   --system_load 0.6 \
-  --output_dir results/
+  --output_dir results/llm_runs/
 ```
 
-| Argument | Description | Default |
-|----------|-------------|---------|
-| `--scheduler` | Algorithm: FCFS, SJF, SSJF, AW-SSJF, Weight-Only | FCFS |
-| `--num_jobs` | Number of jobs to run | 50 |
-| `--w_max` | Maximum affect weight | 2.0 |
-| `--p` | Negative valence exponent | 1.0 |
-| `--q` | Low arousal exponent | 1.0 |
-| `--use_confidence` / `--no_confidence` | Enable/disable confidence discount | enabled |
-| `--system_load` | Target system utilization (ρ) | 0.6 |
-| `--random_seed` | Random seed for reproducibility | None |
-| `--output_dir` | Results output directory | results/ |
-| `--verbose` | Print detailed progress | False |
+Defaults come from `model-serving/config/default.yaml`; CLI flags override config.
+
+| Argument | Purpose |
+|----------|---------|
+| `--scheduler` | Scheduler: FCFS, SJF, SSJF, AW-SSJF, Weight-Only |
+| `--mode` | `fixed_jobs` (latency) or `time_window` (throughput-in-window) |
+| `--num_jobs` | Jobs to generate (fixed_jobs) / trace size seed (time_window) |
+| `--simulation_duration` | Window length in seconds (time_window only) |
+| `--system_load` | Target system load ρ (sets arrival rate λ = ρ / E[S]) |
+| `--w_max`, `--p`, `--q` | Affect weight parameters |
+| `--weight_exponent` | k in `S / w^k` (AW-SSJF only) |
+| `--weight_mode` | `hard` / `soft` / `dual` (v2 weights) |
+| `--mmpp_enabled`, `--mmpp_*` | Enable bursty arrivals (MMPP) |
+| `--disable_predictor` | Disable length predictor (constant service time) |
+| `--model_name`, `--device_map`, `--dtype`, `--load_in_8bit` | LLM runtime options |
+| `--output_dir` | Output directory (writes `cache/` under it) |
+
+Run `uv run python run_simulation.py --help` for the full list.
 
 ---
+
+## Usage
+
+### Fixed-Jobs vs Time-Window
+
+- `fixed_jobs`: schedules a fixed number of jobs until all complete; best for JCT/waiting-time comparisons.
+- `time_window`: schedules jobs for a fixed wall-clock window and counts completions; best for throughput comparisons. The arrival trace is cached to `<output_dir>/cache/time_window_trace.json`.
+
+### Reproducible Comparisons
+
+For fair comparisons across schedulers in `fixed_jobs` mode, reuse the same job config file by keeping a shared `--output_dir`:
+
+```bash
+# Generate and save job config (writes <output_dir>/cache/job_configs.json)
+uv run python run_simulation.py --mode fixed_jobs --scheduler FCFS --num_jobs 80 --output_dir results/compare --force_new_job_config
+
+# Reuse the exact same jobs/prompts
+uv run python run_simulation.py --mode fixed_jobs --scheduler AW-SSJF --num_jobs 80 --output_dir results/compare --use_saved_job_config
+```
+
+### Experiment Scripts
+
+- `bash scripts/run_experiments_fixed.sh` (fixed-jobs comparisons + plots)
+- `bash scripts/run_experiments_time-window.sh` (time-window comparisons + plots)
 
 ## Scheduling Algorithms
 
@@ -336,7 +398,7 @@ uv run python run_simulation.py \
 | **FCFS** | Arrival time | First-Come-First-Serve baseline |
 | **SJF** | `S` | Shortest-Job-First (service time only) |
 | **SSJF** | `S` | Speculative SJF (alias for SJF) |
-| **AW-SSJF** | `S / w` | **Main algorithm**: balances efficiency and fairness |
+| **AW-SSJF** | `S / w^k` | **Main algorithm**: balances efficiency and fairness |
 | **Weight-Only** | `-w` | Pure affect priority (ignores service time) |
 
 ### Experimental Comparisons
@@ -396,12 +458,15 @@ Range: [1/n, 1] where 1 = perfect fairness
 Each experiment produces:
 
 ```
-results/
-├── <SCHEDULER>_<N>jobs_load<LOAD>_fixed_jobs.csv   # Per-job logs
-├── <SCHEDULER>_<N>jobs_load<LOAD>_fixed_summary.json # Statistics
+<output_dir>/
+├── experiment_<timestamp>.log        # Full stdout log
+├── <experiment_name>_jobs.csv        # Per-job logs
+├── <experiment_name>_summary.json    # Aggregated metrics + fairness analysis
+├── adaptive_k_trajectory.json        # Present when adaptive k is enabled
 └── cache/
-    ├── responses.json      # Cached LLM responses
-    └── job_configs.json    # Saved job configurations
+    ├── responses.json                # Cached LLM responses
+    ├── job_configs.json              # Saved job configurations (fixed_jobs mode)
+    └── time_window_trace.json        # Saved arrival trace (time_window mode)
 ```
 
 ### CSV Log Fields
@@ -414,56 +479,31 @@ results/
 | `russell_quadrant` | excited/calm/panic/depression |
 | `affect_weight` | Computed weight (w ≥ 1) |
 | `urgency` | Depression urgency (u ∈ [0, 1]) |
-| `predicted_service_time` | BERT prediction (or default) |
-| `actual_execution_duration` | Measured execution time |
-| `arrival_time`, `completion_time` | Timestamps |
-| `waiting_duration` | Time in queue |
+| `predicted_serving_time` | Predicted service time used for scheduling |
+| `actual_serving_time` | Measured inference time (cache hit or real generation) |
+| `arrival_time`, `start_time`, `finish_time` | Timestamps |
+| `waiting_time`, `turnaround_time` | Queueing + completion metrics |
+| `output_token_length`, `cached`, `model_name` | LLM-related fields |
 
-### Summary JSON Structure
+### Summary JSON
 
-```json
-{
-  "experiment_config": {
-    "scheduler": "AW-SSJF",
-    "w_max": 2.0,
-    "p": 1.0,
-    "q": 1.0
-  },
-  "performance_metrics": {
-    "avg_jct": 5.32,
-    "avg_waiting_time": 2.45,
-    "p99_jct": 12.34,
-    "throughput": 3.2
-  },
-  "fairness_metrics": {
-    "jain_index": 0.92,
-    "aw_jct": 4.87,
-    "quadrant_analysis": {
-      "depression": {"avg_wait": 1.8, "count": 12},
-      "panic": {"avg_wait": 2.5, "count": 15},
-      "calm": {"avg_wait": 2.6, "count": 11},
-      "excited": {"avg_wait": 2.9, "count": 12}
-    }
-  }
-}
-```
+`<experiment_name>_summary.json` includes run metadata, overall metrics (waiting/JCT/throughput), per-quadrant metrics, and a serialized fairness analysis (Jain index, CV, and related breakdowns).
 
 ---
 
 ## Troubleshooting
 
-### Issue 1: BERT Predictor Not Available
+### Issue 1: Length Predictor Not Available / Disabled
 
 **Symptoms:**
 ```
-length_predictor.enabled: false
-Using default_service_time: 2.0
+⚠ Predictor not available, using default service time
 ```
 
 **Solution:**
-The BERT predictor requires a trained model. Either:
-1. Train the model using `output-token-len-prediction/` scripts
-2. Use the default service time (system still works without BERT)
+- Ensure `model-serving/predictor/models/bert_bucket/` and `model-serving/predictor/models/bin_edges.npy` exist.
+- To run without the predictor, pass `--disable_predictor` (uses `default_service_time`).
+- To retrain, see `model-serving/predictor/training/` (helper script: `scripts/predictor/train.sh`).
 
 ### Issue 2: CUDA Out of Memory
 
