@@ -86,7 +86,7 @@ def plot_scheduler_comparison_barplot(results: Dict[str, Dict],
         output_path: Path to save the figure
     """
     if metrics is None:
-        metrics = ['avg_waiting_time', 'p99_waiting_time', 'avg_jct', 'throughput']
+        metrics = ['avg_waiting_time', 'p99_waiting_time', 'avg_jct', 'throughput_p25']
 
     num_metrics = len(metrics)
     fig, axes = plt.subplots(1, num_metrics, figsize=(5*num_metrics, 5))
@@ -414,7 +414,7 @@ def plot_percentile_throughput(results: Dict[str, Dict],
     ax.set_title('Percentile Throughput Comparison\n(Higher is Better)')
     ax.set_xticks(x + width * 1.5)
     ax.set_xticklabels(short_names, rotation=45, ha='right')
-    ax.legend(title='Completion %')
+    ax.legend(title='Completion %', loc='upper center', bbox_to_anchor=(0.5, -0.32), ncol=4)
     ax.grid(axis='y', alpha=0.3)
 
     plt.tight_layout()
@@ -856,7 +856,7 @@ def plot_affect_weight_distribution(dfs: Dict[str, pd.DataFrame],
     schedulers = list(dfs.keys())
     short_names = [_shorten_scheduler_name(s) for s in schedulers]
     num_dfs = len(dfs)
-    cols = min(num_dfs, 3)
+    cols = min(num_dfs, 2)
     rows = (num_dfs + cols - 1) // cols
     fig, axes = plt.subplots(rows, cols, figsize=(5*cols, 6*rows), sharey=True)
 

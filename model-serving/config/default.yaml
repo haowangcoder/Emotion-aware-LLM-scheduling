@@ -92,7 +92,7 @@ scheduler:
   # k=1: standard WSPT (service time dominates)
   # k=2: squared weights (recommended, balances S and w influence)
   # k=3+: stronger weight influence (may hurt efficiency)
-  weight_exponent: 4.0               # 2.0 = squared weights (w² amplification)
+  weight_exponent: 2.0               # 2.0 = squared weights (w² amplification)
 
   # Starvation Prevention
   starvation_prevention:

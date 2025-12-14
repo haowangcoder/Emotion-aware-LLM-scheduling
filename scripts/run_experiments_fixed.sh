@@ -21,7 +21,7 @@ set -e  # Exit on error
 # CONFIGURATION
 # ============================================================================
 MODE="fixed_jobs"
-NUM_JOBS=80
+NUM_JOBS=100
 RANDOM_SEED=42
 
 # Schedulers to compare (updated to new naming convention)
