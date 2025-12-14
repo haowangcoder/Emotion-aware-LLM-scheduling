@@ -240,23 +240,17 @@ def plot_pareto_scatter(
                            marker=markers.get(name, 'x'), s=150, label=name,
                            edgecolors='black', linewidth=1.5, zorder=4)
 
-    # Ideal point (lower-left corner)
-    ax.annotate('Ideal\n(low wait, low depression wait)',
-                xy=(ax.get_xlim()[0] * 1.05, ax.get_ylim()[0] * 1.05),
-                fontsize=9, color='green', alpha=0.7)
+    # Ideal point annotation (lower-left corner, using axes transform for stable positioning)
+    ax.text(0.02, 0.02, 'Ideal\n(low wait, low depression wait)',
+            transform=ax.transAxes, fontsize=9, color='green', alpha=0.8,
+            verticalalignment='bottom', horizontalalignment='left',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='green', alpha=0.7))
 
     ax.set_xlabel('Average Waiting Time (seconds) - Efficiency', fontsize=12)
     ax.set_ylabel('Depression Waiting Time (seconds) - Fairness', fontsize=12)
     ax.set_title('Pareto Trade-off: Efficiency vs Fairness\n(AW-SSJF with different k values)', fontsize=14)
     ax.grid(True, alpha=0.3)
     ax.legend(loc='upper right')
-
-    # Add arrow showing trade-off direction
-    ax.annotate('', xy=(x[-1], y[-1]), xytext=(x[0], y[0]),
-                arrowprops=dict(arrowstyle='->', color='blue', lw=2, alpha=0.5))
-    ax.text((x[0] + x[-1]) / 2, (y[0] + y[-1]) / 2 + 2,
-            'k increases →\nMore emotion priority',
-            fontsize=10, ha='center', color='blue', alpha=0.7)
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
