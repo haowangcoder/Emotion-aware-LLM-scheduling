@@ -28,9 +28,30 @@ plt.rcParams.update({
 })
 
 # =================--- Data Loading ---=================
-# Data for Left Panel (from exp4_online report)
-sjf_waits = {'Panic': 18.17, 'Depression': 16.46, 'Excited': 10.43, 'Calm': 8.98}
-awssjf_waits = {'Panic': 10.54, 'Depression': 7.50, 'Excited': 20.35, 'Calm': 16.68}
+# Data for Left Panel (dynamically loaded from exp4_online report)
+exp4_report_path = Path("results/experiments/exp4_online/plots/exp4_report.json")
+with open(exp4_report_path) as f:
+    exp4_data = json.load(f)
+
+# Extract per-quadrant waiting times from exp4 results
+# SJF data
+sjf_quadrant_data = exp4_data['results']['SJF']['summary']['per_quadrant_metrics']
+sjf_waits = {
+    'Panic': round(sjf_quadrant_data['panic']['avg_waiting_time'], 2),
+    'Depression': round(sjf_quadrant_data['depression']['avg_waiting_time'], 2),
+    'Excited': round(sjf_quadrant_data['excited']['avg_waiting_time'], 2),
+    'Calm': round(sjf_quadrant_data['calm']['avg_waiting_time'], 2),
+}
+
+# AW-SSJF (Online) data
+awssjf_quadrant_data = exp4_data['results']['Online']['summary']['per_quadrant_metrics']
+awssjf_waits = {
+    'Panic': round(awssjf_quadrant_data['panic']['avg_waiting_time'], 2),
+    'Depression': round(awssjf_quadrant_data['depression']['avg_waiting_time'], 2),
+    'Excited': round(awssjf_quadrant_data['excited']['avg_waiting_time'], 2),
+    'Calm': round(awssjf_quadrant_data['calm']['avg_waiting_time'], 2),
+}
+
 quadrants = ['Panic', 'Depression', 'Excited', 'Calm']
 
 # Create a DataFrame for easy plotting with seaborn

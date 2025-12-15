@@ -229,6 +229,17 @@ def run_emotion_aware_experiment(args) -> None:
             def _trace_matches(cached_meta, expected_meta):
                 if not cached_meta:
                     return False
+                # If this is a unified trace (for load sweep experiments),
+                # skip validation of load-dependent fields
+                if cached_meta.get('unified_trace', False):
+                    skip_keys = {'arrival_rate', 'system_load'}
+                    for key, val in expected_meta.items():
+                        if key in skip_keys:
+                            continue
+                        if cached_meta.get(key) != val:
+                            return False
+                    return True
+                # Standard validation: all fields must match
                 for key, val in expected_meta.items():
                     if cached_meta.get(key) != val:
                         return False

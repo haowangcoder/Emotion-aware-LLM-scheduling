@@ -1,0 +1,136 @@
+{
+  "experiment": "exp8_load_sweep_timewindow",
+  "purpose": "Demonstrate results across different load levels (time_window mode)",
+  "mode": "time_window",
+  "parameters": {
+    "load_values": [
+      0.5,
+      0.7,
+      0.9,
+      1.0,
+      1.2
+    ],
+    "schedulers": [
+      "AW-SSJF_k2",
+      "AW-SSJF_k4",
+      "SJF"
+    ]
+  },
+  "results_by_load": {
+    "0.5": {
+      "AW-SSJF_k2": {
+        "avg_waiting_time": 1.5678408760885776,
+        "p99_waiting_time": 6.502194834887961,
+        "throughput": 0.27,
+        "jobs_completed": null,
+        "depression_wait": 1.6150951074632698
+      },
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 1.5678408760885776,
+        "p99_waiting_time": 6.502194834887961,
+        "throughput": 0.27,
+        "jobs_completed": null,
+        "depression_wait": 1.6150951074632698
+      },
+      "SJF": {
+        "avg_waiting_time": 1.4903228897909704,
+        "p99_waiting_time": 12.35137646844502,
+        "throughput": 0.27,
+        "jobs_completed": null,
+        "depression_wait": 3.286065666583447
+      }
+    },
+    "0.7": {
+      "AW-SSJF_k2": {
+        "avg_waiting_time": 3.4745118112054936,
+        "p99_waiting_time": 9.982532110375796,
+        "throughput": 0.36,
+        "jobs_completed": null,
+        "depression_wait": 2.3854298830114353
+      },
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 3.4745118112054936,
+        "p99_waiting_time": 9.982532110375796,
+        "throughput": 0.36,
+        "jobs_completed": null,
+        "depression_wait": 2.3854298830114353
+      },
+      "SJF": {
+        "avg_waiting_time": 2.4412981843532884,
+        "p99_waiting_time": 15.36473393256707,
+        "throughput": 0.37,
+        "jobs_completed": null,
+        "depression_wait": 3.495599874838227
+      }
+    },
+    "0.9": {
+      "AW-SSJF_k2": {
+        "avg_waiting_time": 5.817245339963806,
+        "p99_waiting_time": 18.523971637440606,
+        "throughput": 0.4,
+        "jobs_completed": null,
+        "depression_wait": 4.034549141549671
+      },
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 6.410467906721719,
+        "p99_waiting_time": 21.049073126925364,
+        "throughput": 0.41,
+        "jobs_completed": null,
+        "depression_wait": 3.9406026846404907
+      },
+      "SJF": {
+        "avg_waiting_time": 4.034238568977671,
+        "p99_waiting_time": 27.767071106438557,
+        "throughput": 0.43,
+        "jobs_completed": null,
+        "depression_wait": 6.591412354304189
+      }
+    },
+    "1.0": {
+      "AW-SSJF_k2": {
+        "avg_waiting_time": 7.195692267270148,
+        "p99_waiting_time": 26.05745902163269,
+        "throughput": 0.42,
+        "jobs_completed": null,
+        "depression_wait": 4.91850731984898
+      },
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 7.645042630002445,
+        "p99_waiting_time": 22.613079468372487,
+        "throughput": 0.42,
+        "jobs_completed": null,
+        "depression_wait": 5.096947115819897
+      },
+      "SJF": {
+        "avg_waiting_time": 4.3482527473426,
+        "p99_waiting_time": 34.37033383447301,
+        "throughput": 0.45,
+        "jobs_completed": null,
+        "depression_wait": 4.137536629150432
+      }
+    },
+    "1.2": {
+      "AW-SSJF_k2": {
+        "avg_waiting_time": 7.685346851342146,
+        "p99_waiting_time": 26.583141201500883,
+        "throughput": 0.43,
+        "jobs_completed": null,
+        "depression_wait": 5.518100522914253
+      },
+      "AW-SSJF_k4": {
+        "avg_waiting_time": 7.613437619694542,
+        "p99_waiting_time": 25.629962798591958,
+        "throughput": 0.44,
+        "jobs_completed": null,
+        "depression_wait": 5.134792912674952
+      },
+      "SJF": {
+        "avg_waiting_time": 3.0443819278609565,
+        "p99_waiting_time": 16.570282509907553,
+        "throughput": 0.47,
+        "jobs_completed": null,
+        "depression_wait": 3.964169034031769
+      }
+    }
+  }
+}

@@ -175,7 +175,7 @@ def run_scheduling_loop(
                 print("Set LLM_SKIP_ON_ERROR=True to skip failed jobs instead")
                 break
 
-        # Advance time (uses actual LLM time if available, otherwise predicted)
+        # Advance time
         actual_time = selected_job.actual_execution_duration or selected_job.execution_duration
         current_time += actual_time
         selected_job.completion_time = current_time
@@ -506,18 +506,23 @@ def run_scheduling_loop_time_window(
         current_time += actual_time
         selected_job.completion_time = current_time
         selected_job.status = "COMPLETED"
-        
+
         scheduler.on_job_completed(selected_job, current_time)
         completed_jobs.append(selected_job)
-        
+
         # Stop if exceeded time window
         if current_time >= simulation_duration:
             if verbose:
                 print(f"  Reached time window limit: {simulation_duration}s")
             break
-    
-    # Compute metrics
-    metrics = compute_time_window_metrics(completed_jobs, simulation_duration)
+
+    # Capture pending jobs (still waiting when window ended)
+    pending_jobs = list(waiting_queue)
+
+    # Compute metrics (including adjusted metrics for pending jobs)
+    metrics = compute_time_window_metrics(
+        completed_jobs, simulation_duration, pending_jobs=pending_jobs
+    )
     
     if verbose:
         print(f"\n=== Time Window Completed ===")
@@ -529,18 +534,24 @@ def run_scheduling_loop_time_window(
     return completed_jobs, metrics
 
 
-def compute_time_window_metrics(completed_jobs: List[Job], simulation_duration: float) -> dict:
+def compute_time_window_metrics(
+    completed_jobs: List[Job],
+    simulation_duration: float,
+    pending_jobs: List[Job] = None,
+) -> dict:
     """
     Compute metrics for time-window experiment.
-    
+
     Args:
         completed_jobs: List of completed jobs
         simulation_duration: Total simulation time
-    
+        pending_jobs: Jobs still waiting when window ended (for adjusted metrics)
+
     Returns:
-        Dictionary of metrics
+        Dictionary of metrics including adjusted tail latencies
     """
-    if not completed_jobs:
+    pending_jobs = pending_jobs or []
+    if not completed_jobs and not pending_jobs:
         return {
             "total_jobs": 0,
             "total_time": simulation_duration,
@@ -556,6 +567,14 @@ def compute_time_window_metrics(completed_jobs: List[Job], simulation_duration: 
             "estimated_arrival_rate": 0.0,
             "avg_actual_execution_time": None,
             "effective_load": None,
+            # Adjusted metrics
+            "total_arrived": 0,
+            "total_pending": 0,
+            "completion_rate": 1.0,
+            "adjusted_p95_waiting_time": 0.0,
+            "adjusted_p99_waiting_time": 0.0,
+            "adjusted_p95_jct": 0.0,
+            "adjusted_p99_jct": 0.0,
         }
 
     total_jobs = len(completed_jobs)
@@ -601,6 +620,43 @@ def compute_time_window_metrics(completed_jobs: List[Job], simulation_duration: 
     avg_actual_exec = np.mean(actual_exec_times) if actual_exec_times else None
     effective_load = estimated_arrival_rate * avg_actual_exec if avg_actual_exec else None
 
+    # === Completion statistics ===
+    total_completed = len(completed_jobs)
+    total_pending = len(pending_jobs)
+    total_arrived = total_completed + total_pending
+    completion_rate = total_completed / total_arrived if total_arrived > 0 else 1.0
+
+    # === Censored waiting times (lower bounds for pending jobs) ===
+    # For jobs still waiting: wait_time >= simulation_duration - arrival_time
+    censored_waiting_times = [
+        simulation_duration - job.arrival_time
+        for job in pending_jobs
+        if job.arrival_time is not None
+    ]
+
+    # === Adjusted percentiles (including pending jobs) ===
+    all_waiting_times = list(waiting_times) + censored_waiting_times
+    if all_waiting_times:
+        adjusted_p95_waiting = np.percentile(all_waiting_times, 95)
+        adjusted_p99_waiting = np.percentile(all_waiting_times, 99)
+    else:
+        adjusted_p95_waiting = adjusted_p99_waiting = 0.0
+
+    # === Adjusted JCT (including pending jobs) ===
+    # For pending jobs: JCT >= (wait_lower_bound) + expected_service_time
+    avg_service = np.mean([j.execution_duration for j in completed_jobs]) if completed_jobs else 2.0
+    censored_jcts = [
+        (simulation_duration - job.arrival_time) + (job.execution_duration or avg_service)
+        for job in pending_jobs
+        if job.arrival_time is not None
+    ]
+    all_jcts = list(jcts) + censored_jcts
+    if all_jcts:
+        adjusted_p95_jct = np.percentile(all_jcts, 95)
+        adjusted_p99_jct = np.percentile(all_jcts, 99)
+    else:
+        adjusted_p95_jct = adjusted_p99_jct = 0.0
+
     return {
         "total_jobs": total_jobs,
         "total_time": simulation_duration,
@@ -616,6 +672,14 @@ def compute_time_window_metrics(completed_jobs: List[Job], simulation_duration: 
         "estimated_arrival_rate": float(estimated_arrival_rate),
         "avg_actual_execution_time": float(avg_actual_exec) if avg_actual_exec else None,
         "effective_load": float(effective_load) if effective_load else None,
+        # Adjusted metrics (including pending jobs)
+        "total_arrived": total_arrived,
+        "total_pending": total_pending,
+        "completion_rate": float(completion_rate),
+        "adjusted_p95_waiting_time": float(adjusted_p95_waiting),
+        "adjusted_p99_waiting_time": float(adjusted_p99_waiting),
+        "adjusted_p95_jct": float(adjusted_p95_jct),
+        "adjusted_p99_jct": float(adjusted_p99_jct),
     }
 
 

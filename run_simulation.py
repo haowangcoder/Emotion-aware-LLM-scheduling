@@ -6,13 +6,12 @@ This script provides a clean entry point to run the emotion-aware LLM scheduling
 simulator from the project root directory.
 
 - Jobs arrive continuously at rate λ = system_load / E[S]
-- Simulation runs for a fixed duration (simulation_time)
-- After deadline, remaining queue drains
-- Metrics tracked: jobs completed by deadline vs total
+- Simulation runs for a fixed duration (`simulation_duration`)
+- Only jobs completed within the window are counted (jobs finishing after the cutoff are excluded)
 
 Usage:
-    python run_simulation.py --scheduler FCFS --simulation_time 200 --system_load 0.6
-    python run_simulation.py --scheduler SSJF-Emotion --simulation_time 300 --system_load 0.8
+    python run_simulation.py --mode time_window --scheduler FCFS --simulation_duration 200 --system_load 0.6
+    python run_simulation.py --mode time_window --scheduler SJF --simulation_duration 300 --system_load 0.8
     python run_simulation.py --help
 
 For detailed documentation, see: model-serving/simulator/
